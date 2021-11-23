@@ -1,0 +1,5 @@
+/.obj
+/bin
+/msvc/.vs
+*.user
+/src/.vs
