@@ -6,18 +6,27 @@
 
 namespace zasm
 {
+    static EncoderContext::LabelLink& getOrCreateLabelLink(EncoderContext* ctx, Label::Id id)
+    {
+        const auto labelIdx = static_cast<size_t>(id);
+        if (labelIdx >= ctx->labelLinks.size())
+        {
+            ctx->labelLinks.resize(labelIdx + 1);
+
+            auto& entry = ctx->labelLinks[labelIdx];
+            entry.id = id;
+
+            return entry;
+        }
+        return ctx->labelLinks[labelIdx];
+    }
+
     static std::optional<int64_t> getLabelAddress(EncoderContext* ctx, Label::Id id)
     {
         if (ctx == nullptr)
             return std::nullopt;
 
-        const auto labelIdx = static_cast<size_t>(id);
-        if (labelIdx >= ctx->labelLinks.size())
-        {
-            ctx->labelLinks.resize(labelIdx + 1);
-        }
-
-        const auto& entry = ctx->labelLinks[labelIdx];
+        const auto& entry = getOrCreateLabelLink(ctx, id);
         if (entry.boundOffset == -1)
         {
             return std::nullopt;
@@ -104,14 +113,14 @@ namespace zasm
             const auto rel = target - (va + instrSize);
             if (hint.canEncodeRel8())
             {
-                if (rel >= -rangeRel8 && rel <= rangeRel8)
+                if (std::abs(rel) <= rangeRel8)
                 {
                     return ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_SHORT;
                 }
             }
             if (hint.canEncodeRel32())
             {
-                if (rel > -rangeRel32 && rel < rangeRel32)
+                if (std::abs(rel) <= rangeRel32)
                 {
                     return getBranchTypeNear32(req);
                 }
@@ -123,7 +132,7 @@ namespace zasm
             if (hint.canEncodeRel8())
             {
                 const auto rel = target - (va + hint.encodeSizeRel8);
-                if (rel >= -rangeRel8 && rel <= rangeRel8)
+                if (std::abs(rel) <= rangeRel8)
                 {
                     return ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_SHORT;
                 }
@@ -136,7 +145,7 @@ namespace zasm
             if (hint.canEncodeRel32())
             {
                 const auto rel = target - (va + hint.encodeSizeRel32);
-                if (rel > -rangeRel32 && rel < rangeRel32)
+                if (std::abs(rel) <= rangeRel32)
                 {
                     return getBranchTypeNear32(req);
                 }
