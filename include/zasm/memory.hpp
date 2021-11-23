@@ -20,9 +20,9 @@ namespace zasm::operands
     public:
         constexpr Mem(BitSize bitSize, const Seg& seg, const Reg& base, const Reg& index, uint8_t scale, int64_t disp)
             : _bitSize{ bitSize }
-            , _seg{ seg.id()}
-            , _base{ base.id() }
-            , _index{ index.id() }
+            , _seg{ static_cast<Seg::Id>(seg.id()) }
+            , _base{ static_cast<Reg::Id>(base.id()) }
+            , _index{ static_cast<Reg::Id>(index.id()) }
             , _scale{ scale }
             , _disp{ disp }
             , _label{ Label::Id::Invalid }
@@ -32,9 +32,9 @@ namespace zasm::operands
         constexpr Mem(
             BitSize bitSize, const Seg& seg, const Label& label, const Reg& base, const Reg& index, uint8_t scale, int64_t disp)
             : _bitSize{ bitSize }
-            , _seg{ seg.id() }
-            , _base{ base.id() }
-            , _index{ index.id() }
+            , _seg{ static_cast<Seg::Id>(seg.id()) }
+            , _base{ static_cast<Reg::Id>(base.id()) }
+            , _index{ static_cast<Reg::Id>(index.id()) }
             , _scale{ scale }
             , _disp{ disp }
             , _label{ label.getId() }

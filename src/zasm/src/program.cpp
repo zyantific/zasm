@@ -270,21 +270,15 @@ namespace zasm
             return status;
         }
 
-        // Second pass deals with size optimal branches and final position
-        // for all labels.
-        if (auto status = serializePass(); status != Error::None)
+        // Second or more passes.
+        do
         {
-            return status;
-        }
+            if (auto status = serializePass(); status != Error::None)
+            {
+                return status;
+            }
 
-#ifdef _DEBUG
-        // Validate that this is the most optimal solution.
-        if (auto status = serializePass(); status != Error::None)
-        {
-            return status;
-        }
-        assert(codeDiff == 0);
-#endif
+        } while (encoderCtx.drift > 0);
 
         // Check if all labels were bound, a link entry is added when it encounters a label.
         bool hasUnresolvedLinks = std::any_of(std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks), [](auto&& link)
@@ -352,6 +346,7 @@ namespace zasm
             nodeEntry.length = buf.length;
             nodeEntry.offset = ctx.offset;
         }
+
         ctx.nodeIndex++;
 
         ctx.va += buf.length;

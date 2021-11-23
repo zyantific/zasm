@@ -6,31 +6,36 @@
 
 namespace zasm
 {
+    static EncoderContext::LabelLink& getOrCreateLabelLink(EncoderContext* ctx, Label::Id id)
+    {
+        const auto labelIdx = static_cast<size_t>(id);
+        if (labelIdx >= ctx->labelLinks.size())
+        {
+            ctx->labelLinks.resize(labelIdx + 1);
+
+            auto& entry = ctx->labelLinks[labelIdx];
+            entry.id = id;
+
+            return entry;
+        }
+        return ctx->labelLinks[labelIdx];
+    }
+
     static std::optional<int64_t> getLabelAddress(EncoderContext* ctx, Label::Id id)
     {
         if (ctx == nullptr)
             return std::nullopt;
 
-        const auto labelIdx = static_cast<size_t>(id);
-        if (labelIdx >= ctx->labelLinks.size())
-        {
-            ctx->labelLinks.resize(labelIdx + 1);
-        }
-
-        const auto& entry = ctx->labelLinks[labelIdx];
+        const auto& entry = getOrCreateLabelLink(ctx, id);
         if (entry.boundOffset == -1)
         {
             return std::nullopt;
         }
 
-        const auto labelVA = ctx->baseVA + entry.boundOffset;
-        if(ctx->va < labelVA)
-            return labelVA - ctx->drift;
-
-        return labelVA;
+        return ctx->baseVA + entry.boundOffset;
     }
 
-    struct InstructionHints
+    struct EncodeVariantsInfo
     {
         bool isControlFlow{};
         int32_t encodeSizeRel8{ -1 };
@@ -47,12 +52,12 @@ namespace zasm
         }
     };
 
-    std::optional<InstructionHints> getInstructionHints(ZydisMnemonic mnemonic)
+    std::optional<EncodeVariantsInfo> getEncodeVariantInfo(ZydisMnemonic mnemonic)
     {
         switch (mnemonic)
         {
             case ZYDIS_MNEMONIC_JMP:
-                return InstructionHints{ true, 2, 5 };
+                return EncodeVariantsInfo{ true, 2, 5 };
             case ZYDIS_MNEMONIC_JB:
             case ZYDIS_MNEMONIC_JBE:
             case ZYDIS_MNEMONIC_JCXZ:
@@ -74,13 +79,13 @@ namespace zasm
             case ZYDIS_MNEMONIC_JRCXZ:
             case ZYDIS_MNEMONIC_JS:
             case ZYDIS_MNEMONIC_JZ:
-                return InstructionHints{ true, 2, 6 };
+                return EncodeVariantsInfo{ true, 2, 6 };
             case ZYDIS_MNEMONIC_LOOP:
             case ZYDIS_MNEMONIC_LOOPE:
             case ZYDIS_MNEMONIC_LOOPNE:
-                return InstructionHints{ true, 2, -1 };
+                return EncodeVariantsInfo{ true, 2, -1 };
             case ZYDIS_MNEMONIC_CALL:
-                return InstructionHints{ true, -1, 5 };
+                return EncodeVariantsInfo{ true, -1, 5 };
         }
         return std::nullopt;
     }
@@ -93,91 +98,9 @@ namespace zasm
             return ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NEAR32;
     }
 
-    static ZydisEncodableBranchType getBranchEncodeType(
-        ZydisEncoderRequest& req, const InstructionHints& hint, int64_t va, int64_t target, int32_t instrSize)
+    static int64_t getRelativeAddress(int64_t va, int64_t target, int32_t instrSize)
     {
-        constexpr auto rangeRel8 = std::numeric_limits<int8_t>::max();
-        constexpr auto rangeRel32 = std::numeric_limits<int32_t>::max();
-
-        if (instrSize != 0)
-        {
-            const auto rel = target - (va + instrSize);
-            if (hint.canEncodeRel8())
-            {
-                if (rel >= -rangeRel8 && rel <= rangeRel8)
-                {
-                    return ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_SHORT;
-                }
-            }
-            if (hint.canEncodeRel32())
-            {
-                if (rel > -rangeRel32 && rel < rangeRel32)
-                {
-                    return getBranchTypeNear32(req);
-                }
-            }
-        }
-        else
-        {
-            // Check if it would fit short (rel8).
-            if (hint.canEncodeRel8())
-            {
-                const auto rel = target - (va + hint.encodeSizeRel8);
-                if (rel >= -rangeRel8 && rel <= rangeRel8)
-                {
-                    return ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_SHORT;
-                }
-            }
-
-            // TODO: 16 bit.
-            {
-            }
-
-            if (hint.canEncodeRel32())
-            {
-                const auto rel = target - (va + hint.encodeSizeRel32);
-                if (rel > -rangeRel32 && rel < rangeRel32)
-                {
-                    return getBranchTypeNear32(req);
-                }
-            }
-        }
-
-        return ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE;
-    }
-
-    static int64_t getRelativeAddress(
-        ZydisEncoderRequest& req, const InstructionHints& hint, ZydisEncodableBranchType branchType, int64_t va,
-        int64_t target, int32_t instrSize)
-    {
-        if (instrSize != 0)
-        {
-            if (branchType == ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_SHORT)
-            {
-                return target - (va + instrSize);
-            }
-            else if (
-                branchType == ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NEAR32
-                || branchType == ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NEAR64)
-            {
-                return target - (va + instrSize);
-            }
-        }
-        else
-        {
-            if (branchType == ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_SHORT)
-            {
-                return target - (va + hint.encodeSizeRel8);
-            }
-            else if (
-                branchType == ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NEAR32
-                || branchType == ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NEAR64)
-            {
-                return target - (va + hint.encodeSizeRel32);
-            }
-        }
-        assert(false);
-        return 0;
+        return target - (va + instrSize);
     }
 
     static ZydisInstructionAttributes getPrefixes(Instruction::Prefix prefixes)
@@ -194,6 +117,36 @@ namespace zasm
         return res;
     }
 
+    static std::pair<int64_t, ZydisEncodableBranchType> processRelAddress(ZydisEncoderRequest& req, const EncodeVariantsInfo& info, int64_t va, int64_t targetAddress)
+    {
+        int64_t res{};
+        auto desiredBranchType = ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE;
+
+        if (info.canEncodeRel8())
+        {
+            auto rel = getRelativeAddress(va, targetAddress, info.encodeSizeRel8);
+            if (std::abs(rel) <= std::numeric_limits<int8_t>::max())
+            {
+                res = rel;
+                desiredBranchType = ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_SHORT;
+            }
+        }
+
+        if (desiredBranchType == ZYDIS_ENCODABLE_BRANCH_TYPE_NONE && info.canEncodeRel32())
+        {
+            auto rel = getRelativeAddress(va, targetAddress, info.encodeSizeRel32);
+            if (std::abs(rel) <= std::numeric_limits<int32_t>::max())
+            {
+                res = rel;
+                desiredBranchType = getBranchTypeNear32(req);
+            }
+        }
+
+        assert(desiredBranchType != ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE);
+
+        return { res, desiredBranchType };
+    }
+
     static ZydisEncoderOperand getOperand(
         size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Label& op)
     {
@@ -201,32 +154,24 @@ namespace zasm
 
         auto desiredBranchType = ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE;
 
-        // Initially a temporary placeholder.
-        int64_t immValue = 0x123456;
+        // Initially a temporary placeholder. Make sure this is within rel32 if a 
+        // context is provided.
+        int64_t immValue = ctx ? ctx->va + 0x123456 : 0x123456;
 
         auto labelVA = getLabelAddress(ctx, op.getId());
-        if (index == 0)
-        {
-            const auto instrHints = getInstructionHints(req.mnemonic);
-            if (instrHints.has_value() && instrHints->isControlFlow)
-            {
-                if (req.machine_mode == ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64)
-                    desiredBranchType = ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NEAR64;
-                else
-                    desiredBranchType = ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NEAR32;
 
-                if (labelVA.has_value())
-                {
-                    auto instrSize = ctx->instrSize;
-                    if (instrSize == 0)
-                    {
-                        // Causes to re-encode again with instruction size available.
-                        ctx->instrSize = -1;
-                    }
-                    desiredBranchType = getBranchEncodeType(req, *instrHints, ctx->va, *labelVA, instrSize);
-                    immValue = getRelativeAddress(req, *instrHints, desiredBranchType, ctx->va, *labelVA, instrSize);
-                }
-            }
+        // Check if this operand is used as the control flow target.
+        const auto encodeInfo = getEncodeVariantInfo(req.mnemonic);
+        if (index == 0 && encodeInfo.has_value() && encodeInfo->isControlFlow)
+        {
+            auto targetAddress = labelVA.has_value() ? *labelVA : immValue;
+
+            auto [addrRel, branchType] = processRelAddress(req, *encodeInfo, ctx ? ctx->va : 0, targetAddress);
+
+            immValue = addrRel;
+            desiredBranchType = branchType;
+
+            assert(desiredBranchType != ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE);
         }
         else
         {
@@ -234,6 +179,35 @@ namespace zasm
             {
                 immValue = *labelVA;
             }
+        }
+
+        if (desiredBranchType != ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE)
+        {
+            req.branch_type = desiredBranchType;
+        }
+
+        res.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_IMMEDIATE;
+        res.imm.s = immValue;
+
+        return res;
+    }
+
+    static ZydisEncoderOperand getOperand(size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Imm& op)
+    {
+        ZydisEncoderOperand res{};
+
+        auto desiredBranchType = ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE;
+        int64_t immValue = op.value<int64_t>();
+
+        // Check if this operand is used as the control flow target.
+        const auto encodeInfo = getEncodeVariantInfo(req.mnemonic);
+        if (index == 0 && encodeInfo.has_value() && encodeInfo->isControlFlow)
+        {
+            const auto targetAddress = immValue;
+            auto [addrRel, branchType] = processRelAddress(req, *encodeInfo, ctx ? ctx->va : 0, targetAddress);
+
+            immValue = addrRel;
+            desiredBranchType = branchType;
         }
 
         if (desiredBranchType != ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE)
@@ -260,6 +234,8 @@ namespace zasm
 
         const auto instrSize = ctx ? ctx->instrSize : 0;
         const auto va = ctx ? ctx->va : 0;
+
+        // We require the exact instruction size to encode this correctly.
         if (ctx && instrSize == 0)
         {
             // Causes to re-encode again with instruction size available.
@@ -294,52 +270,6 @@ namespace zasm
                 break;
         }
        
-        return res;
-    }
-
-    static ZydisEncoderOperand getOperand(size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Imm& op)
-    {
-        ZydisEncoderOperand res{};
-
-        auto desiredBranchType = ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE;
-        int64_t immValue = op.value<int64_t>();
-
-        if (index == 0)
-        {
-            const auto instrHints = getInstructionHints(req.mnemonic);
-            if (instrHints.has_value() && instrHints->isControlFlow)
-            {
-                if (req.machine_mode == ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64)
-                    desiredBranchType = ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NEAR64;
-                else
-                    desiredBranchType = ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NEAR32;
-
-                if (instrHints.has_value() && ctx != nullptr)
-                {
-                    auto instrSize = ctx->instrSize;
-                    if (instrSize == 0)
-                    {
-                        // Causes to re-encode again with instruction size available.
-                        ctx->instrSize = -1;
-                    }
-                    desiredBranchType = getBranchEncodeType(req, *instrHints, ctx->va, immValue, instrSize);
-                    immValue = getRelativeAddress(req, *instrHints, desiredBranchType, ctx->va, immValue, instrSize);
-                }
-                else
-                {
-                    immValue = 0x12345;
-                }
-            }
-        }
-
-        if (desiredBranchType != ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE)
-        {
-            req.branch_type = desiredBranchType;
-        }
-
-        res.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_IMMEDIATE;
-        res.imm.s = immValue;
-
         return res;
     }
 
@@ -401,9 +331,6 @@ namespace zasm
         EncoderBuffer& buf, EncoderContext& ctx, ZydisMachineMode mode, Instruction::Prefix prefixes, ZydisMnemonic id,
         const Instruction::Operands& operands)
     {
-        static int ctr = 0;
-        ctr++;
-
         // For correct support on instructions with relative encoding we require the instruction size.
         ctx.instrSize = 0;
         auto res = encode_(buf, &ctx, mode, prefixes, id, operands);
@@ -412,7 +339,8 @@ namespace zasm
             return res;
         }
 
-        // If this is set to -1 it hints that it wants the size, need to re-encode.
+        // If this is set to -1 it hints that it wants the size, this means
+        // it encoded temporary values to get the correct size first.
         if (ctx.instrSize == -1)
         {
             // Encode with now known size.

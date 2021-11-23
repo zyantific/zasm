@@ -31,12 +31,13 @@ static void measureSerializePerformance()
     // Append to end, this is the default when instancing Assembler.
     a.setCursor(program.getTail());
 
-    constexpr auto numIter = 1000000;
+    constexpr auto kNumInstrGenerations = 1;
+    constexpr auto kNumInstructions = 14;
+    constexpr auto kSerializationIterations = 1'000'000;
 
-    // Explicit overloads
     {
         using namespace operands;
-        for (int i = 0; i < numIter; i++)
+        for (int i = 0; i < kNumInstrGenerations; i++)
         {
             // Label names are optional.
             auto label1 = a.createLabel("testLabel1");
@@ -76,8 +77,7 @@ static void measureSerializePerformance()
     size_t numIterations = 1;
 
     auto tsBegin = std::chrono::high_resolution_clock::now();
-
-    for (size_t i = 0; i < 1; i++)
+    for (size_t i = 0; i < kSerializationIterations; i++)
     {
         auto serializeStatus = program.serialize(0x00007FF7B7D84DB0);
         if (serializeStatus != Error::None)
@@ -93,7 +93,7 @@ static void measureSerializePerformance()
     auto elapsedCount = std::chrono::duration_cast<std::chrono::microseconds>(tsEnd - tsBegin).count();
     auto elapsedSecs = (double)elapsedCount / 1000000.0;
     auto bytesPerSec = (double)bytesWritten / elapsedSecs;
-    auto numInstr = numIter * 14;
+    auto numInstr = kNumInstrGenerations * kSerializationIterations * kNumInstructions;
 
     std::cout << std::setprecision(8) << "Wrote " << numInstr << " instructions, " << bytesWritten << " bytes in "
               << (elapsedSecs * 1000.0) << " ms, " << bytesPerSec << " bytes per sec\n";
