@@ -26,7 +26,12 @@ namespace zasm::operands
             : _reg{ static_cast<Id>(reg) }
         {
         }
-
+#ifndef _DEBUG
+        constexpr Reg(const Id reg)
+            : _reg{ reg }
+        {
+        }
+#endif
         BitSize getSize(ZydisMachineMode mode) const
         {
             return toBitSize(ZydisRegisterGetWidth(mode, id()));
