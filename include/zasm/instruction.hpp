@@ -47,7 +47,7 @@ namespace zasm
         Mnemonic _id{};
         Operands _operands{};
         Access _access{};
-        Visibility _visibility{}; 
+        Visibility _visibility{};
         Flags _flags{};
         Prefix _prefixes{};
         Length _length{};
@@ -55,8 +55,8 @@ namespace zasm
     public:
         constexpr Instruction() = default;
         constexpr Instruction(
-            Prefix prefixes, ZydisMnemonic mnemonic, const Operands& operands, const Access& access,
-            const Visibility& vis, const Flags& flags, Length length = 0)
+            Prefix prefixes, ZydisMnemonic mnemonic, const Operands& operands, const Access& access, const Visibility& vis,
+            const Flags& flags, Length length = 0)
             : _id{ static_cast<Mnemonic>(mnemonic) }
             , _operands{ operands }
             , _access{ access }

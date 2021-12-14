@@ -7,7 +7,6 @@
 
 namespace zasm
 {
-
     static Operand getOperand(const ZydisDecodedInstruction& instr, const ZydisDecodedOperand& srcOp, uint64_t va)
     {
         if (srcOp.type == ZydisOperandType::ZYDIS_OPERAND_TYPE_UNUSED)
@@ -55,20 +54,20 @@ namespace zasm
         ZyanStatus status{};
         switch (mode)
         {
-        case ZYDIS_MACHINE_MODE_LONG_64:
-            status = ZydisDecoderInit(&decoder, mode, ZydisStackWidth::ZYDIS_STACK_WIDTH_64);
-            break;
-        case ZYDIS_MACHINE_MODE_LONG_COMPAT_32:
-        case ZYDIS_MACHINE_MODE_LEGACY_32:
-            status = ZydisDecoderInit(&decoder, mode, ZydisStackWidth::ZYDIS_STACK_WIDTH_32);
-            break;
-        case ZYDIS_MACHINE_MODE_LONG_COMPAT_16:
-        case ZYDIS_MACHINE_MODE_LEGACY_16:
-        case ZYDIS_MACHINE_MODE_REAL_16:
-            status = ZydisDecoderInit(&decoder, mode, ZydisStackWidth::ZYDIS_STACK_WIDTH_16);
-            break;
-        default:
-            break;
+            case ZYDIS_MACHINE_MODE_LONG_64:
+                status = ZydisDecoderInit(&decoder, mode, ZydisStackWidth::ZYDIS_STACK_WIDTH_64);
+                break;
+            case ZYDIS_MACHINE_MODE_LONG_COMPAT_32:
+            case ZYDIS_MACHINE_MODE_LEGACY_32:
+                status = ZydisDecoderInit(&decoder, mode, ZydisStackWidth::ZYDIS_STACK_WIDTH_32);
+                break;
+            case ZYDIS_MACHINE_MODE_LONG_COMPAT_16:
+            case ZYDIS_MACHINE_MODE_LEGACY_16:
+            case ZYDIS_MACHINE_MODE_REAL_16:
+                status = ZydisDecoderInit(&decoder, mode, ZydisStackWidth::ZYDIS_STACK_WIDTH_16);
+                break;
+            default:
+                break;
         }
 
         if (status != ZYAN_STATUS_SUCCESS)
@@ -78,7 +77,8 @@ namespace zasm
         }
 
         ZydisDecodedInstruction instr{};
-        status = ZydisDecoderDecodeBuffer(&decoder, data, len, &instr);
+        ZydisDecodedOperand instrOps[ZYDIS_MAX_OPERAND_COUNT]{};
+        status = ZydisDecoderDecodeFull(&decoder, data, len, &instr, instrOps, std::size(instrOps), 0);
         if (status != ZYAN_STATUS_SUCCESS)
         {
             // TODO: Translate proper error.
@@ -101,7 +101,7 @@ namespace zasm
         Instruction::Access access{};
         for (auto i = 0; i < instr.operand_count; ++i)
         {
-            const auto& op = instr.operands[i];
+            const auto& op = instrOps[i];
             ops[i] = getOperand(instr, op, va);
             access[i] = op.actions;
             vis[i] = static_cast<OperandVisibility>(op.visibility);

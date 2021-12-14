@@ -1,4 +1,5 @@
 #include "zasm/program.hpp"
+
 #include "encoder.context.hpp"
 
 #include <algorithm>
@@ -149,8 +150,7 @@ namespace zasm
         return _nodeCount;
     }
 
-    template<typename TPool, typename... TArgs>
-    const Node* createNode_(TPool& pool, TArgs&& ...args)
+    template<typename TPool, typename... TArgs> const Node* createNode_(TPool& pool, TArgs&&... args)
     {
         auto* node = detail::toInternal(pool.allocate(1));
         if (node == nullptr)
@@ -206,8 +206,7 @@ namespace zasm
         return node;
     }
 
-    template<typename T>
-    Data createDataInline(const void *ptr)
+    template<typename T> Data createDataInline(const void* ptr)
     {
         T temp;
         std::memcpy(&temp, ptr, sizeof(T));
@@ -233,13 +232,12 @@ namespace zasm
         encoderCtx.nodes.reserve(_nodeCount);
         encoderCtx.baseVA = newBase;
 
-        SerializeState state{encoderCtx};
+        SerializeState state{ encoderCtx };
 
         int32_t codeDiff = 0;
         int32_t codeSize = 0;
 
-        auto serializePass = [&]()
-        {
+        auto serializePass = [&]() {
             state.buffer.clear();
 
             encoderCtx.pass++;
@@ -281,10 +279,9 @@ namespace zasm
         } while (encoderCtx.drift > 0);
 
         // Check if all labels were bound, a link entry is added when it encounters a label.
-        bool hasUnresolvedLinks = std::any_of(std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks), [](auto&& link)
-        {
-            return link.id != Label::Id::Invalid && link.boundOffset == -1;
-        });
+        bool hasUnresolvedLinks = std::any_of(
+            std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks),
+            [](auto&& link) { return link.id != Label::Id::Invalid && link.boundOffset == -1; });
         if (hasUnresolvedLinks)
         {
             return Error::UnresolvedLabel;
@@ -339,7 +336,7 @@ namespace zasm
             {
                 ctx.drift += nodeEntry.length - buf.length;
             }
-            else if(buf.length > nodeEntry.length)
+            else if (buf.length > nodeEntry.length)
             {
                 ctx.drift -= buf.length - nodeEntry.length;
             }

@@ -51,7 +51,7 @@ namespace zasm::operands
         /// Returns the index per register class
         /// NOTE: For Gp8 there are 20 registers, hi/lo regs are in the same class.
         /// </summary>
-        int8_t getIndex() const 
+        int8_t getIndex() const
         {
             return ZydisRegisterGetId(getId());
         }

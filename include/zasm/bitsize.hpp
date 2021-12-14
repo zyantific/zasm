@@ -28,6 +28,7 @@ namespace zasm
 #define SWITCH_BIT(n)                                                                                                          \
     case n:                                                                                                                    \
         return BitSize::_##n
+
         switch (numBits)
         {
             SWITCH_BIT(0);

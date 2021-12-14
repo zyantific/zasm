@@ -35,4 +35,4 @@ namespace zasm
         using Label = ::zasm::Label;
     }
 
-} // namespace zasm::operands
+} // namespace zasm

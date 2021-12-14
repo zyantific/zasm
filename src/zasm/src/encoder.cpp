@@ -1,4 +1,5 @@
 #include "zasm/encoder.hpp"
+
 #include "encoder.context.hpp"
 
 #include <optional>
@@ -90,14 +91,6 @@ namespace zasm
         return std::nullopt;
     }
 
-    static ZydisEncodableBranchType getBranchTypeNear32(ZydisEncoderRequest& req)
-    {
-        if (req.machine_mode == ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64)
-            return ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NEAR64;
-        else
-            return ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NEAR32;
-    }
-
     static int64_t getRelativeAddress(int64_t va, int64_t target, int32_t instrSize)
     {
         return target - (va + instrSize);
@@ -113,14 +106,15 @@ namespace zasm
     {
         ZydisEncoderOperand res{};
         res.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER;
-        res.reg.value = op.id();
+        res.reg.value = op.getId();
         return res;
     }
 
-    static std::pair<int64_t, ZydisEncodableBranchType> processRelAddress(ZydisEncoderRequest& req, const EncodeVariantsInfo& info, int64_t va, int64_t targetAddress)
+    static std::pair<int64_t, ZydisBranchType> processRelAddress(
+        ZydisEncoderRequest& req, const EncodeVariantsInfo& info, int64_t va, int64_t targetAddress)
     {
         int64_t res{};
-        auto desiredBranchType = ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE;
+        auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
 
         if (info.canEncodeRel8())
         {
@@ -128,21 +122,21 @@ namespace zasm
             if (std::abs(rel) <= std::numeric_limits<int8_t>::max())
             {
                 res = rel;
-                desiredBranchType = ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_SHORT;
+                desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_SHORT;
             }
         }
 
-        if (desiredBranchType == ZYDIS_ENCODABLE_BRANCH_TYPE_NONE && info.canEncodeRel32())
+        if (desiredBranchType == ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE && info.canEncodeRel32())
         {
             auto rel = getRelativeAddress(va, targetAddress, info.encodeSizeRel32);
             if (std::abs(rel) <= std::numeric_limits<int32_t>::max())
             {
                 res = rel;
-                desiredBranchType = getBranchTypeNear32(req);
+                desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NEAR;
             }
         }
 
-        assert(desiredBranchType != ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE);
+        assert(desiredBranchType != ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE);
 
         return { res, desiredBranchType };
     }
@@ -152,9 +146,9 @@ namespace zasm
     {
         ZydisEncoderOperand res{};
 
-        auto desiredBranchType = ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE;
+        auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
 
-        // Initially a temporary placeholder. Make sure this is within rel32 if a 
+        // Initially a temporary placeholder. Make sure this is within rel32 if a
         // context is provided.
         int64_t immValue = ctx ? ctx->va + 0x123456 : 0x123456;
 
@@ -171,7 +165,7 @@ namespace zasm
             immValue = addrRel;
             desiredBranchType = branchType;
 
-            assert(desiredBranchType != ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE);
+            assert(desiredBranchType != ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE);
         }
         else
         {
@@ -181,7 +175,7 @@ namespace zasm
             }
         }
 
-        if (desiredBranchType != ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE)
+        if (desiredBranchType != ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE)
         {
             req.branch_type = desiredBranchType;
         }
@@ -196,7 +190,7 @@ namespace zasm
     {
         ZydisEncoderOperand res{};
 
-        auto desiredBranchType = ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE;
+        auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
         int64_t immValue = op.value<int64_t>();
 
         // Check if this operand is used as the control flow target.
@@ -210,7 +204,7 @@ namespace zasm
             desiredBranchType = branchType;
         }
 
-        if (desiredBranchType != ZydisEncodableBranchType::ZYDIS_ENCODABLE_BRANCH_TYPE_NONE)
+        if (desiredBranchType != ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE)
         {
             req.branch_type = desiredBranchType;
         }
@@ -225,8 +219,8 @@ namespace zasm
     {
         ZydisEncoderOperand res{};
         res.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY;
-        res.mem.base = op.getBase().id();
-        res.mem.index = op.getIndex().id();
+        res.mem.base = op.getBase().getId();
+        res.mem.index = op.getIndex().getId();
         res.mem.scale = op.getScale();
         res.mem.size = op.getByteSize();
 
@@ -260,7 +254,7 @@ namespace zasm
         res.mem.displacement = displacement;
 
         // Handling segment
-        switch (op.getSegment().id())
+        switch (op.getSegment().getId())
         {
             case ZYDIS_REGISTER_GS:
                 req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_GS;
@@ -269,7 +263,7 @@ namespace zasm
                 req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_FS;
                 break;
         }
-       
+
         return res;
     }
 

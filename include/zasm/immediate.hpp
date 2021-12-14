@@ -35,8 +35,7 @@ namespace zasm::operands
         {
         }
 
-        template<typename T>
-        constexpr T value() const noexcept
+        template<typename T> constexpr T value() const noexcept
         {
             return static_cast<T>(s);
         }

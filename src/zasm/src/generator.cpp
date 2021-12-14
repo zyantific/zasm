@@ -60,7 +60,7 @@ namespace zasm
 
         // Exchange back certain operands.
         const auto& decodedInstr = *decodeResult;
-        
+
         auto newOps = decodedInstr.getOperands();
         const auto& vis = decodedInstr.getVisibility();
         for (size_t i = 0; i < operands.size(); i++)
@@ -90,12 +90,8 @@ namespace zasm
             }
         }
 
-        return Instruction(decodedInstr.getPrefixes(), 
-            decodedInstr.getId(), 
-            newOps,
-            decodedInstr.getAccess(),
-            vis,
-            decodedInstr.getFlags(),
+        return Instruction(
+            decodedInstr.getPrefixes(), decodedInstr.getId(), newOps, decodedInstr.getAccess(), vis, decodedInstr.getFlags(),
             decodedInstr.getLength());
     }
 

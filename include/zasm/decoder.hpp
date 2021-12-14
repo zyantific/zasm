@@ -1,8 +1,8 @@
 #pragma once
 
+#include "errors.hpp"
 #include "expected.hpp"
 #include "instruction.hpp"
-#include "errors.hpp"
 
 namespace zasm
 {

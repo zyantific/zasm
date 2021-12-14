@@ -1,7 +1,7 @@
 #pragma once
 
-#include <ostream>
 #include <cassert>
+#include <ostream>
 
 namespace zasm
 {
@@ -24,7 +24,10 @@ namespace zasm
 
     inline constexpr const char* getErrorName(Error err)
     {
-#define ERROR_STRING(e) case e: return #e
+#define ERROR_STRING(e)                                                                                                        \
+    case e:                                                                                                                    \
+        return #e
+
         switch (err)
         {
             ERROR_STRING(Error::None);
