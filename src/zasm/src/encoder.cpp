@@ -102,11 +102,13 @@ namespace zasm
         return {};
     }
 
-    static ZydisEncoderOperand getOperand(size_t index, ZydisEncoderRequest&, EncoderContext* ctx, const operands::Reg& op)
+    static ZydisEncoderOperand getOperand(
+        const size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Reg& op)
     {
         ZydisEncoderOperand res{};
         res.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER;
         res.reg.value = op.getId();
+
         return res;
     }
 
@@ -142,7 +144,7 @@ namespace zasm
     }
 
     static ZydisEncoderOperand getOperand(
-        size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Label& op)
+        const size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Label& op)
     {
         ZydisEncoderOperand res{};
 
@@ -186,7 +188,8 @@ namespace zasm
         return res;
     }
 
-    static ZydisEncoderOperand getOperand(size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Imm& op)
+    static ZydisEncoderOperand getOperand(
+        const size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Imm& op)
     {
         ZydisEncoderOperand res{};
 
@@ -215,7 +218,8 @@ namespace zasm
         return res;
     }
 
-    static ZydisEncoderOperand getOperand(size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Mem& op)
+    static ZydisEncoderOperand getOperand(
+        const size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Mem& op)
     {
         ZydisEncoderOperand res{};
         res.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY;
@@ -267,16 +271,82 @@ namespace zasm
         return res;
     }
 
-    static ZydisEncoderOperand getOperand(size_t index, ZydisEncoderRequest&, EncoderContext* ctx, const operands::None& op)
+    static ZydisEncoderOperand getOperand(
+        const size_t index, ZydisEncoderRequest&, EncoderContext* ctx, const operands::None& op)
     {
         ZydisEncoderOperand res{};
         res.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_UNUSED;
         return res;
     }
 
-    static ZydisEncoderOperand getOperand(size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const Operand& op)
+    static ZydisEncoderOperand getOperand(const size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const Operand& op)
     {
         return std::visit([&](auto&& op) { return getOperand(index, req, ctx, op); }, op);
+    }
+
+    static Error fixupIs4Operands(ZydisEncoderRequest& req)
+    {
+        switch (req.mnemonic)
+        {
+            case ZYDIS_MNEMONIC_VBLENDVPD:
+            case ZYDIS_MNEMONIC_VBLENDVPS:
+            case ZYDIS_MNEMONIC_VFMADDPD:
+            case ZYDIS_MNEMONIC_VFMADDPS:
+            case ZYDIS_MNEMONIC_VFMADDSD:
+            case ZYDIS_MNEMONIC_VFMADDSS:
+            case ZYDIS_MNEMONIC_VFMADDSUBPD:
+            case ZYDIS_MNEMONIC_VFMADDSUBPS:
+            case ZYDIS_MNEMONIC_VFMSUBADDPD:
+            case ZYDIS_MNEMONIC_VFMSUBADDPS:
+            case ZYDIS_MNEMONIC_VFMSUBPD:
+            case ZYDIS_MNEMONIC_VFMSUBPS:
+            case ZYDIS_MNEMONIC_VFMSUBSD:
+            case ZYDIS_MNEMONIC_VFMSUBSS:
+            case ZYDIS_MNEMONIC_VFNMADDPD:
+            case ZYDIS_MNEMONIC_VFNMADDPS:
+            case ZYDIS_MNEMONIC_VFNMADDSD:
+            case ZYDIS_MNEMONIC_VFNMADDSS:
+            case ZYDIS_MNEMONIC_VFNMSUBPD:
+            case ZYDIS_MNEMONIC_VFNMSUBPS:
+            case ZYDIS_MNEMONIC_VFNMSUBSD:
+            case ZYDIS_MNEMONIC_VFNMSUBSS:
+            case ZYDIS_MNEMONIC_VPBLENDVB:
+            case ZYDIS_MNEMONIC_VPCMOV:
+            case ZYDIS_MNEMONIC_VPERMIL2PD:
+            case ZYDIS_MNEMONIC_VPERMIL2PS:
+            case ZYDIS_MNEMONIC_VPMACSDD:
+            case ZYDIS_MNEMONIC_VPMACSDQH:
+            case ZYDIS_MNEMONIC_VPMACSDQL:
+            case ZYDIS_MNEMONIC_VPMACSSWW:
+            case ZYDIS_MNEMONIC_VPMACSWD:
+            case ZYDIS_MNEMONIC_VPMACSWW:
+            case ZYDIS_MNEMONIC_VPMADCSSWD:
+            case ZYDIS_MNEMONIC_VPMADCSWD:
+            case ZYDIS_MNEMONIC_VPPERM:
+                break;
+            default:
+                return Error::None;
+        }
+
+        if (req.operands[2].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER
+            && req.operands[3].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER)
+        {
+            req.operands[2].reg.is4 = true;
+        }
+        else if (
+            req.operands[2].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER
+            && req.operands[3].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY)
+        {
+            req.operands[2].reg.is4 = true;
+        }
+        else if (
+            req.operands[2].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY
+            && req.operands[3].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER)
+        {
+            req.operands[3].reg.is4 = true;
+        }
+
+        return Error::None;
     }
 
     static Error encode_(
@@ -288,7 +358,8 @@ namespace zasm
         req.mnemonic = id;
         req.prefixes = getPrefixes(prefixes);
 
-        for (size_t i = 0; i < operands.size(); i++)
+        const auto numOperands = std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, operands.size());
+        for (size_t i = 0; i < numOperands; i++)
         {
             req.operands[i] = getOperand(i, req, ctx, operands[i]);
             if (req.operands[i].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_UNUSED)
@@ -296,8 +367,12 @@ namespace zasm
             req.operand_count++;
         }
 
-        buf.length = 0;
+        if (auto status = fixupIs4Operands(req); status != Error::None)
+        {
+            return status;
+        }
 
+        buf.length = 0;
         size_t bufLen = buf.data.size();
         if (auto status = ZydisEncoderEncodeInstruction(&req, buf.data.data(), &bufLen); status != ZYAN_STATUS_SUCCESS)
         {
