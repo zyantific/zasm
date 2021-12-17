@@ -58,6 +58,10 @@ namespace zasm::operands
 
         constexpr uint8_t getScale() const
         {
+            // In case no index is assigned scale has to be zero.
+            if (_index == ZYDIS_REGISTER_NONE)
+                return 0;
+
             return _scale;
         }
 
@@ -136,6 +140,10 @@ namespace zasm::operands
     template<typename... TArgs> static Mem dword_ptr(TArgs&&... args)
     {
         return ptr(BitSize::_32, args...);
+    };
+    template<typename... TArgs> static Mem fword_ptr(TArgs&&... args)
+    {
+        return ptr(BitSize::_48, args...);
     };
     template<typename... TArgs> static Mem qword_ptr(TArgs&&... args)
     {
