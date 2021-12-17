@@ -102,9 +102,26 @@ static void measureSerializePerformance()
     // std::cout << "Dump: " << hexBytes << std::endl;
 }
 
+static void quickTest()
+{
+    using namespace zasm;
+    using namespace zasm::operands;
+
+    // Program contains all the nodes and labels.
+    Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
+
+    // Emitter
+    Assembler a(program);
+
+    a.vshufps(zmm1, k0, zmm1, zmm25, Imm(171));
+
+    program.serialize(0x00007FF7B7D84DB0);
+}
+
 int main()
 {
-    measureSerializePerformance();
+    quickTest();
+    //measureSerializePerformance();
 
     return EXIT_SUCCESS;
 }
