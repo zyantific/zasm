@@ -307,6 +307,8 @@ namespace zasm
             case ZYDIS_MNEMONIC_VFNMADDSD:
             case ZYDIS_MNEMONIC_VFNMADDSS:
             case ZYDIS_MNEMONIC_VFNMSUBPD:
+            case ZYDIS_MNEMONIC_VPMACSSDD:
+            case ZYDIS_MNEMONIC_VPMACSSDQH:
             case ZYDIS_MNEMONIC_VFNMSUBPS:
             case ZYDIS_MNEMONIC_VFNMSUBSD:
             case ZYDIS_MNEMONIC_VFNMSUBSS:
@@ -317,7 +319,9 @@ namespace zasm
             case ZYDIS_MNEMONIC_VPMACSDD:
             case ZYDIS_MNEMONIC_VPMACSDQH:
             case ZYDIS_MNEMONIC_VPMACSDQL:
+            case ZYDIS_MNEMONIC_VPMACSSDQL:
             case ZYDIS_MNEMONIC_VPMACSSWW:
+            case ZYDIS_MNEMONIC_VPMACSSWD:
             case ZYDIS_MNEMONIC_VPMACSWD:
             case ZYDIS_MNEMONIC_VPMACSWW:
             case ZYDIS_MNEMONIC_VPMADCSSWD:
@@ -331,7 +335,7 @@ namespace zasm
         if (req.operands[2].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER
             && req.operands[3].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER)
         {
-            req.operands[2].reg.is4 = true;
+            req.operands[3].reg.is4 = true;
         }
         else if (
             req.operands[2].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER
