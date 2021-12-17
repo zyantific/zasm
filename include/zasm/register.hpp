@@ -186,6 +186,30 @@ namespace zasm::operands
         using Reg::Reg;
     };
 
+    class Gp8 : public Gp
+    {
+    public:
+        using Gp::Gp;
+    };
+
+    class Gp16 : public Gp
+    {
+    public:
+        using Gp::Gp;
+    };
+
+    class Gp32 : public Gp
+    {
+    public:
+        using Gp::Gp;
+    };
+
+    class Gp64 : public Gp
+    {
+    public:
+        using Gp::Gp;
+    };
+
     // Strong type for Rip related registers.
     class Rip : public Reg
     {
@@ -195,6 +219,24 @@ namespace zasm::operands
 
     // Strong type for segment related registers.
     class Seg : public Reg
+    {
+    public:
+        using Reg::Reg;
+    };
+
+    class Mmx : public Reg
+    {
+    public:
+        using Reg::Reg;
+    };
+
+    class St : public Reg
+    {
+    public:
+        using Reg::Reg;
+    };
+
+    class Tmm : public Reg
     {
     public:
         using Reg::Reg;
@@ -221,101 +263,131 @@ namespace zasm::operands
         using Reg::Reg;
     };
 
+    class Cr : public Reg
+    {
+    public:
+        using Reg::Reg;
+    };
+
+    class Dr : public Reg
+    {
+    public:
+        using Reg::Reg;
+    };
+
+    class Tr : public Reg
+    {
+    public:
+        using Reg::Reg;
+    };
+
+    class Mask : public Reg
+    {
+    public:
+        using Reg::Reg;
+    };
+
+    class Bnd : public Reg
+    {
+    public:
+        using Reg::Reg;
+    };
+
     static constexpr auto SizeOfReg = sizeof(Reg);
 
     // General purpose registers  8-bit
-    static constexpr Gp al(ZYDIS_REGISTER_AL);
-    static constexpr Gp cl(ZYDIS_REGISTER_CL);
-    static constexpr Gp dl(ZYDIS_REGISTER_DL);
-    static constexpr Gp bl(ZYDIS_REGISTER_BL);
-    static constexpr Gp ah(ZYDIS_REGISTER_AH);
-    static constexpr Gp ch(ZYDIS_REGISTER_CH);
-    static constexpr Gp dh(ZYDIS_REGISTER_DH);
-    static constexpr Gp bh(ZYDIS_REGISTER_BH);
-    static constexpr Gp spl(ZYDIS_REGISTER_SPL);
-    static constexpr Gp bpl(ZYDIS_REGISTER_BPL);
-    static constexpr Gp sil(ZYDIS_REGISTER_SIL);
-    static constexpr Gp dil(ZYDIS_REGISTER_DIL);
-    static constexpr Gp r8b(ZYDIS_REGISTER_R8B);
-    static constexpr Gp r9b(ZYDIS_REGISTER_R9B);
-    static constexpr Gp r10b(ZYDIS_REGISTER_R10B);
-    static constexpr Gp r11b(ZYDIS_REGISTER_R11B);
-    static constexpr Gp r12b(ZYDIS_REGISTER_R12B);
-    static constexpr Gp r13b(ZYDIS_REGISTER_R13B);
-    static constexpr Gp r14b(ZYDIS_REGISTER_R14B);
-    static constexpr Gp r15b(ZYDIS_REGISTER_R15B);
+    static constexpr Gp8 al(ZYDIS_REGISTER_AL);
+    static constexpr Gp8 cl(ZYDIS_REGISTER_CL);
+    static constexpr Gp8 dl(ZYDIS_REGISTER_DL);
+    static constexpr Gp8 bl(ZYDIS_REGISTER_BL);
+    static constexpr Gp8 ah(ZYDIS_REGISTER_AH);
+    static constexpr Gp8 ch(ZYDIS_REGISTER_CH);
+    static constexpr Gp8 dh(ZYDIS_REGISTER_DH);
+    static constexpr Gp8 bh(ZYDIS_REGISTER_BH);
+    static constexpr Gp8 spl(ZYDIS_REGISTER_SPL);
+    static constexpr Gp8 bpl(ZYDIS_REGISTER_BPL);
+    static constexpr Gp8 sil(ZYDIS_REGISTER_SIL);
+    static constexpr Gp8 dil(ZYDIS_REGISTER_DIL);
+    static constexpr Gp8 r8b(ZYDIS_REGISTER_R8B);
+    static constexpr Gp8 r9b(ZYDIS_REGISTER_R9B);
+    static constexpr Gp8 r10b(ZYDIS_REGISTER_R10B);
+    static constexpr Gp8 r11b(ZYDIS_REGISTER_R11B);
+    static constexpr Gp8 r12b(ZYDIS_REGISTER_R12B);
+    static constexpr Gp8 r13b(ZYDIS_REGISTER_R13B);
+    static constexpr Gp8 r14b(ZYDIS_REGISTER_R14B);
+    static constexpr Gp8 r15b(ZYDIS_REGISTER_R15B);
     // General purpose registers 16-bit
-    static constexpr Gp ax(ZYDIS_REGISTER_AX);
-    static constexpr Gp cx(ZYDIS_REGISTER_CX);
-    static constexpr Gp dx(ZYDIS_REGISTER_DX);
-    static constexpr Gp bx(ZYDIS_REGISTER_BX);
-    static constexpr Gp sp(ZYDIS_REGISTER_SP);
-    static constexpr Gp bp(ZYDIS_REGISTER_BP);
-    static constexpr Gp si(ZYDIS_REGISTER_SI);
-    static constexpr Gp di(ZYDIS_REGISTER_DI);
-    static constexpr Gp r8w(ZYDIS_REGISTER_R8W);
-    static constexpr Gp r9w(ZYDIS_REGISTER_R9W);
-    static constexpr Gp r10w(ZYDIS_REGISTER_R10W);
-    static constexpr Gp r11w(ZYDIS_REGISTER_R11W);
-    static constexpr Gp r12w(ZYDIS_REGISTER_R12W);
-    static constexpr Gp r13w(ZYDIS_REGISTER_R13W);
-    static constexpr Gp r14w(ZYDIS_REGISTER_R14W);
-    static constexpr Gp r15w(ZYDIS_REGISTER_R15W);
+    static constexpr Gp16 ax(ZYDIS_REGISTER_AX);
+    static constexpr Gp16 cx(ZYDIS_REGISTER_CX);
+    static constexpr Gp16 dx(ZYDIS_REGISTER_DX);
+    static constexpr Gp16 bx(ZYDIS_REGISTER_BX);
+    static constexpr Gp16 sp(ZYDIS_REGISTER_SP);
+    static constexpr Gp16 bp(ZYDIS_REGISTER_BP);
+    static constexpr Gp16 si(ZYDIS_REGISTER_SI);
+    static constexpr Gp16 di(ZYDIS_REGISTER_DI);
+    static constexpr Gp16 r8w(ZYDIS_REGISTER_R8W);
+    static constexpr Gp16 r9w(ZYDIS_REGISTER_R9W);
+    static constexpr Gp16 r10w(ZYDIS_REGISTER_R10W);
+    static constexpr Gp16 r11w(ZYDIS_REGISTER_R11W);
+    static constexpr Gp16 r12w(ZYDIS_REGISTER_R12W);
+    static constexpr Gp16 r13w(ZYDIS_REGISTER_R13W);
+    static constexpr Gp16 r14w(ZYDIS_REGISTER_R14W);
+    static constexpr Gp16 r15w(ZYDIS_REGISTER_R15W);
     // General purpose registers 32-bit
-    static constexpr Gp eax(ZYDIS_REGISTER_EAX);
-    static constexpr Gp ecx(ZYDIS_REGISTER_ECX);
-    static constexpr Gp edx(ZYDIS_REGISTER_EDX);
-    static constexpr Gp ebx(ZYDIS_REGISTER_EBX);
-    static constexpr Gp esp(ZYDIS_REGISTER_ESP);
-    static constexpr Gp ebp(ZYDIS_REGISTER_EBP);
-    static constexpr Gp esi(ZYDIS_REGISTER_ESI);
-    static constexpr Gp edi(ZYDIS_REGISTER_EDI);
-    static constexpr Gp r8d(ZYDIS_REGISTER_R8D);
-    static constexpr Gp r9d(ZYDIS_REGISTER_R9D);
-    static constexpr Gp r10d(ZYDIS_REGISTER_R10D);
-    static constexpr Gp r11d(ZYDIS_REGISTER_R11D);
-    static constexpr Gp r12d(ZYDIS_REGISTER_R12D);
-    static constexpr Gp r13d(ZYDIS_REGISTER_R13D);
-    static constexpr Gp r14d(ZYDIS_REGISTER_R14D);
-    static constexpr Gp r15d(ZYDIS_REGISTER_R15D);
+    static constexpr Gp32 eax(ZYDIS_REGISTER_EAX);
+    static constexpr Gp32 ecx(ZYDIS_REGISTER_ECX);
+    static constexpr Gp32 edx(ZYDIS_REGISTER_EDX);
+    static constexpr Gp32 ebx(ZYDIS_REGISTER_EBX);
+    static constexpr Gp32 esp(ZYDIS_REGISTER_ESP);
+    static constexpr Gp32 ebp(ZYDIS_REGISTER_EBP);
+    static constexpr Gp32 esi(ZYDIS_REGISTER_ESI);
+    static constexpr Gp32 edi(ZYDIS_REGISTER_EDI);
+    static constexpr Gp32 r8d(ZYDIS_REGISTER_R8D);
+    static constexpr Gp32 r9d(ZYDIS_REGISTER_R9D);
+    static constexpr Gp32 r10d(ZYDIS_REGISTER_R10D);
+    static constexpr Gp32 r11d(ZYDIS_REGISTER_R11D);
+    static constexpr Gp32 r12d(ZYDIS_REGISTER_R12D);
+    static constexpr Gp32 r13d(ZYDIS_REGISTER_R13D);
+    static constexpr Gp32 r14d(ZYDIS_REGISTER_R14D);
+    static constexpr Gp32 r15d(ZYDIS_REGISTER_R15D);
     // General purpose registers 64-bit
-    static constexpr Gp rax(ZYDIS_REGISTER_RAX);
-    static constexpr Gp rcx(ZYDIS_REGISTER_RCX);
-    static constexpr Gp rdx(ZYDIS_REGISTER_RDX);
-    static constexpr Gp rbx(ZYDIS_REGISTER_RBX);
-    static constexpr Gp rsp(ZYDIS_REGISTER_RSP);
-    static constexpr Gp rbp(ZYDIS_REGISTER_RBP);
-    static constexpr Gp rsi(ZYDIS_REGISTER_RSI);
-    static constexpr Gp rdi(ZYDIS_REGISTER_RDI);
-    static constexpr Gp r8(ZYDIS_REGISTER_R8);
-    static constexpr Gp r9(ZYDIS_REGISTER_R9);
-    static constexpr Gp r10(ZYDIS_REGISTER_R10);
-    static constexpr Gp r11(ZYDIS_REGISTER_R11);
-    static constexpr Gp r12(ZYDIS_REGISTER_R12);
-    static constexpr Gp r13(ZYDIS_REGISTER_R13);
-    static constexpr Gp r14(ZYDIS_REGISTER_R14);
-    static constexpr Gp r15(ZYDIS_REGISTER_R15);
+    static constexpr Gp64 rax(ZYDIS_REGISTER_RAX);
+    static constexpr Gp64 rcx(ZYDIS_REGISTER_RCX);
+    static constexpr Gp64 rdx(ZYDIS_REGISTER_RDX);
+    static constexpr Gp64 rbx(ZYDIS_REGISTER_RBX);
+    static constexpr Gp64 rsp(ZYDIS_REGISTER_RSP);
+    static constexpr Gp64 rbp(ZYDIS_REGISTER_RBP);
+    static constexpr Gp64 rsi(ZYDIS_REGISTER_RSI);
+    static constexpr Gp64 rdi(ZYDIS_REGISTER_RDI);
+    static constexpr Gp64 r8(ZYDIS_REGISTER_R8);
+    static constexpr Gp64 r9(ZYDIS_REGISTER_R9);
+    static constexpr Gp64 r10(ZYDIS_REGISTER_R10);
+    static constexpr Gp64 r11(ZYDIS_REGISTER_R11);
+    static constexpr Gp64 r12(ZYDIS_REGISTER_R12);
+    static constexpr Gp64 r13(ZYDIS_REGISTER_R13);
+    static constexpr Gp64 r14(ZYDIS_REGISTER_R14);
+    static constexpr Gp64 r15(ZYDIS_REGISTER_R15);
     // Floating point legacy registers
-    static constexpr Reg st0(ZYDIS_REGISTER_ST0);
-    static constexpr Reg st1(ZYDIS_REGISTER_ST1);
-    static constexpr Reg st2(ZYDIS_REGISTER_ST2);
-    static constexpr Reg st3(ZYDIS_REGISTER_ST3);
-    static constexpr Reg st4(ZYDIS_REGISTER_ST4);
-    static constexpr Reg st5(ZYDIS_REGISTER_ST5);
-    static constexpr Reg st6(ZYDIS_REGISTER_ST6);
-    static constexpr Reg st7(ZYDIS_REGISTER_ST7);
+    static constexpr St st0(ZYDIS_REGISTER_ST0);
+    static constexpr St st1(ZYDIS_REGISTER_ST1);
+    static constexpr St st2(ZYDIS_REGISTER_ST2);
+    static constexpr St st3(ZYDIS_REGISTER_ST3);
+    static constexpr St st4(ZYDIS_REGISTER_ST4);
+    static constexpr St st5(ZYDIS_REGISTER_ST5);
+    static constexpr St st6(ZYDIS_REGISTER_ST6);
+    static constexpr St st7(ZYDIS_REGISTER_ST7);
     static constexpr Reg x87control(ZYDIS_REGISTER_X87CONTROL);
     static constexpr Reg x87status(ZYDIS_REGISTER_X87STATUS);
     static constexpr Reg x87tag(ZYDIS_REGISTER_X87TAG);
     // Floating point multimedia registers
-    static constexpr Reg mm0(ZYDIS_REGISTER_MM0);
-    static constexpr Reg mm1(ZYDIS_REGISTER_MM1);
-    static constexpr Reg mm2(ZYDIS_REGISTER_MM2);
-    static constexpr Reg mm3(ZYDIS_REGISTER_MM3);
-    static constexpr Reg mm4(ZYDIS_REGISTER_MM4);
-    static constexpr Reg mm5(ZYDIS_REGISTER_MM5);
-    static constexpr Reg mm6(ZYDIS_REGISTER_MM6);
-    static constexpr Reg mm7(ZYDIS_REGISTER_MM7);
+    static constexpr Mmx mm0(ZYDIS_REGISTER_MM0);
+    static constexpr Mmx mm1(ZYDIS_REGISTER_MM1);
+    static constexpr Mmx mm2(ZYDIS_REGISTER_MM2);
+    static constexpr Mmx mm3(ZYDIS_REGISTER_MM3);
+    static constexpr Mmx mm4(ZYDIS_REGISTER_MM4);
+    static constexpr Mmx mm5(ZYDIS_REGISTER_MM5);
+    static constexpr Mmx mm6(ZYDIS_REGISTER_MM6);
+    static constexpr Mmx mm7(ZYDIS_REGISTER_MM7);
     // Floating point vector registers 128-bit
     static constexpr Xmm xmm0(ZYDIS_REGISTER_XMM0);
     static constexpr Xmm xmm1(ZYDIS_REGISTER_XMM1);
@@ -416,14 +488,14 @@ namespace zasm::operands
     static constexpr Zmm zmm30(ZYDIS_REGISTER_ZMM30);
     static constexpr Zmm zmm31(ZYDIS_REGISTER_ZMM31);
     // Matrix registers
-    static constexpr Reg tmm0(ZYDIS_REGISTER_TMM0);
-    static constexpr Reg tmm1(ZYDIS_REGISTER_TMM1);
-    static constexpr Reg tmm2(ZYDIS_REGISTER_TMM2);
-    static constexpr Reg tmm3(ZYDIS_REGISTER_TMM3);
-    static constexpr Reg tmm4(ZYDIS_REGISTER_TMM4);
-    static constexpr Reg tmm5(ZYDIS_REGISTER_TMM5);
-    static constexpr Reg tmm6(ZYDIS_REGISTER_TMM6);
-    static constexpr Reg tmm7(ZYDIS_REGISTER_TMM7);
+    static constexpr Tmm tmm0(ZYDIS_REGISTER_TMM0);
+    static constexpr Tmm tmm1(ZYDIS_REGISTER_TMM1);
+    static constexpr Tmm tmm2(ZYDIS_REGISTER_TMM2);
+    static constexpr Tmm tmm3(ZYDIS_REGISTER_TMM3);
+    static constexpr Tmm tmm4(ZYDIS_REGISTER_TMM4);
+    static constexpr Tmm tmm5(ZYDIS_REGISTER_TMM5);
+    static constexpr Tmm tmm6(ZYDIS_REGISTER_TMM6);
+    static constexpr Tmm tmm7(ZYDIS_REGISTER_TMM7);
     // Flags registers
     static constexpr Reg flags(ZYDIS_REGISTER_FLAGS);
     static constexpr Reg eflags(ZYDIS_REGISTER_EFLAGS);
@@ -445,64 +517,64 @@ namespace zasm::operands
     static constexpr Seg idtr(ZYDIS_REGISTER_IDTR);
     static constexpr Seg tr(ZYDIS_REGISTER_TR);
     // Test registers
-    static constexpr Reg tr0(ZYDIS_REGISTER_TR0);
-    static constexpr Reg tr1(ZYDIS_REGISTER_TR1);
-    static constexpr Reg tr2(ZYDIS_REGISTER_TR2);
-    static constexpr Reg tr3(ZYDIS_REGISTER_TR3);
-    static constexpr Reg tr4(ZYDIS_REGISTER_TR4);
-    static constexpr Reg tr5(ZYDIS_REGISTER_TR5);
-    static constexpr Reg tr6(ZYDIS_REGISTER_TR6);
-    static constexpr Reg tr7(ZYDIS_REGISTER_TR7);
+    static constexpr Tr tr0(ZYDIS_REGISTER_TR0);
+    static constexpr Tr tr1(ZYDIS_REGISTER_TR1);
+    static constexpr Tr tr2(ZYDIS_REGISTER_TR2);
+    static constexpr Tr tr3(ZYDIS_REGISTER_TR3);
+    static constexpr Tr tr4(ZYDIS_REGISTER_TR4);
+    static constexpr Tr tr5(ZYDIS_REGISTER_TR5);
+    static constexpr Tr tr6(ZYDIS_REGISTER_TR6);
+    static constexpr Tr tr7(ZYDIS_REGISTER_TR7);
     // Control registers
-    static constexpr Reg cr0(ZYDIS_REGISTER_CR0);
-    static constexpr Reg cr1(ZYDIS_REGISTER_CR1);
-    static constexpr Reg cr2(ZYDIS_REGISTER_CR2);
-    static constexpr Reg cr3(ZYDIS_REGISTER_CR3);
-    static constexpr Reg cr4(ZYDIS_REGISTER_CR4);
-    static constexpr Reg cr5(ZYDIS_REGISTER_CR5);
-    static constexpr Reg cr6(ZYDIS_REGISTER_CR6);
-    static constexpr Reg cr7(ZYDIS_REGISTER_CR7);
-    static constexpr Reg cr8(ZYDIS_REGISTER_CR8);
-    static constexpr Reg cr9(ZYDIS_REGISTER_CR9);
-    static constexpr Reg cr10(ZYDIS_REGISTER_CR10);
-    static constexpr Reg cr11(ZYDIS_REGISTER_CR11);
-    static constexpr Reg cr12(ZYDIS_REGISTER_CR12);
-    static constexpr Reg cr13(ZYDIS_REGISTER_CR13);
-    static constexpr Reg cr14(ZYDIS_REGISTER_CR14);
-    static constexpr Reg cr15(ZYDIS_REGISTER_CR15);
+    static constexpr Cr cr0(ZYDIS_REGISTER_CR0);
+    static constexpr Cr cr1(ZYDIS_REGISTER_CR1);
+    static constexpr Cr cr2(ZYDIS_REGISTER_CR2);
+    static constexpr Cr cr3(ZYDIS_REGISTER_CR3);
+    static constexpr Cr cr4(ZYDIS_REGISTER_CR4);
+    static constexpr Cr cr5(ZYDIS_REGISTER_CR5);
+    static constexpr Cr cr6(ZYDIS_REGISTER_CR6);
+    static constexpr Cr cr7(ZYDIS_REGISTER_CR7);
+    static constexpr Cr cr8(ZYDIS_REGISTER_CR8);
+    static constexpr Cr cr9(ZYDIS_REGISTER_CR9);
+    static constexpr Cr cr10(ZYDIS_REGISTER_CR10);
+    static constexpr Cr cr11(ZYDIS_REGISTER_CR11);
+    static constexpr Cr cr12(ZYDIS_REGISTER_CR12);
+    static constexpr Cr cr13(ZYDIS_REGISTER_CR13);
+    static constexpr Cr cr14(ZYDIS_REGISTER_CR14);
+    static constexpr Cr cr15(ZYDIS_REGISTER_CR15);
     // Debug registers
-    static constexpr Reg dr0(ZYDIS_REGISTER_DR0);
-    static constexpr Reg dr1(ZYDIS_REGISTER_DR1);
-    static constexpr Reg dr2(ZYDIS_REGISTER_DR2);
-    static constexpr Reg dr3(ZYDIS_REGISTER_DR3);
-    static constexpr Reg dr4(ZYDIS_REGISTER_DR4);
-    static constexpr Reg dr5(ZYDIS_REGISTER_DR5);
-    static constexpr Reg dr6(ZYDIS_REGISTER_DR6);
-    static constexpr Reg dr7(ZYDIS_REGISTER_DR7);
-    static constexpr Reg dr8(ZYDIS_REGISTER_DR8);
-    static constexpr Reg dr9(ZYDIS_REGISTER_DR9);
-    static constexpr Reg dr10(ZYDIS_REGISTER_DR10);
-    static constexpr Reg dr11(ZYDIS_REGISTER_DR11);
-    static constexpr Reg dr12(ZYDIS_REGISTER_DR12);
-    static constexpr Reg dr13(ZYDIS_REGISTER_DR13);
-    static constexpr Reg dr14(ZYDIS_REGISTER_DR14);
-    static constexpr Reg dr15(ZYDIS_REGISTER_DR15);
+    static constexpr Dr dr0(ZYDIS_REGISTER_DR0);
+    static constexpr Dr dr1(ZYDIS_REGISTER_DR1);
+    static constexpr Dr dr2(ZYDIS_REGISTER_DR2);
+    static constexpr Dr dr3(ZYDIS_REGISTER_DR3);
+    static constexpr Dr dr4(ZYDIS_REGISTER_DR4);
+    static constexpr Dr dr5(ZYDIS_REGISTER_DR5);
+    static constexpr Dr dr6(ZYDIS_REGISTER_DR6);
+    static constexpr Dr dr7(ZYDIS_REGISTER_DR7);
+    static constexpr Dr dr8(ZYDIS_REGISTER_DR8);
+    static constexpr Dr dr9(ZYDIS_REGISTER_DR9);
+    static constexpr Dr dr10(ZYDIS_REGISTER_DR10);
+    static constexpr Dr dr11(ZYDIS_REGISTER_DR11);
+    static constexpr Dr dr12(ZYDIS_REGISTER_DR12);
+    static constexpr Dr dr13(ZYDIS_REGISTER_DR13);
+    static constexpr Dr dr14(ZYDIS_REGISTER_DR14);
+    static constexpr Dr dr15(ZYDIS_REGISTER_DR15);
     // Mask registers
-    static constexpr Reg k0(ZYDIS_REGISTER_K0);
-    static constexpr Reg k1(ZYDIS_REGISTER_K1);
-    static constexpr Reg k2(ZYDIS_REGISTER_K2);
-    static constexpr Reg k3(ZYDIS_REGISTER_K3);
-    static constexpr Reg k4(ZYDIS_REGISTER_K4);
-    static constexpr Reg k5(ZYDIS_REGISTER_K5);
-    static constexpr Reg k6(ZYDIS_REGISTER_K6);
-    static constexpr Reg k7(ZYDIS_REGISTER_K7);
+    static constexpr Mask k0(ZYDIS_REGISTER_K0);
+    static constexpr Mask k1(ZYDIS_REGISTER_K1);
+    static constexpr Mask k2(ZYDIS_REGISTER_K2);
+    static constexpr Mask k3(ZYDIS_REGISTER_K3);
+    static constexpr Mask k4(ZYDIS_REGISTER_K4);
+    static constexpr Mask k5(ZYDIS_REGISTER_K5);
+    static constexpr Mask k6(ZYDIS_REGISTER_K6);
+    static constexpr Mask k7(ZYDIS_REGISTER_K7);
     // Bound registers
-    static constexpr Reg bnd0(ZYDIS_REGISTER_BND0);
-    static constexpr Reg bnd1(ZYDIS_REGISTER_BND1);
-    static constexpr Reg bnd2(ZYDIS_REGISTER_BND2);
-    static constexpr Reg bnd3(ZYDIS_REGISTER_BND3);
-    static constexpr Reg bndcfg(ZYDIS_REGISTER_BNDCFG);
-    static constexpr Reg bndstatus(ZYDIS_REGISTER_BNDSTATUS);
+    static constexpr Bnd bnd0(ZYDIS_REGISTER_BND0);
+    static constexpr Bnd bnd1(ZYDIS_REGISTER_BND1);
+    static constexpr Bnd bnd2(ZYDIS_REGISTER_BND2);
+    static constexpr Bnd bnd3(ZYDIS_REGISTER_BND3);
+    static constexpr Bnd bndcfg(ZYDIS_REGISTER_BNDCFG);
+    static constexpr Bnd bndstatus(ZYDIS_REGISTER_BNDSTATUS);
     // Uncategorized
     static constexpr Reg mxcsr(ZYDIS_REGISTER_MXCSR);
     static constexpr Reg pkru(ZYDIS_REGISTER_PKRU);
