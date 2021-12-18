@@ -1,8 +1,8 @@
-#include "zasm/program.hpp"
+#include "zasm/program/program.hpp"
 
-#include "encoder.context.hpp"
-#include "program.state.hpp"
+#include "../encoder/encoder.context.hpp"
 #include "program.node.hpp"
+#include "program.state.hpp"
 
 #include <algorithm>
 

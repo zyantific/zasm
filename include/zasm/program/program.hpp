@@ -1,15 +1,16 @@
 #pragma once
 
 #include "data.hpp"
-#include "errors.hpp"
 #include "label.hpp"
 #include "node.hpp"
 
 #include <cstdint>
+#include <zasm/core/errors.hpp>
 
 namespace zasm
 {
-    namespace detail {
+    namespace detail
+    {
         struct ProgramState;
     }
 

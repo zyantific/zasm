@@ -1,22 +1,25 @@
 #pragma once
 
-#include "errors.hpp"
-#include "instruction.hpp"
-#include "operand.hpp"
+#include <zasm/core/errors.hpp>
+#include <zasm/program/instruction.hpp>
+#include <zasm/program/operand.hpp>
 
 namespace zasm
 {
     class Program;
     class Node;
+    class InstrGenerator;
 
     class Assembler
     {
         Program& _program;
         const Node* _cursor{};
         Instruction::Attribs _attribState{};
+        InstrGenerator* _generator{};
 
     public:
         Assembler(Program& _program);
+        ~Assembler();
 
         void setCursor(const Node* pos);
         const Node* getCursor() const;
@@ -55,12 +58,10 @@ namespace zasm
         {
             using T = std::underlying_type_t<Instruction::Attribs>;
 
-            _attribState = static_cast<Instruction::Attribs>(
-                static_cast<T>(_attribState) | static_cast<T>(attrib));
+            _attribState = static_cast<Instruction::Attribs>(static_cast<T>(_attribState) | static_cast<T>(attrib));
         }
 
     public: // Attribs/State modifier.
-
         Assembler& o8()
         {
             addAttrib(Instruction::Attribs::OperandSize8);
@@ -95,8 +96,7 @@ namespace zasm
         Error fromInstruction(const Instruction& instr);
 
     public: // Instruction emitter.
-
-		Error aaa();
+        Error aaa();
         Error aad(const operands::Imm& a);
         Error aam(const operands::Imm& a);
         Error aas();

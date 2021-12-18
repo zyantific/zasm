@@ -1,6 +1,6 @@
-#include "zasm/program.hpp"
+#include "zasm/program/program.hpp"
 
-#include "encoder.context.hpp"
+#include "../encoder/encoder.context.hpp"
 #include "program.state.hpp"
 
 #include <algorithm>
@@ -202,4 +202,4 @@ namespace zasm
 
         return Error::None;
     }
-}
+} // namespace zasm

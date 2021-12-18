@@ -1,8 +1,8 @@
 #pragma once
 
-#include "bitsize.hpp"
 #include "label.hpp"
 #include "register.hpp"
+#include "zasm/core/bitsize.hpp"
 
 namespace zasm::operands
 {

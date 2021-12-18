@@ -1,9 +1,8 @@
 #pragma once
 
-#include "bitsize.hpp"
-
 #include <Zydis/Zydis.h>
 #include <cstdint>
+#include <zasm/core/bitsize.hpp>
 
 namespace zasm::operands
 {

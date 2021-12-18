@@ -1,5 +1,7 @@
 #include "generator.hpp"
 
+#include <Zydis/Zydis.h>
+
 namespace zasm
 {
     // FIXME: Duplicate code, move this somewhere.
@@ -38,21 +40,25 @@ namespace zasm
         return false;
     }
 
-    // Generates an instruction without context.
-    // This is primarily used by the assembler to obtain all relevant meta data.
-    // Some operands will encode temporary values and switched back after decoding.
-    GeneratorResult generator(
-        ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic mnemonic, const Instruction::Operands& operands)
+
+    InstrGenerator::InstrGenerator(ZydisMachineMode mode)
+        : _decoder(mode)
+        , _mode(mode)
+    {
+    }
+
+    InstrGenerator::Result InstrGenerator::generate(
+        Instruction::Attribs attribs, ZydisMnemonic mnemonic, const Instruction::Operands& operands)
     {
         EncoderBuffer buf{};
 
-        auto encodeResult = encodeEstimated(buf, mode, attribs, mnemonic, operands);
+        auto encodeResult = encodeEstimated(buf, _mode, attribs, mnemonic, operands);
         if (encodeResult != Error::None)
         {
             return zasm::makeUnexpected(encodeResult);
         }
 
-        auto decodeResult = decode(mode, buf.data.data(), buf.length, 0);
+        auto decodeResult = _decoder.decode(buf.data.data(), buf.length, 0);
         if (!decodeResult)
         {
             return zasm::makeUnexpected(decodeResult.error());

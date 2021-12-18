@@ -1,11 +1,11 @@
 #pragma once
 
-#include "zasm/data.hpp"
-#include "zasm/encoder.hpp"
-#include "zasm/label.hpp"
-#include "zasm/node.hpp"
-#include "zasm/objectpool.hpp"
-#include "zasm/stringpool.hpp"
+#include "zasm/core/objectpool.hpp"
+#include "zasm/core/stringpool.hpp"
+#include "zasm/encoder/encoder.hpp"
+#include "zasm/program/data.hpp"
+#include "zasm/program/label.hpp"
+#include "zasm/program/node.hpp"
 
 #include <zydis/Zydis.h>
 
@@ -35,7 +35,7 @@ namespace zasm::detail
             int64_t boundVA{ -1 };
 
             // The node that holds/binds the label in the list.
-            const Node* labelNode{};
+            const zasm::Node* labelNode{};
         };
 
         StringPool labelNames;
@@ -47,4 +47,4 @@ namespace zasm::detail
         }
     };
 
-} // namespace zasm
+} // namespace zasm::detail

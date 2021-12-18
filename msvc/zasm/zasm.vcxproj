@@ -19,37 +19,38 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\zasm\assembler.hpp" />
-    <ClInclude Include="..\..\include\zasm\bitsize.hpp" />
-    <ClInclude Include="..\..\include\zasm\data.hpp" />
-    <ClInclude Include="..\..\include\zasm\decoder.hpp" />
-    <ClInclude Include="..\..\include\zasm\encoder.hpp" />
-    <ClInclude Include="..\..\include\zasm\errors.hpp" />
-    <ClInclude Include="..\..\include\zasm\expected.hpp" />
-    <ClInclude Include="..\..\include\zasm\immediate.hpp" />
-    <ClInclude Include="..\..\include\zasm\instruction.hpp" />
-    <ClInclude Include="..\..\include\zasm\label.hpp" />
-    <ClInclude Include="..\..\include\zasm\memory.hpp" />
-    <ClInclude Include="..\..\include\zasm\node.hpp" />
-    <ClInclude Include="..\..\include\zasm\objectpool.hpp" />
-    <ClInclude Include="..\..\include\zasm\operand.hpp" />
-    <ClInclude Include="..\..\include\zasm\program.hpp" />
-    <ClInclude Include="..\..\include\zasm\register.hpp" />
-    <ClInclude Include="..\..\include\zasm\stringpool.hpp" />
-    <ClInclude Include="..\..\src\zasm\src\encoder.context.hpp" />
-    <ClInclude Include="..\..\src\zasm\src\generator.hpp" />
-    <ClInclude Include="..\..\src\zasm\src\program.node.hpp" />
-    <ClInclude Include="..\..\src\zasm\src\program.state.hpp" />
+    <ClInclude Include="..\..\include\zasm\assembler\assembler.hpp" />
+    <ClInclude Include="..\..\include\zasm\core\bitsize.hpp" />
+    <ClInclude Include="..\..\include\zasm\core\errors.hpp" />
+    <ClInclude Include="..\..\include\zasm\core\expected.hpp" />
+    <ClInclude Include="..\..\include\zasm\core\objectpool.hpp" />
+    <ClInclude Include="..\..\include\zasm\core\stringpool.hpp" />
+    <ClInclude Include="..\..\include\zasm\decoder\decoder.hpp" />
+    <ClInclude Include="..\..\include\zasm\encoder\encoder.hpp" />
+    <ClInclude Include="..\..\include\zasm\program\data.hpp" />
+    <ClInclude Include="..\..\include\zasm\program\immediate.hpp" />
+    <ClInclude Include="..\..\include\zasm\program\instruction.hpp" />
+    <ClInclude Include="..\..\include\zasm\program\label.hpp" />
+    <ClInclude Include="..\..\include\zasm\program\memory.hpp" />
+    <ClInclude Include="..\..\include\zasm\program\node.hpp" />
+    <ClInclude Include="..\..\include\zasm\program\operand.hpp" />
+    <ClInclude Include="..\..\include\zasm\program\program.hpp" />
+    <ClInclude Include="..\..\include\zasm\program\register.hpp" />
+    <ClInclude Include="..\..\include\zasm\zasm.hpp" />
+    <ClInclude Include="..\..\src\zasm\src\encoder\encoder.context.hpp" />
+    <ClInclude Include="..\..\src\zasm\src\encoder\generator.hpp" />
+    <ClInclude Include="..\..\src\zasm\src\program\program.node.hpp" />
+    <ClInclude Include="..\..\src\zasm\src\program\program.state.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\zasm\src\assembler.cpp" />
-    <ClCompile Include="..\..\src\zasm\src\assembler.instructions.cpp" />
-    <ClCompile Include="..\..\src\zasm\src\data.cpp" />
-    <ClCompile Include="..\..\src\zasm\src\decoder.cpp" />
-    <ClCompile Include="..\..\src\zasm\src\encoder.cpp" />
-    <ClCompile Include="..\..\src\zasm\src\generator.cpp" />
-    <ClCompile Include="..\..\src\zasm\src\program.cpp" />
-    <ClCompile Include="..\..\src\zasm\src\program.serialization.cpp" />
+    <ClCompile Include="..\..\src\zasm\src\assembler\assembler.cpp" />
+    <ClCompile Include="..\..\src\zasm\src\assembler\assembler.instructions.cpp" />
+    <ClCompile Include="..\..\src\zasm\src\decoder\decoder.cpp" />
+    <ClCompile Include="..\..\src\zasm\src\encoder\encoder.cpp" />
+    <ClCompile Include="..\..\src\zasm\src\encoder\generator.cpp" />
+    <ClCompile Include="..\..\src\zasm\src\program\data.cpp" />
+    <ClCompile Include="..\..\src\zasm\src\program\program.cpp" />
+    <ClCompile Include="..\..\src\zasm\src\program\program.serialization.cpp" />
     <ClCompile Include="..\..\src\zasm\src\zasm.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

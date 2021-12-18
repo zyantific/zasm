@@ -1,6 +1,6 @@
 #pragma once
 
-#include "zasm/node.hpp"
+#include "zasm/program/node.hpp"
 
 namespace zasm
 {

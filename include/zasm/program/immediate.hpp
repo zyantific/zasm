@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Zydis/Zydis.h>
 #include <cstdint>
 
 namespace zasm::operands

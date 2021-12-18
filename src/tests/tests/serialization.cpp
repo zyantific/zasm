@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
-#include <zasm/assembler.hpp>
-#include <zasm/program.hpp>
+#include <zasm/zasm.hpp>
 
 namespace zasm::tests
 {

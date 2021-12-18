@@ -1,13 +1,12 @@
 #pragma once
 
-#include "errors.hpp"
-#include "expected.hpp"
-#include "instruction.hpp"
-
 #include <cstdint>
 #include <optional>
 #include <unordered_map>
 #include <vector>
+#include <zasm/core/errors.hpp>
+#include <zasm/core/expected.hpp>
+#include <zasm/program/instruction.hpp>
 
 namespace zasm
 {

@@ -1,12 +1,9 @@
-#include "zasm/assembler.hpp"
-
-#include "generator.hpp"
-#include "zasm/program.hpp"
+#include "zasm/assembler/assembler.hpp"
 
 namespace zasm
 {
 
-	Error Assembler::aaa()
+    Error Assembler::aaa()
     {
         return emit(ZYDIS_MNEMONIC_AAA);
     }

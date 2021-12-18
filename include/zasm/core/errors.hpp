@@ -10,6 +10,7 @@ namespace zasm
         None = 0,
         // Generic.
         InvalidMode,
+        NotInitialized,
         InvalidOperation,
         // Program
         LabelNotFound,
@@ -32,6 +33,7 @@ namespace zasm
         {
             ERROR_STRING(Error::None);
             ERROR_STRING(Error::InvalidMode);
+            ERROR_STRING(Error::NotInitialized);
             ERROR_STRING(Error::InvalidOperation);
             ERROR_STRING(Error::LabelNotFound);
             ERROR_STRING(Error::UnresolvedLabel);

@@ -1,9 +1,8 @@
 #pragma once
 
-#include "zasm/label.hpp"
-
 #include <cstdint>
 #include <vector>
+#include <zasm/program/label.hpp>
 
 namespace zasm
 {

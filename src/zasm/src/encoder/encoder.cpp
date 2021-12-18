@@ -1,4 +1,4 @@
-#include "zasm/encoder.hpp"
+#include "zasm/encoder/encoder.hpp"
 
 #include "encoder.context.hpp"
 

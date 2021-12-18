@@ -1,7 +1,7 @@
-#include "zasm/decoder.hpp"
+#include "zasm/decoder/decoder.hpp"
 
-#include "zasm/instruction.hpp"
-#include "zasm/operand.hpp"
+#include "zasm/program/instruction.hpp"
+#include "zasm/program/operand.hpp"
 
 #include <Zydis/Decoder.h>
 
@@ -75,24 +75,22 @@ namespace zasm
         return res;
     }
 
-    DecoderResult decode(ZydisMachineMode mode, const void* data, const size_t len, uint64_t va)
+    Decoder::Decoder(ZydisMachineMode mode)
     {
-        ZydisDecoder decoder;
-
         ZyanStatus status{};
         switch (mode)
         {
             case ZYDIS_MACHINE_MODE_LONG_64:
-                status = ZydisDecoderInit(&decoder, mode, ZydisStackWidth::ZYDIS_STACK_WIDTH_64);
+                status = ZydisDecoderInit(&_decoder, mode, ZydisStackWidth::ZYDIS_STACK_WIDTH_64);
                 break;
             case ZYDIS_MACHINE_MODE_LONG_COMPAT_32:
             case ZYDIS_MACHINE_MODE_LEGACY_32:
-                status = ZydisDecoderInit(&decoder, mode, ZydisStackWidth::ZYDIS_STACK_WIDTH_32);
+                status = ZydisDecoderInit(&_decoder, mode, ZydisStackWidth::ZYDIS_STACK_WIDTH_32);
                 break;
             case ZYDIS_MACHINE_MODE_LONG_COMPAT_16:
             case ZYDIS_MACHINE_MODE_LEGACY_16:
             case ZYDIS_MACHINE_MODE_REAL_16:
-                status = ZydisDecoderInit(&decoder, mode, ZydisStackWidth::ZYDIS_STACK_WIDTH_16);
+                status = ZydisDecoderInit(&_decoder, mode, ZydisStackWidth::ZYDIS_STACK_WIDTH_16);
                 break;
             default:
                 break;
@@ -101,12 +99,21 @@ namespace zasm
         if (status != ZYAN_STATUS_SUCCESS)
         {
             // TODO: Translate proper error.
-            return zasm::makeUnexpected(Error::InvalidOperation);
+            _status = Error::NotInitialized;
+        }
+    }
+
+    Decoder::Result Decoder::decode(const void* data, const size_t len, uint64_t va)
+    {
+        if (_status != Error::None)
+        {
+            return zasm::makeUnexpected(_status);
         }
 
         ZydisDecodedInstruction instr{};
         ZydisDecodedOperand instrOps[ZYDIS_MAX_OPERAND_COUNT]{};
-        status = ZydisDecoderDecodeFull(&decoder, data, len, &instr, instrOps, static_cast<ZyanU8>(std::size(instrOps)), 0);
+
+        ZyanStatus status = ZydisDecoderDecodeFull(&_decoder, data, len, &instr, instrOps, static_cast<ZyanU8>(std::size(instrOps)), 0);
         if (status != ZYAN_STATUS_SUCCESS)
         {
             // TODO: Translate proper error.
