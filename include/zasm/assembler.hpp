@@ -91,6 +91,9 @@ namespace zasm
             return *this;
         }
 
+    public:
+        Error fromInstruction(const Instruction& instr);
+
     public: // Instruction emitter.
 
 		Error aaa();

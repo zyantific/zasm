@@ -79,4 +79,12 @@ namespace zasm
         return Error::None;
     }
 
+    zasm::Error Assembler::fromInstruction(const Instruction& instr)
+    {
+        auto* instrNode = _program.createNode(instr);
+        _cursor = _program.insertAfter(_cursor, instrNode);
+
+        return Error::None;
+    }
+
 } // namespace zasm
