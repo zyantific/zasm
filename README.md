@@ -14,6 +14,7 @@ Zasm is composed of three components ```Program```, ```Decoder```, ```Assembler`
 
 ```Decoder``` is a wrapper class for the Zydis Decoder. Decodes instructions from data.
 
+
 ```Assembler``` is a wrapper class that has specialized overloads for all supported instructions that adds new nodes to the ```Program``` being attached to. It also allows to directly add instructions from the ```Decoder```
 
 ## Examples
