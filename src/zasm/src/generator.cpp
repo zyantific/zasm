@@ -42,11 +42,11 @@ namespace zasm
     // This is primarily used by the assembler to obtain all relevant meta data.
     // Some operands will encode temporary values and switched back after decoding.
     GeneratorResult generator(
-        ZydisMachineMode mode, Instruction::Prefix prefixes, ZydisMnemonic mnemonic, const Instruction::Operands& operands)
+        ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic mnemonic, const Instruction::Operands& operands)
     {
         EncoderBuffer buf{};
 
-        auto encodeResult = encodeEstimated(buf, mode, prefixes, mnemonic, operands);
+        auto encodeResult = encodeEstimated(buf, mode, attribs, mnemonic, operands);
         if (encodeResult != Error::None)
         {
             return xstd::make_unexpected(encodeResult);

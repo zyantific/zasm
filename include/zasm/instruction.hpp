@@ -11,6 +11,13 @@ namespace zasm
     class Instruction
     {
     public:
+        // For debug builds this makes inspection easier.
+        // For release builds size matters more.
+#ifdef _DEBUG
+        using Mnemonic = ZydisMnemonic;
+#else
+        using Mnemonic = uint16_t;
+#endif
         using Operands = std::array<Operand, ZYDIS_MAX_OPERAND_COUNT>;
         using Access = std::array<ZydisOperandActions, ZYDIS_MAX_OPERAND_COUNT>;
         using Visibility = std::array<OperandVisibility, ZYDIS_MAX_OPERAND_COUNT>;
@@ -23,7 +30,7 @@ namespace zasm
             uint32_t undefined;
         };
 
-        enum class Prefix : uint8_t
+        enum class Attribs : uint16_t
         {
             None = 0,
             Lock = (1u << 0),
@@ -33,15 +40,11 @@ namespace zasm
             Bnd = (1u << 4),
             Xacquire = (1u << 5),
             Xrelease = (1u << 6),
+            OperandSize8 = (1u << 7),
+            OperandSize16 = (1u << 8),
+            OperandSize32 = (1u << 9),
+            OperandSize64 = (1u << 10),
         };
-
-        // For debug builds this makes inspection easier.
-        // For release builds size matters more.
-#ifdef _DEBUG
-        using Mnemonic = ZydisMnemonic;
-#else
-        using Mnemonic = uint16_t;
-#endif
 
     private:
         Mnemonic _id{};
@@ -49,20 +52,20 @@ namespace zasm
         Access _access{};
         Visibility _visibility{};
         Flags _flags{};
-        Prefix _prefixes{};
+        Attribs _attribs{};
         Length _length{};
 
     public:
         constexpr Instruction() = default;
         constexpr Instruction(
-            Prefix prefixes, ZydisMnemonic mnemonic, const Operands& operands, const Access& access, const Visibility& vis,
+            Attribs prefixes, ZydisMnemonic mnemonic, const Operands& operands, const Access& access, const Visibility& vis,
             const Flags& flags, Length length = 0)
             : _id{ static_cast<Mnemonic>(mnemonic) }
             , _operands{ operands }
             , _access{ access }
             , _visibility{ vis }
             , _flags{ flags }
-            , _prefixes{ prefixes }
+            , _attribs{ prefixes }
             , _length{ length }
         {
         }
@@ -72,14 +75,14 @@ namespace zasm
             return static_cast<ZydisMnemonic>(_id);
         }
 
-        constexpr Prefix getPrefixes() const
+        constexpr Attribs getPrefixes() const
         {
-            return _prefixes;
+            return _attribs;
         }
 
-        constexpr bool hasPrefix(Prefix prefix) const
+        constexpr bool hasPrefix(Attribs prefix) const
         {
-            return (static_cast<unsigned>(_prefixes) & static_cast<unsigned>(prefix)) != 0u;
+            return (static_cast<unsigned>(_attribs) & static_cast<unsigned>(prefix)) != 0u;
         }
 
         constexpr Length getLength() const

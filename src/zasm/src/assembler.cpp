@@ -65,9 +65,9 @@ namespace zasm
         return Error::None;
     }
 
-    Error Assembler::emit_(Instruction::Prefix prefixes, ZydisMnemonic id, const Instruction::Operands& ops)
+    Error Assembler::emit_(Instruction::Attribs attribs, ZydisMnemonic id, const Instruction::Operands& ops)
     {
-        auto genResult = generator(_program.getMode(), prefixes, id, ops);
+        auto genResult = generator(_program.getMode(), attribs, id, ops);
         if (!genResult)
         {
             return genResult.error();

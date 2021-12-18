@@ -89,5 +89,8 @@
     <ClCompile Include="..\..\src\zasm\src\data.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\zasm\src\assembler.instructions.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

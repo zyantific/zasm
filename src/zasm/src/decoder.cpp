@@ -47,6 +47,34 @@ namespace zasm
         return operands::None{};
     }
 
+    static bool hasAttrib(ZydisInstructionAttributes attribs, ZydisInstructionAttributes b)
+    {
+        if (attribs & b)
+            return true;
+        return false;
+    }
+
+    static Instruction::Attribs getPrefixes(ZydisInstructionAttributes attribs)
+    {
+        Instruction::Attribs res{};
+        const auto handleAttrib = [&](ZydisInstructionAttributes a, Instruction::Attribs b)
+        {
+            if (!hasAttrib(attribs, a))
+                return;
+
+            res = static_cast<Instruction::Attribs>(static_cast<uint32_t>(res) | static_cast<uint32_t>(b));
+        };
+        handleAttrib(ZYDIS_ATTRIB_HAS_LOCK, Instruction::Attribs::Lock);
+        handleAttrib(ZYDIS_ATTRIB_HAS_REP, Instruction::Attribs::Rep);
+        handleAttrib(ZYDIS_ATTRIB_HAS_REPE, Instruction::Attribs::Repe);
+        handleAttrib(ZYDIS_ATTRIB_HAS_REPNE, Instruction::Attribs::Repne);
+        handleAttrib(ZYDIS_ATTRIB_HAS_BND, Instruction::Attribs::Bnd);
+        handleAttrib(ZYDIS_ATTRIB_HAS_XACQUIRE, Instruction::Attribs::Xacquire);
+        handleAttrib(ZYDIS_ATTRIB_HAS_XRELEASE, Instruction::Attribs::Xrelease);
+        handleAttrib(ZYDIS_ATTRIB_HAS_OPERANDSIZE, Instruction::Attribs::OperandSize16);
+        return res;
+    }
+
     DecoderResult decode(ZydisMachineMode mode, const void* data, const size_t len, uint64_t va)
     {
         ZydisDecoder decoder;
@@ -85,9 +113,6 @@ namespace zasm
             return xstd::make_unexpected(Error::InvalidOperation);
         }
 
-        Instruction::Prefix prefixes{};
-        // FIXME: Handle me.
-
         Instruction::Flags flags{};
         if (instr.cpu_flags != nullptr)
         {
@@ -107,6 +132,7 @@ namespace zasm
             vis[i] = static_cast<OperandVisibility>(op.visibility);
         }
 
+        const auto prefixes = getPrefixes(instr.attributes);
         return Instruction(prefixes, instr.mnemonic, ops, access, vis, flags, instr.length);
     }
 

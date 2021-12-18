@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\zasm\src\assembler.cpp" />
+    <ClCompile Include="..\..\src\zasm\src\assembler.instructions.cpp" />
     <ClCompile Include="..\..\src\zasm\src\data.cpp" />
     <ClCompile Include="..\..\src\zasm\src\decoder.cpp" />
     <ClCompile Include="..\..\src\zasm\src\encoder.cpp" />

@@ -11,8 +11,6 @@ static std::string hexDump(const uint8_t* buf, size_t len)
     {
         char temp[3]{};
         sprintf_s(temp, "%02X", buf[i]);
-        if (!res.empty())
-            res += " ";
         res += temp;
     }
     return res;
@@ -113,9 +111,12 @@ static void quickTest()
     // Emitter
     Assembler a(program);
 
-    a.vshufps(zmm1, k0, zmm1, zmm25, Imm(171));
+    a.lock().inc(qword_ptr(rax));
 
     program.serialize(0x00007FF7B7D84DB0);
+
+    const auto codeDump = hexDump(program.getCode(), program.getCodeSize());
+    std::cout << codeDump << "\n";
 }
 
 int main()

@@ -96,10 +96,36 @@ namespace zasm
         return target - (va + instrSize);
     }
 
-    static ZydisInstructionAttributes getPrefixes(Instruction::Prefix prefixes)
+    static bool hasPrefix(Instruction::Attribs prefixes, Instruction::Attribs p)
     {
-        // FIXME
-        return {};
+        if (static_cast<uint32_t>(prefixes) & static_cast<uint32_t>(p))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    static ZydisInstructionAttributes getPrefixes(Instruction::Attribs prefixes)
+    {
+        ZydisInstructionAttributes res{};
+
+        const auto translatePrefix = [&](Instruction::Attribs p, ZydisInstructionAttributes a)
+        {
+            if (hasPrefix(prefixes, p))
+            {
+                res |= a;
+            }
+        };
+
+        translatePrefix(Instruction::Attribs::Lock, ZYDIS_ATTRIB_HAS_LOCK);
+        translatePrefix(Instruction::Attribs::Rep, ZYDIS_ATTRIB_HAS_REP);
+        translatePrefix(Instruction::Attribs::Repe, ZYDIS_ATTRIB_HAS_REPE);
+        translatePrefix(Instruction::Attribs::Repne, ZYDIS_ATTRIB_HAS_REPNE);
+        translatePrefix(Instruction::Attribs::Bnd, ZYDIS_ATTRIB_HAS_BND);
+        translatePrefix(Instruction::Attribs::Xacquire, ZYDIS_ATTRIB_HAS_XACQUIRE);
+        translatePrefix(Instruction::Attribs::Xrelease, ZYDIS_ATTRIB_HAS_XRELEASE);
+
+        return res;
     }
 
     static ZydisEncoderOperand getOperand(
@@ -354,13 +380,30 @@ namespace zasm
     }
 
     static Error encode_(
-        EncoderBuffer& buf, EncoderContext* ctx, ZydisMachineMode mode, Instruction::Prefix prefixes, ZydisMnemonic id,
+        EncoderBuffer& buf, EncoderContext* ctx, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id,
         const Instruction::Operands& operands)
     {
         ZydisEncoderRequest req{};
         req.machine_mode = mode;
         req.mnemonic = id;
-        req.prefixes = getPrefixes(prefixes);
+        req.prefixes = getPrefixes(attribs);
+
+        if (hasPrefix(attribs, Instruction::Attribs::OperandSize8))
+        {
+            req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_8;
+        }
+        else if (hasPrefix(attribs, Instruction::Attribs::OperandSize16))
+        {
+            req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_16;
+        }
+        else if (hasPrefix(attribs, Instruction::Attribs::OperandSize32))
+        {
+            req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_32;
+        }
+        else if (hasPrefix(attribs, Instruction::Attribs::OperandSize64))
+        {
+            req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_64;
+        }
 
         const auto numOperands = std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, operands.size());
         for (size_t i = 0; i < numOperands; i++)
@@ -394,14 +437,14 @@ namespace zasm
     }
 
     Error encodeEstimated(
-        EncoderBuffer& buf, ZydisMachineMode mode, Instruction::Prefix prefixes, ZydisMnemonic id,
+        EncoderBuffer& buf, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id,
         const Instruction::Operands& operands)
     {
-        return encode_(buf, nullptr, mode, prefixes, id, operands);
+        return encode_(buf, nullptr, mode, attribs, id, operands);
     }
 
     static Error encodeFull(
-        EncoderBuffer& buf, EncoderContext& ctx, ZydisMachineMode mode, Instruction::Prefix prefixes, ZydisMnemonic id,
+        EncoderBuffer& buf, EncoderContext& ctx, ZydisMachineMode mode, Instruction::Attribs prefixes, ZydisMnemonic id,
         const Instruction::Operands& operands)
     {
         // For correct support on instructions with relative encoding we require the instruction size.
