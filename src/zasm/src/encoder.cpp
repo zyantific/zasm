@@ -96,34 +96,35 @@ namespace zasm
         return target - (va + instrSize);
     }
 
-    static bool hasPrefix(Instruction::Attribs prefixes, Instruction::Attribs p)
+    static bool hasAttrib(Instruction::Attribs attribs, Instruction::Attribs p)
     {
-        if (static_cast<uint32_t>(prefixes) & static_cast<uint32_t>(p))
+        using T = std::underlying_type_t<Instruction::Attribs>;
+        if (static_cast<T>(attribs) & static_cast<T>(p))
         {
             return true;
         }
         return false;
     }
 
-    static ZydisInstructionAttributes getPrefixes(Instruction::Attribs prefixes)
+    static ZydisInstructionAttributes getAttribs(Instruction::Attribs prefixes)
     {
         ZydisInstructionAttributes res{};
 
-        const auto translatePrefix = [&](Instruction::Attribs p, ZydisInstructionAttributes a)
+        const auto translateAttrib = [&](Instruction::Attribs p, ZydisInstructionAttributes a)
         {
-            if (hasPrefix(prefixes, p))
+            if (hasAttrib(prefixes, p))
             {
                 res |= a;
             }
         };
 
-        translatePrefix(Instruction::Attribs::Lock, ZYDIS_ATTRIB_HAS_LOCK);
-        translatePrefix(Instruction::Attribs::Rep, ZYDIS_ATTRIB_HAS_REP);
-        translatePrefix(Instruction::Attribs::Repe, ZYDIS_ATTRIB_HAS_REPE);
-        translatePrefix(Instruction::Attribs::Repne, ZYDIS_ATTRIB_HAS_REPNE);
-        translatePrefix(Instruction::Attribs::Bnd, ZYDIS_ATTRIB_HAS_BND);
-        translatePrefix(Instruction::Attribs::Xacquire, ZYDIS_ATTRIB_HAS_XACQUIRE);
-        translatePrefix(Instruction::Attribs::Xrelease, ZYDIS_ATTRIB_HAS_XRELEASE);
+        translateAttrib(Instruction::Attribs::Lock, ZYDIS_ATTRIB_HAS_LOCK);
+        translateAttrib(Instruction::Attribs::Rep, ZYDIS_ATTRIB_HAS_REP);
+        translateAttrib(Instruction::Attribs::Repe, ZYDIS_ATTRIB_HAS_REPE);
+        translateAttrib(Instruction::Attribs::Repne, ZYDIS_ATTRIB_HAS_REPNE);
+        translateAttrib(Instruction::Attribs::Bnd, ZYDIS_ATTRIB_HAS_BND);
+        translateAttrib(Instruction::Attribs::Xacquire, ZYDIS_ATTRIB_HAS_XACQUIRE);
+        translateAttrib(Instruction::Attribs::Xrelease, ZYDIS_ATTRIB_HAS_XRELEASE);
 
         return res;
     }
@@ -386,21 +387,21 @@ namespace zasm
         ZydisEncoderRequest req{};
         req.machine_mode = mode;
         req.mnemonic = id;
-        req.prefixes = getPrefixes(attribs);
+        req.prefixes = getAttribs(attribs);
 
-        if (hasPrefix(attribs, Instruction::Attribs::OperandSize8))
+        if (hasAttrib(attribs, Instruction::Attribs::OperandSize8))
         {
             req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_8;
         }
-        else if (hasPrefix(attribs, Instruction::Attribs::OperandSize16))
+        else if (hasAttrib(attribs, Instruction::Attribs::OperandSize16))
         {
             req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_16;
         }
-        else if (hasPrefix(attribs, Instruction::Attribs::OperandSize32))
+        else if (hasAttrib(attribs, Instruction::Attribs::OperandSize32))
         {
             req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_32;
         }
-        else if (hasPrefix(attribs, Instruction::Attribs::OperandSize64))
+        else if (hasAttrib(attribs, Instruction::Attribs::OperandSize64))
         {
             req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_64;
         }
@@ -490,7 +491,7 @@ namespace zasm
             ops[i] = operands[i];
         }
 
-        return encodeFull(buf, ctx, mode, instr.getPrefixes(), instr.getId(), ops);
+        return encodeFull(buf, ctx, mode, instr.getAttribs(), instr.getId(), ops);
     }
 
 } // namespace zasm

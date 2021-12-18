@@ -9,6 +9,6 @@ namespace zasm
     using GeneratorResult = zasm::Expected<Instruction, Error>;
 
     GeneratorResult generator(
-        ZydisMachineMode mode, Instruction::Attribs prefixes, ZydisMnemonic mnemonic, const Instruction::Operands& operands);
+        ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic mnemonic, const Instruction::Operands& operands);
 
 } // namespace zasm

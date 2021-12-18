@@ -54,24 +54,24 @@ namespace zasm
         return false;
     }
 
-    static Instruction::Attribs getPrefixes(ZydisInstructionAttributes attribs)
+    static Instruction::Attribs getAttribs(ZydisInstructionAttributes attribs)
     {
         Instruction::Attribs res{};
-        const auto handleAttrib = [&](ZydisInstructionAttributes a, Instruction::Attribs b)
+        const auto translateAttrib = [&](ZydisInstructionAttributes a, Instruction::Attribs b)
         {
             if (!hasAttrib(attribs, a))
                 return;
 
             res = static_cast<Instruction::Attribs>(static_cast<uint32_t>(res) | static_cast<uint32_t>(b));
         };
-        handleAttrib(ZYDIS_ATTRIB_HAS_LOCK, Instruction::Attribs::Lock);
-        handleAttrib(ZYDIS_ATTRIB_HAS_REP, Instruction::Attribs::Rep);
-        handleAttrib(ZYDIS_ATTRIB_HAS_REPE, Instruction::Attribs::Repe);
-        handleAttrib(ZYDIS_ATTRIB_HAS_REPNE, Instruction::Attribs::Repne);
-        handleAttrib(ZYDIS_ATTRIB_HAS_BND, Instruction::Attribs::Bnd);
-        handleAttrib(ZYDIS_ATTRIB_HAS_XACQUIRE, Instruction::Attribs::Xacquire);
-        handleAttrib(ZYDIS_ATTRIB_HAS_XRELEASE, Instruction::Attribs::Xrelease);
-        handleAttrib(ZYDIS_ATTRIB_HAS_OPERANDSIZE, Instruction::Attribs::OperandSize16);
+        translateAttrib(ZYDIS_ATTRIB_HAS_LOCK, Instruction::Attribs::Lock);
+        translateAttrib(ZYDIS_ATTRIB_HAS_REP, Instruction::Attribs::Rep);
+        translateAttrib(ZYDIS_ATTRIB_HAS_REPE, Instruction::Attribs::Repe);
+        translateAttrib(ZYDIS_ATTRIB_HAS_REPNE, Instruction::Attribs::Repne);
+        translateAttrib(ZYDIS_ATTRIB_HAS_BND, Instruction::Attribs::Bnd);
+        translateAttrib(ZYDIS_ATTRIB_HAS_XACQUIRE, Instruction::Attribs::Xacquire);
+        translateAttrib(ZYDIS_ATTRIB_HAS_XRELEASE, Instruction::Attribs::Xrelease);
+        translateAttrib(ZYDIS_ATTRIB_HAS_OPERANDSIZE, Instruction::Attribs::OperandSize16);
         return res;
     }
 
@@ -132,8 +132,8 @@ namespace zasm
             vis[i] = static_cast<OperandVisibility>(op.visibility);
         }
 
-        const auto prefixes = getPrefixes(instr.attributes);
-        return Instruction(prefixes, instr.mnemonic, ops, access, vis, flags, instr.length);
+        const auto attribs = getAttribs(instr.attributes);
+        return Instruction(attribs, instr.mnemonic, ops, access, vis, flags, instr.length);
     }
 
 } // namespace zasm

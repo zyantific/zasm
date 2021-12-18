@@ -58,14 +58,14 @@ namespace zasm
     public:
         constexpr Instruction() = default;
         constexpr Instruction(
-            Attribs prefixes, ZydisMnemonic mnemonic, const Operands& operands, const Access& access, const Visibility& vis,
+            Attribs attribs, ZydisMnemonic mnemonic, const Operands& operands, const Access& access, const Visibility& vis,
             const Flags& flags, Length length = 0)
             : _id{ static_cast<Mnemonic>(mnemonic) }
             , _operands{ operands }
             , _access{ access }
             , _visibility{ vis }
             , _flags{ flags }
-            , _attribs{ prefixes }
+            , _attribs{ attribs }
             , _length{ length }
         {
         }
@@ -75,14 +75,14 @@ namespace zasm
             return static_cast<ZydisMnemonic>(_id);
         }
 
-        constexpr Attribs getPrefixes() const
+        constexpr Attribs getAttribs() const
         {
             return _attribs;
         }
 
-        constexpr bool hasPrefix(Attribs prefix) const
+        constexpr bool hasAttrib(Attribs attrib) const
         {
-            return (static_cast<unsigned>(_attribs) & static_cast<unsigned>(prefix)) != 0u;
+            return (static_cast<unsigned>(_attribs) & static_cast<unsigned>(attrib)) != 0u;
         }
 
         constexpr Length getLength() const

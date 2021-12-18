@@ -91,7 +91,7 @@ namespace zasm
         }
 
         return Instruction(
-            decodedInstr.getPrefixes(), decodedInstr.getId(), newOps, decodedInstr.getAccess(), vis, decodedInstr.getFlags(),
+            decodedInstr.getAttribs(), decodedInstr.getId(), newOps, decodedInstr.getAccess(), vis, decodedInstr.getFlags(),
             decodedInstr.getLength());
     }
 
