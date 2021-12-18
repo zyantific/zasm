@@ -1,14 +1,20 @@
-#include "zasm/assembler.hpp"
+#include "zasm/assembler/assembler.hpp"
 
-#include "generator.hpp"
-#include "zasm/program.hpp"
+#include "../encoder/generator.hpp"
+#include "zasm/program/program.hpp"
 
 namespace zasm
 {
 
-    Assembler::Assembler(Program& _program)
-        : _program(_program)
+    Assembler::Assembler(Program& program)
+        : _program(program)
+        , _generator(new InstrGenerator(program.getMode()))
     {
+    }
+
+    Assembler::~Assembler()
+    {
+        delete _generator;
     }
 
     void Assembler::setCursor(const Node* pos)
@@ -65,15 +71,23 @@ namespace zasm
         return Error::None;
     }
 
-    Error Assembler::emit_(Instruction::Prefix prefixes, ZydisMnemonic id, const Instruction::Operands& ops)
+    Error Assembler::emit_(Instruction::Attribs attribs, ZydisMnemonic id, const Instruction::Operands& ops)
     {
-        auto genResult = generator(_program.getMode(), prefixes, id, ops);
+        auto genResult = _generator->generate(attribs, id, ops);
         if (!genResult)
         {
             return genResult.error();
         }
 
         auto* instrNode = _program.createNode(*genResult);
+        _cursor = _program.insertAfter(_cursor, instrNode);
+
+        return Error::None;
+    }
+
+    zasm::Error Assembler::fromInstruction(const Instruction& instr)
+    {
+        auto* instrNode = _program.createNode(instr);
         _cursor = _program.insertAfter(_cursor, instrNode);
 
         return Error::None;

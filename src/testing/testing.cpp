@@ -1,18 +1,14 @@
 #include <chrono>
 #include <iostream>
-#include <zasm/assembler.hpp>
-#include <zasm/decoder.hpp>
-#include <zasm/program.hpp>
+#include <zasm/zasm.hpp>
 
-static std::string hexDump(const uint8_t* buf, size_t len)
+static std::string getHexDump(const uint8_t* buf, size_t len)
 {
     std::string res;
     for (size_t i = 0; i < len; i++)
     {
         char temp[3]{};
         sprintf_s(temp, "%02X", buf[i]);
-        if (!res.empty())
-            res += " ";
         res += temp;
     }
     return res;
@@ -102,9 +98,76 @@ static void measureSerializePerformance()
     // std::cout << "Dump: " << hexBytes << std::endl;
 }
 
+static void quickTest()
+{
+    using namespace zasm;
+    using namespace zasm::operands;
+
+    // Program contains all the nodes and labels.
+    Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
+
+    // Emitter
+    Assembler a(program);
+
+    a.push(Imm(0xC11));
+
+    program.serialize(0x00007FF7B7D84DB0);
+
+    const auto codeDump = getHexDump(program.getCode(), program.getCodeSize());
+    std::cout << codeDump << "\n";
+}
+
+static void decodeToAssembler()
+{
+    using namespace zasm;
+    using namespace zasm::operands;
+
+    const std::array<uint8_t, 24> code = {
+        0x40, 0x53,             // push rbx
+        0x45, 0x8B, 0x18,       // mov r11d, dword ptr ds:[r8]
+        0x48, 0x8B, 0xDA,       // mov rbx, rdx
+        0x41, 0x83, 0xE3, 0xF8, // and r11d, 0xFFFFFFF8
+        0x4C, 0x8B, 0xC9,       // mov r9, rcx
+        0x41, 0xF6, 0x00, 0x04, // test byte ptr ds:[r8], 0x4
+        0x4C, 0x8B, 0xD1,       // mov r10, rcx
+        0x74, 0x13,             // je 0x00007FF6BC738EFF
+    };
+
+    Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
+    Decoder decoder(program.getMode());
+    Assembler assembler(program);
+
+    uint64_t base = 0x00007FF6BC738ED4;
+    uint64_t addr = base;
+    size_t bytesDecoded = 0;
+
+    while (bytesDecoded < code.size())
+    {
+        auto decoderRes = decoder.decode(code.data() + bytesDecoded, code.size() - bytesDecoded, addr);
+        if (!decoderRes)
+        {
+            std::cout << "Failed to decode at " << std::hex << addr << ", " << decoderRes.error() << "\n";
+            return;
+        }
+
+        const auto& instr = decoderRes.value();
+        assembler.fromInstruction(instr);
+
+        addr += instr.getLength();
+        bytesDecoded += instr.getLength();
+    }
+
+    program.serialize(base);
+
+    const auto codeDump = getHexDump(program.getCode(), program.getCodeSize());
+    std::cout << codeDump << "\n";
+}
+
 int main()
 {
-    measureSerializePerformance();
+    decodeToAssembler();
+    quickTest();
+    // measureSerializePerformance();
 
     return EXIT_SUCCESS;
 }

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <ostream>
 #include <cassert>
+#include <ostream>
 
 namespace zasm
 {
@@ -10,6 +10,7 @@ namespace zasm
         None = 0,
         // Generic.
         InvalidMode,
+        NotInitialized,
         InvalidOperation,
         // Program
         LabelNotFound,
@@ -24,11 +25,15 @@ namespace zasm
 
     inline constexpr const char* getErrorName(Error err)
     {
-#define ERROR_STRING(e) case e: return #e
+#define ERROR_STRING(e)                                                                                                        \
+    case e:                                                                                                                    \
+        return #e
+
         switch (err)
         {
             ERROR_STRING(Error::None);
             ERROR_STRING(Error::InvalidMode);
+            ERROR_STRING(Error::NotInitialized);
             ERROR_STRING(Error::InvalidOperation);
             ERROR_STRING(Error::LabelNotFound);
             ERROR_STRING(Error::UnresolvedLabel);

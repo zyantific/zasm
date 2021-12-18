@@ -1,5 +1,7 @@
 #include "generator.hpp"
 
+#include <Zydis/Zydis.h>
+
 namespace zasm
 {
     // FIXME: Duplicate code, move this somewhere.
@@ -38,29 +40,33 @@ namespace zasm
         return false;
     }
 
-    // Generates an instruction without context.
-    // This is primarily used by the assembler to obtain all relevant meta data.
-    // Some operands will encode temporary values and switched back after decoding.
-    GeneratorResult generator(
-        ZydisMachineMode mode, Instruction::Prefix prefixes, ZydisMnemonic mnemonic, const Instruction::Operands& operands)
+
+    InstrGenerator::InstrGenerator(ZydisMachineMode mode)
+        : _decoder(mode)
+        , _mode(mode)
+    {
+    }
+
+    InstrGenerator::Result InstrGenerator::generate(
+        Instruction::Attribs attribs, ZydisMnemonic mnemonic, const Instruction::Operands& operands)
     {
         EncoderBuffer buf{};
 
-        auto encodeResult = encodeEstimated(buf, mode, prefixes, mnemonic, operands);
+        auto encodeResult = encodeEstimated(buf, _mode, attribs, mnemonic, operands);
         if (encodeResult != Error::None)
         {
-            return xstd::make_unexpected(encodeResult);
+            return zasm::makeUnexpected(encodeResult);
         }
 
-        auto decodeResult = decode(mode, buf.data.data(), buf.length, 0);
+        auto decodeResult = _decoder.decode(buf.data.data(), buf.length, 0);
         if (!decodeResult)
         {
-            return xstd::make_unexpected(decodeResult.error());
+            return zasm::makeUnexpected(decodeResult.error());
         }
 
         // Exchange back certain operands.
         const auto& decodedInstr = *decodeResult;
-        
+
         auto newOps = decodedInstr.getOperands();
         const auto& vis = decodedInstr.getVisibility();
         for (size_t i = 0; i < operands.size(); i++)
@@ -90,12 +96,8 @@ namespace zasm
             }
         }
 
-        return Instruction(decodedInstr.getPrefixes(), 
-            decodedInstr.getId(), 
-            newOps,
-            decodedInstr.getAccess(),
-            vis,
-            decodedInstr.getFlags(),
+        return Instruction(
+            decodedInstr.getAttribs(), decodedInstr.getId(), newOps, decodedInstr.getAccess(), vis, decodedInstr.getFlags(),
             decodedInstr.getLength());
     }
 

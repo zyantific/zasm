@@ -1,44 +1,40 @@
-#pragma once 
+#pragma once
 
 #include <variant>
 
-/// <summary>
-/// Small wrapper that implements some sort of version of std::expected, it may or may not
-/// adhere the STL standard.
-/// </summary>
-namespace xstd
+namespace zasm
 {
     namespace detail
     {
-        template<typename T> struct unexpected
+        template<typename T> struct Unexpected
         {
             const T failure;
 
-            constexpr unexpected(const T& val)
+            constexpr Unexpected(const T& val)
                 : failure{ val }
             {
             }
         };
     } // namespace detail
 
-    template<typename TSuccess, typename TFailure> class expected
+    template<typename TSuccess, typename TFailure> class Expected
     {
-        std::variant<TSuccess, detail::unexpected<TFailure>> data;
+        std::variant<TSuccess, detail::Unexpected<TFailure>> data;
 
     public:
-        constexpr expected(const TSuccess& val)
+        constexpr Expected(const TSuccess& val)
             : data{ val }
         {
         }
-        constexpr expected(TSuccess&& val)
+        constexpr Expected(TSuccess&& val)
             : data{ std::move(val) }
         {
         }
-        constexpr expected(const detail::unexpected<TFailure>& val)
+        constexpr Expected(const detail::Unexpected<TFailure>& val)
             : data{ val }
         {
         }
-        constexpr expected(detail::unexpected<TFailure>&& val)
+        constexpr Expected(detail::Unexpected<TFailure>&& val)
             : data{ std::move(val) }
         {
         }
@@ -48,7 +44,7 @@ namespace xstd
         }
         constexpr const TFailure& error() const
         {
-            return std::get<detail::unexpected<TFailure>>(data).failure;
+            return std::get<detail::Unexpected<TFailure>>(data).failure;
         }
         constexpr TSuccess& value()
         {
@@ -68,9 +64,9 @@ namespace xstd
         }
     };
 
-    template<typename T> constexpr detail::unexpected<T> make_unexpected(const T& val)
+    template<typename T> constexpr detail::Unexpected<T> makeUnexpected(const T& val)
     {
-        return detail::unexpected<T>(val);
+        return detail::Unexpected<T>(val);
     }
 
 } // namespace xstd

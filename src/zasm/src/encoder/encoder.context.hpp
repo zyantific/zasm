@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <vector>
-#include "zasm/label.hpp"
+#include <zasm/program/label.hpp>
 
 namespace zasm
 {
@@ -32,4 +32,4 @@ namespace zasm
         std::vector<LabelLink> labelLinks;
         std::vector<Node> nodes;
     };
-}
+} // namespace zasm

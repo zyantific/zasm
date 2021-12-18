@@ -1,8 +1,8 @@
 #pragma once
 
-#include "bitsize.hpp"
 #include "label.hpp"
 #include "register.hpp"
+#include "zasm/core/bitsize.hpp"
 
 namespace zasm::operands
 {
@@ -20,9 +20,9 @@ namespace zasm::operands
     public:
         constexpr Mem(BitSize bitSize, const Seg& seg, const Reg& base, const Reg& index, uint8_t scale, int64_t disp)
             : _bitSize{ bitSize }
-            , _seg{ static_cast<Seg::Id>(seg.id()) }
-            , _base{ static_cast<Reg::Id>(base.id()) }
-            , _index{ static_cast<Reg::Id>(index.id()) }
+            , _seg{ static_cast<Seg::Id>(seg.getId()) }
+            , _base{ static_cast<Reg::Id>(base.getId()) }
+            , _index{ static_cast<Reg::Id>(index.getId()) }
             , _scale{ scale }
             , _disp{ disp }
             , _label{ Label::Id::Invalid }
@@ -32,9 +32,9 @@ namespace zasm::operands
         constexpr Mem(
             BitSize bitSize, const Seg& seg, const Label& label, const Reg& base, const Reg& index, uint8_t scale, int64_t disp)
             : _bitSize{ bitSize }
-            , _seg{ static_cast<Seg::Id>(seg.id()) }
-            , _base{ static_cast<Reg::Id>(base.id()) }
-            , _index{ static_cast<Reg::Id>(index.id()) }
+            , _seg{ static_cast<Seg::Id>(seg.getId()) }
+            , _base{ static_cast<Reg::Id>(base.getId()) }
+            , _index{ static_cast<Reg::Id>(index.getId()) }
             , _scale{ scale }
             , _disp{ disp }
             , _label{ label.getId() }
@@ -58,6 +58,10 @@ namespace zasm::operands
 
         constexpr uint8_t getScale() const
         {
+            // In case no index is assigned scale has to be zero.
+            if (_index == ZYDIS_REGISTER_NONE)
+                return 0;
+
             return _scale;
         }
 
@@ -136,6 +140,10 @@ namespace zasm::operands
     template<typename... TArgs> static Mem dword_ptr(TArgs&&... args)
     {
         return ptr(BitSize::_32, args...);
+    };
+    template<typename... TArgs> static Mem fword_ptr(TArgs&&... args)
+    {
+        return ptr(BitSize::_48, args...);
     };
     template<typename... TArgs> static Mem qword_ptr(TArgs&&... args)
     {

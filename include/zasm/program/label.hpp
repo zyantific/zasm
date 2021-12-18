@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Zydis/Zydis.h>
 #include <cstdint>
 
 namespace zasm
@@ -35,4 +34,4 @@ namespace zasm
         using Label = ::zasm::Label;
     }
 
-} // namespace zasm::operands
+} // namespace zasm
