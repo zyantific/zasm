@@ -49,13 +49,13 @@ namespace zasm
         auto encodeResult = encodeEstimated(buf, mode, attribs, mnemonic, operands);
         if (encodeResult != Error::None)
         {
-            return xstd::make_unexpected(encodeResult);
+            return zasm::makeUnexpected(encodeResult);
         }
 
         auto decodeResult = decode(mode, buf.data.data(), buf.length, 0);
         if (!decodeResult)
         {
-            return xstd::make_unexpected(decodeResult.error());
+            return zasm::makeUnexpected(decodeResult.error());
         }
 
         // Exchange back certain operands.

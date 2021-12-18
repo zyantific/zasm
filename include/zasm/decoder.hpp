@@ -7,7 +7,7 @@
 namespace zasm
 {
 
-    using DecoderResult = xstd::expected<Instruction, Error>;
+    using DecoderResult = zasm::Expected<Instruction, Error>;
 
     DecoderResult decode(ZydisMachineMode mode, const void* data, const size_t len, uint64_t va);
 

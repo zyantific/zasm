@@ -101,16 +101,16 @@ namespace zasm
         if (status != ZYAN_STATUS_SUCCESS)
         {
             // TODO: Translate proper error.
-            return xstd::make_unexpected(Error::InvalidOperation);
+            return zasm::makeUnexpected(Error::InvalidOperation);
         }
 
         ZydisDecodedInstruction instr{};
         ZydisDecodedOperand instrOps[ZYDIS_MAX_OPERAND_COUNT]{};
-        status = ZydisDecoderDecodeFull(&decoder, data, len, &instr, instrOps, std::size(instrOps), 0);
+        status = ZydisDecoderDecodeFull(&decoder, data, len, &instr, instrOps, static_cast<ZyanU8>(std::size(instrOps)), 0);
         if (status != ZYAN_STATUS_SUCCESS)
         {
             // TODO: Translate proper error.
-            return xstd::make_unexpected(Error::InvalidOperation);
+            return zasm::makeUnexpected(Error::InvalidOperation);
         }
 
         Instruction::Flags flags{};

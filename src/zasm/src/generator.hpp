@@ -6,7 +6,7 @@
 
 namespace zasm
 {
-    using GeneratorResult = xstd::expected<Instruction, Error>;
+    using GeneratorResult = zasm::Expected<Instruction, Error>;
 
     GeneratorResult generator(
         ZydisMachineMode mode, Instruction::Attribs prefixes, ZydisMnemonic mnemonic, const Instruction::Operands& operands);
