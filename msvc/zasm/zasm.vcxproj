@@ -38,6 +38,8 @@
     <ClInclude Include="..\..\include\zasm\stringpool.hpp" />
     <ClInclude Include="..\..\src\zasm\src\encoder.context.hpp" />
     <ClInclude Include="..\..\src\zasm\src\generator.hpp" />
+    <ClInclude Include="..\..\src\zasm\src\program.node.hpp" />
+    <ClInclude Include="..\..\src\zasm\src\program.state.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\zasm\src\assembler.cpp" />
@@ -47,6 +49,7 @@
     <ClCompile Include="..\..\src\zasm\src\encoder.cpp" />
     <ClCompile Include="..\..\src\zasm\src\generator.cpp" />
     <ClCompile Include="..\..\src\zasm\src\program.cpp" />
+    <ClCompile Include="..\..\src\zasm\src\program.serialization.cpp" />
     <ClCompile Include="..\..\src\zasm\src\zasm.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

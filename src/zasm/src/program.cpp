@@ -1,68 +1,44 @@
 #include "zasm/program.hpp"
 
 #include "encoder.context.hpp"
+#include "program.state.hpp"
+#include "program.node.hpp"
 
 #include <algorithm>
 
 namespace zasm
 {
-    namespace detail
+    Program::Program(ZydisMachineMode mode)
+        : _state{ new detail::ProgramState(mode) }
     {
-        // Internal node type to access protected members by Program.
-        class Node : public zasm::Node
-        {
-        public:
-            constexpr Node()
-                : ::zasm::Node()
-            {
-            }
-
-            template<typename T>
-            constexpr Node(const T& val)
-                : ::zasm::Node(val)
-            {
-            }
-            void setPrev(const ::zasm::Node* node)
-            {
-                _prev = node;
-            }
-            void setNext(const ::zasm::Node* node)
-            {
-                _next = node;
-            }
-        };
-
-        static_assert(sizeof(Node) == sizeof(::zasm::Node));
-
-        static Node* toInternal(const zasm::Node* node)
-        {
-            return static_cast<Node*>(const_cast<zasm::Node*>(node));
-        }
-
-    } // namespace detail
+    }
+    Program::~Program()
+    {
+        delete _state;
+    }
 
     ZydisMachineMode Program::getMode() const
     {
-        return _mode;
+        return _state->mode;
     }
 
     const Node* Program::getHead() const
     {
-        return _head;
+        return _state->head;
     }
 
     const Node* Program::getTail() const
     {
-        return _tail;
+        return _state->tail;
     }
 
     const Node* Program::prepend(const Node* n)
     {
-        auto* head = detail::toInternal(_head);
-        auto* tail = detail::toInternal(_tail);
+        auto* head = detail::toInternal(_state->head);
+        auto* tail = detail::toInternal(_state->tail);
 
         auto* node = detail::toInternal(n);
-        node->setNext(_head);
+        node->setNext(_state->head);
         node->setPrev(nullptr);
 
         if (head != nullptr)
@@ -70,16 +46,16 @@ namespace zasm
         else
             tail = node;
 
-        _head = node;
-        _nodeCount++;
+        _state->head = node;
+        _state->nodeCount++;
 
-        return _head;
+        return _state->head;
     }
 
     const Node* Program::append(const Node* n)
     {
-        auto* head = detail::toInternal(_head);
-        auto* tail = detail::toInternal(_tail);
+        auto* head = detail::toInternal(_state->head);
+        auto* tail = detail::toInternal(_state->tail);
 
         auto* node = detail::toInternal(n);
 
@@ -87,16 +63,16 @@ namespace zasm
         if (tail == nullptr)
         {
             node->setPrev(nullptr);
-            _head = _tail = node;
+            _state->head = _state->tail = node;
         }
         else
         {
             tail->setNext(node);
             node->setPrev(tail);
-            _tail = node;
+            _state->tail = node;
         }
 
-        _nodeCount++;
+        _state->nodeCount++;
 
         return node;
     }
@@ -104,7 +80,7 @@ namespace zasm
     const Node* Program::insertBefore(const Node* p, const Node* n)
     {
         auto* pos = detail::toInternal(p);
-        if (pos == _head || pos == nullptr)
+        if (pos == _state->head || pos == nullptr)
             return prepend(n);
 
         auto* pre = detail::toInternal(pos->getPrev());
@@ -116,7 +92,7 @@ namespace zasm
         pre->setNext(node);
         pos->setPrev(node);
 
-        _nodeCount++;
+        _state->nodeCount++;
 
         return node;
     }
@@ -124,7 +100,7 @@ namespace zasm
     const Node* Program::insertAfter(const Node* p, const Node* n)
     {
         auto* pos = detail::toInternal(p);
-        if (pos == _tail || pos == nullptr)
+        if (pos == _state->tail || pos == nullptr)
             return append(n);
 
         auto* next = detail::toInternal(pos->getNext());
@@ -140,14 +116,14 @@ namespace zasm
         node->setPrev(pos);
         node->setNext(next);
 
-        _nodeCount++;
+        _state->nodeCount++;
 
         return node;
     }
 
     size_t Program::size() const
     {
-        return _nodeCount;
+        return _state->nodeCount;
     }
 
     template<typename TPool, typename... TArgs> const Node* createNode_(TPool& pool, TArgs&&... args)
@@ -163,28 +139,28 @@ namespace zasm
 
     const Node* Program::createNode(const Instruction& instr)
     {
-        return createNode_(_nodes, instr);
+        return createNode_(_state->nodePool, instr);
     }
 
     const Node* Program::createNode(const Label& label)
     {
-        return createNode_(_nodes, label);
+        return createNode_(_state->nodePool, label);
     }
 
     const Node* Program::createNode(const Data& data)
     {
-        return createNode_(_nodes, data);
+        return createNode_(_state->nodePool, data);
     }
 
     const Label Program::createLabel(const char* name /*= nullptr*/)
     {
-        const auto labelId = static_cast<Label::Id>(_labels.size());
+        const auto labelId = static_cast<Label::Id>(_state->labels.size());
 
-        auto& entry = _labels.emplace_back();
+        auto& entry = _state->labels.emplace_back();
         entry.id = labelId;
         if (name != nullptr)
         {
-            entry.nameId = _labelNames.aquire(name);
+            entry.nameId = _state->labelNames.aquire(name);
         }
 
         return Label{ labelId };
@@ -193,14 +169,14 @@ namespace zasm
     const Node* Program::bindLabel(const Label& label)
     {
         const auto entryIdx = static_cast<size_t>(label.getId());
-        if (entryIdx >= _labels.size())
+        if (entryIdx >= _state->labels.size())
         {
             return nullptr;
         }
 
         const auto* node = createNode(label);
 
-        auto& entry = _labels[entryIdx];
+        auto& entry = _state->labels[entryIdx];
         entry.labelNode = node;
 
         return node;
@@ -226,204 +202,14 @@ namespace zasm
         return Data(ptr, len);
     }
 
-    Error Program::serialize(int64_t newBase)
-    {
-        EncoderContext encoderCtx{};
-        encoderCtx.nodes.reserve(_nodeCount);
-        encoderCtx.baseVA = newBase;
-
-        SerializeState state{ encoderCtx };
-
-        int32_t codeDiff = 0;
-        int32_t codeSize = 0;
-
-        auto serializePass = [&]() {
-            state.buffer.clear();
-
-            encoderCtx.pass++;
-            encoderCtx.offset = 0;
-            encoderCtx.va = newBase;
-            encoderCtx.nodeIndex = 0;
-            encoderCtx.drift = 0;
-
-            for (const auto* node = _head; node != nullptr; node = node->getNext())
-            {
-                auto status = node->visit([&](auto&& n) { return serialize(state, n); });
-                if (status != Error::None)
-                {
-                    return status;
-                }
-            }
-
-            const auto newSize = static_cast<int32_t>(state.buffer.size());
-            codeDiff = newSize - codeSize;
-            codeSize = newSize;
-
-            return Error::None;
-        };
-
-        // Initial.
-        if (auto status = serializePass(); status != Error::None)
-        {
-            return status;
-        }
-
-        // Second or more passes.
-        do
-        {
-            if (auto status = serializePass(); status != Error::None)
-            {
-                return status;
-            }
-
-        } while (encoderCtx.drift > 0);
-
-        // Check if all labels were bound, a link entry is added when it encounters a label.
-        bool hasUnresolvedLinks = std::any_of(
-            std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks),
-            [](auto&& link) { return link.id != Label::Id::Invalid && link.boundOffset == -1; });
-        if (hasUnresolvedLinks)
-        {
-            return Error::UnresolvedLabel;
-        }
-
-        // Update all label informations.
-        for (auto& labelLink : encoderCtx.labelLinks)
-        {
-            if (labelLink.id == Label::Id::Invalid)
-                continue;
-
-            const auto labelIdx = static_cast<size_t>(labelLink.id);
-            if (labelIdx >= _labels.size())
-            {
-                return Error::InvalidLabel;
-            }
-            auto& labelEntry = _labels[labelIdx];
-            labelEntry.boundOffset = labelLink.boundOffset;
-            labelEntry.boundVA = newBase + labelLink.boundOffset;
-        }
-
-        _outputBuffer = std::move(state.buffer);
-
-        return Error::None;
-    }
-
-    Error Program::serialize(SerializeState&, const NodePoint&)
-    {
-        return Error::None;
-    }
-
-    Error Program::serialize(SerializeState& state, const Instruction& instr)
-    {
-        auto& ctx = state.ctx;
-
-        EncoderBuffer buf{};
-
-        auto status = encodeFull(buf, state.ctx, _mode, instr);
-        if (status != Error::None)
-        {
-            return status;
-        }
-
-        if (ctx.nodeIndex >= ctx.nodes.size())
-        {
-            ctx.nodes.push_back({ ctx.offset, buf.length });
-        }
-        else
-        {
-            auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
-            if (buf.length < nodeEntry.length)
-            {
-                ctx.drift += nodeEntry.length - buf.length;
-            }
-            else if (buf.length > nodeEntry.length)
-            {
-                ctx.drift -= buf.length - nodeEntry.length;
-            }
-            nodeEntry.length = buf.length;
-            nodeEntry.offset = ctx.offset;
-        }
-
-        ctx.nodeIndex++;
-
-        ctx.va += buf.length;
-        ctx.offset += buf.length;
-
-        auto& buffer = state.buffer;
-        buffer.insert(buffer.end(), std::begin(buf.data), std::begin(buf.data) + buf.length);
-
-        return Error::None;
-    }
-
-    Error Program::serialize(SerializeState& state, const Label& label)
-    {
-        auto& ctx = state.ctx;
-
-        if (ctx.nodeIndex >= ctx.nodes.size())
-        {
-            ctx.nodes.push_back({ ctx.offset, 0 });
-        }
-        else
-        {
-            auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
-            nodeEntry.offset = ctx.offset;
-        }
-        ctx.nodeIndex++;
-
-        const auto labelIdx = static_cast<size_t>(label.getId());
-        if (labelIdx >= _labels.size())
-        {
-            return Error::LabelNotFound;
-        }
-
-        if (labelIdx >= ctx.labelLinks.size())
-        {
-            ctx.labelLinks.resize(labelIdx + 1);
-        }
-
-        auto& linkEntry = ctx.labelLinks[labelIdx];
-        linkEntry.id = label.getId();
-        linkEntry.boundOffset = ctx.offset;
-
-        return Error::None;
-    }
-
-    Error Program::serialize(SerializeState& state, const Data& data)
-    {
-        auto& ctx = state.ctx;
-
-        const uint8_t* ptr = reinterpret_cast<const uint8_t*>(data.getData());
-        const auto len = static_cast<int32_t>(data.getSize());
-
-        if (ctx.nodeIndex >= ctx.nodes.size())
-        {
-            ctx.nodes.push_back({ ctx.offset, static_cast<int32_t>(len) });
-        }
-        else
-        {
-            auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
-            nodeEntry.offset = ctx.offset;
-            nodeEntry.length = static_cast<int32_t>(len);
-        }
-        ctx.nodeIndex++;
-
-        ctx.va += len;
-        ctx.offset += len;
-
-        auto& buffer = state.buffer;
-        buffer.insert(buffer.end(), ptr, ptr + len);
-
-        return Error::None;
-    }
-
     size_t Program::getCodeSize() const
     {
-        return _outputBuffer.size();
+        return _state->codeBuffer.size();
     }
 
     const uint8_t* Program::getCode() const
     {
-        return _outputBuffer.data();
+        return _state->codeBuffer.data();
     }
 
 } // namespace zasm
