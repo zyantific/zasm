@@ -27,7 +27,15 @@ namespace zasm
             : _data{ val }
         {
         }
+        constexpr Node(NodePoint&& val) noexcept
+            : _data{ val }
+        {
+        }
         constexpr Node(const Instruction& val) noexcept
+            : _data{ val }
+        {
+        }
+        constexpr Node(Instruction&& val) noexcept
             : _data{ val }
         {
         }
@@ -36,6 +44,10 @@ namespace zasm
         {
         }
         constexpr Node(const Data& val) noexcept
+            : _data{ val }
+        {
+        }
+        constexpr Node(Data&& val) noexcept
             : _data{ val }
         {
         }

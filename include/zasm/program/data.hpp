@@ -54,10 +54,15 @@ namespace zasm
         }
 
         Data(const void* ptr, size_t len);
+        Data(const Data& other);
+        Data(Data&& other) noexcept;
         ~Data();
 
         const void* getData() const;
         size_t getSize() const;
+
+        Data& operator=(const Data& other);
+        Data& operator=(Data&& other) noexcept;
     };
 
 } // namespace zasm

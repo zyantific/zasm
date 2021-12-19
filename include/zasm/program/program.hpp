@@ -40,6 +40,7 @@ namespace zasm
         const Node* createNode(const Instruction& instr);
         const Node* createNode(const Label& label);
         const Node* createNode(const Data& data);
+        const Node* createNode(Data&& data);
 
     public:
         const Label createLabel(const char* name = nullptr);

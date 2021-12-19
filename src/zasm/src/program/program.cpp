@@ -150,6 +150,11 @@ namespace zasm
         return createNode_(_state->nodePool, data);
     }
 
+    const Node* Program::createNode(Data&& data)
+    {
+        return createNode_(_state->nodePool, std::move(data));
+    }
+
     const Label Program::createLabel(const char* name /*= nullptr*/)
     {
         const auto labelId = static_cast<Label::Id>(_state->labels.size());
