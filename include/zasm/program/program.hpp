@@ -75,6 +75,22 @@ namespace zasm
         const Node* detach(const Node* node);
 
         /// <summary>
+        /// Moves the node after the specified position, if the node is unlinked it will act as insert.
+        /// </summary>
+        /// <param name="pos">Position of node to move after</param>
+        /// <param name="node">The node to move</param>
+        /// <returns>The moved node</returns>
+        const Node* moveAfter(const Node* pos, const Node* node);
+
+        /// <summary>
+        /// Moves the node before the specified position, if the node is unlinked it will act as insert.
+        /// </summary>
+        /// <param name="pos">Position of node to move before</param>
+        /// <param name="node">The node to move</param>
+        /// <returns>The moved node</returns>
+        const Node* moveBefore(const Node* pos, const Node* node);
+
+        /// <summary>
         /// Releases the memory of node back into the pool, the memory is considered invalid after the
         /// call.
         /// </summary>
