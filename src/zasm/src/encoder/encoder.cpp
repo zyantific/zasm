@@ -308,7 +308,7 @@ namespace zasm
 
     static ZydisEncoderOperand getOperand(const size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const Operand& op)
     {
-        return std::visit([&](auto&& op) { return getOperand(index, req, ctx, op); }, op);
+        return op.visit([&](auto&& op) { return getOperand(index, req, ctx, op); });
     }
 
     static Error fixupIs4Operands(ZydisEncoderRequest& req)
@@ -485,7 +485,7 @@ namespace zasm
                 continue;
 
             auto& op = operands[i];
-            if (std::holds_alternative<operands::None>(op))
+            if (op.is<operands::None>())
                 break;
 
             ops[i] = operands[i];

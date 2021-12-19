@@ -75,11 +75,11 @@ namespace zasm
                 continue;
 
             const auto& opSrc = operands[i];
-            if (std::holds_alternative<operands::Label>(opSrc))
+            if (opSrc.is<operands::Label>())
             {
                 newOps[i] = opSrc;
             }
-            else if (const auto* opMem = std::get_if<operands::Mem>(&opSrc); opMem != nullptr)
+            else if (const auto* opMem = opSrc.tryAs<operands::Mem>(); opMem != nullptr)
             {
                 // FIXME: Handle labels in memory operands.
                 if (opMem->hasLabel())
@@ -87,7 +87,7 @@ namespace zasm
                     newOps[i] = opSrc;
                 }
             }
-            if (std::holds_alternative<operands::Imm>(opSrc))
+            if (opSrc.is<operands::Imm>())
             {
                 if (i == 0 && isImmediateControlFlow(decodedInstr.getId()))
                 {
