@@ -118,6 +118,28 @@ static void quickTest()
     std::cout << codeDump << "\n";
 }
 
+static void quickLeakTest()
+{
+    using namespace zasm;
+    using namespace zasm::operands;
+
+    constexpr uint8_t ConstData[128]{};
+
+    for (int i = 0; i < 100000; i++)
+    {
+        // Program contains all the nodes and labels.
+        Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
+
+        // Emitter
+        Assembler a(program);
+
+        a.push(Imm(0xC11));
+        a.embed(ConstData, sizeof(ConstData));
+
+        program.serialize(0x00007FF7B7D84DB0);
+    }
+}
+
 static void decodeToAssembler()
 {
     using namespace zasm;
@@ -167,6 +189,7 @@ static void decodeToAssembler()
 
 int main()
 {
+    quickLeakTest();
     decodeToAssembler();
     quickTest();
     // measureSerializePerformance();
