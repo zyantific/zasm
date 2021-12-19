@@ -12,8 +12,17 @@ namespace zasm
         : _state{ new detail::ProgramState(mode) }
     {
     }
+
     Program::~Program()
     {
+        const zasm::Node* n = _state->head;
+        // Ensure the destructor is called of each object.
+        while (n != nullptr)
+        {
+            const auto* next = n->getNext();
+            _state->nodePool.destroy(n);
+            n = next;
+        }
         delete _state;
     }
 
@@ -119,6 +128,72 @@ namespace zasm
         return node;
     }
 
+    const Node* Program::detach(const Node* node)
+    {
+        auto* n = detail::toInternal(node);
+        auto* pre = detail::toInternal(n->getPrev());
+        auto* post = detail::toInternal(n->getNext());
+
+        if (pre == nullptr && post == nullptr)
+            return nullptr;
+
+        if (n == _state->head)
+        {
+            auto* newHead = detail::toInternal(n->getNext());
+            _state->head = pre;
+
+            if (pre != nullptr)
+            {
+                pre->setPrev(nullptr);
+            }
+
+            if (_state->head == nullptr)
+            {
+                _state->tail = nullptr;
+            }
+        }
+        else if (node == _state->tail)
+        {
+            _state->tail = post;
+
+            if (post != nullptr)
+            {
+                post->setNext(nullptr);
+            }
+
+            if (_state->tail == nullptr)
+            {
+                _state->head = nullptr;
+            }
+        }
+        else
+        {
+            if (pre)
+                pre->setNext(post);
+            if (post)
+                post->setPrev(pre);
+        }
+
+        n->setPrev(nullptr);
+        n->setNext(nullptr);
+
+        _state->nodeCount--;
+
+        return post;
+    }
+
+    void Program::destroy(const Node* node)
+    {
+        auto* n = detail::toInternal(node);
+
+        // Ensure node is not in the list anymore.
+        detach(node);
+
+        // Release.
+        _state->nodePool.destroy(n);
+        _state->nodePool.deallocate(n, 1);
+    }
+
     size_t Program::size() const
     {
         return _state->nodeCount;
@@ -138,11 +213,6 @@ namespace zasm
     const Node* Program::createNode(const Instruction& instr)
     {
         return createNode_(_state->nodePool, instr);
-    }
-
-    const Node* Program::createNode(const Label& label)
-    {
-        return createNode_(_state->nodePool, label);
     }
 
     const Node* Program::createNode(const Data& data)
@@ -177,7 +247,7 @@ namespace zasm
             return nullptr;
         }
 
-        const auto* node = createNode(label);
+        const auto* node = createNode_(_state->nodePool, label);
 
         auto& entry = _state->labels[entryIdx];
         entry.labelNode = node;
