@@ -105,7 +105,7 @@ namespace zasm
             else
             {
                 auto& op = std::get<TIndex>(_operands);
-                return op.as<T>();
+                return op.template as<T>();
             }
         }
 
@@ -121,7 +121,7 @@ namespace zasm
                 return nullptr;
 
             auto& op = _operands[index];
-            return op.tryAs<T>();
+            return op.template tryAs<T>();
         }
 
         constexpr const Visibility& getVisibility() const

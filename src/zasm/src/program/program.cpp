@@ -5,6 +5,7 @@
 #include "program.state.hpp"
 
 #include <algorithm>
+#include <cstring>
 
 namespace zasm
 {
