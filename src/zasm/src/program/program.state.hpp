@@ -7,7 +7,7 @@
 #include "zasm/program/label.hpp"
 #include "zasm/program/node.hpp"
 
-#include <zydis/Zydis.h>
+#include <Zydis/Zydis.h>
 
 namespace zasm::detail
 {

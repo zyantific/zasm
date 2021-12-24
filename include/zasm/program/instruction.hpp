@@ -3,7 +3,7 @@
 #include "operand.hpp"
 
 #include <array>
-#include <zydis/Zydis.h>
+#include <Zydis/Zydis.h>
 
 namespace zasm
 {

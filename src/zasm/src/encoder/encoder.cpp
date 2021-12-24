@@ -3,7 +3,7 @@
 #include "encoder.context.hpp"
 
 #include <optional>
-#include <zydis/Encoder.h>
+#include <Zydis/Encoder.h>
 
 namespace zasm
 {
