@@ -5,14 +5,20 @@ languages = ["CXX"]
 
 [options]
 ZASM_BUILD_TESTS = false
+ZYDIS_BUILD_EXAMPLES = false
+ZYDIS_BUILD_TOOLS = false
+INSTALL_GTEST = false
 
 [conditions]
 tests = "ZASM_BUILD_TESTS"
 
-[find-package.Zydis]
+[fetch-content.Zydis]
+git = "https://github.com/zyantific/zydis"
+tag = "4756724"
 
-[find-package.GTest]
-required = false
+[fetch-content.GTest]
+git = "https://github.com/google/googletest"
+tag = "release-1.11.0"
 
 [target.zasm]
 type = "static"
@@ -23,7 +29,7 @@ sources = [
 ]
 include-directories = ["include"]
 compile-features = ["cxx_std_17"]
-link-libraries = ["Zydis::Zydis"]
+link-libraries = ["Zydis"]
 
 [target.tests]
 condition = "tests"

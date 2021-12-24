@@ -32,13 +32,33 @@ project(zasm
 		CXX
 )
 
-# Packages
-find_package(Zydis REQUIRED)
+include(FetchContent)
 
-find_package(GTest)
+message(STATUS "Fetching Zydis...")
+FetchContent_Declare(
+	Zydis
+	GIT_REPOSITORY
+		https://github.com/zyantific/zydis
+	GIT_TAG
+		4756724
+)
+FetchContent_MakeAvailable(Zydis)
+
+message(STATUS "Fetching GTest...")
+FetchContent_Declare(
+	GTest
+	GIT_REPOSITORY
+		https://github.com/google/googletest
+	GIT_TAG
+		release-1.11.0
+)
+FetchContent_MakeAvailable(GTest)
 
 # Options
 option(ZASM_BUILD_TESTS OFF)
+option(ZYDIS_BUILD_EXAMPLES OFF)
+option(ZYDIS_BUILD_TOOLS OFF)
+option(INSTALL_GTEST OFF)
 
 # Target zasm
 set(CMKR_TARGET zasm)
@@ -97,7 +117,7 @@ target_include_directories(zasm PUBLIC
 )
 
 target_link_libraries(zasm PUBLIC
-	Zydis::Zydis
+	Zydis
 )
 
 unset(CMKR_TARGET)
