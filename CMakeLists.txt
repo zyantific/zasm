@@ -130,8 +130,9 @@ if(ZASM_BUILD_TESTS) # tests
 
 	list(APPEND tests_SOURCES
 		"src/tests/main.cpp"
-		"src/tests/tests/instructions.x64.cpp"
-		"src/tests/tests/serialization.cpp"
+		"src/tests/tests/tests.instructions.x64.cpp"
+		"src/tests/tests/tests.program.cpp"
+		"src/tests/tests/tests.serialization.cpp"
 		"src/tests/testutils.cpp"
 		"src/tests/instructiontest.hpp"
 		"src/tests/testutils.hpp"
