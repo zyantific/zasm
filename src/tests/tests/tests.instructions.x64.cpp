@@ -772,7 +772,7 @@ namespace zasm::tests
 	INSTRUCTION_TEST(0F2000                      , mov(rax, cr0));
 	INSTRUCTION_TEST(48899C1180000000            , mov(qword_ptr(rcx, rdx, 1, 128), rbx));
 	INSTRUCTION_TEST(B901000000                  , mov(ecx, Imm(1)));
-	INSTRUCTION_TEST(48BB8877665544332211        , mov(rbx, Imm(0x001122334455667788LL)));
+	INSTRUCTION_TEST(48BB8877665544332211        , mov(rbx, Imm64(0x001122334455667788LL)));
 	INSTRUCTION_TEST(8EE2                        , mov(fs, dx));
 	INSTRUCTION_TEST(48C784118000000001000000    , mov(qword_ptr(rcx, rdx, 1, 128), Imm(1)));
 	INSTRUCTION_TEST(0F2011                      , mov(rcx, cr2));

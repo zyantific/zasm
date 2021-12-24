@@ -34,6 +34,7 @@ link-libraries = ["Zydis"]
 [target.tests]
 condition = "tests"
 type = "executable"
+msvc.compile-options = ["/bigobj"]
 sources = [
     "src/tests/**.cpp",
     "src/tests/**.hpp",

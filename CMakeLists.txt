@@ -156,6 +156,12 @@ if(ZASM_BUILD_TESTS) # tests
 
 	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${tests_SOURCES})
 
+	if(MSVC) # msvc
+		target_compile_options(tests PRIVATE
+			"/bigobj"
+		)
+	endif()
+
 	target_link_libraries(tests PRIVATE
 		zasm::zasm
 		GTest::gtest
