@@ -67,6 +67,7 @@ namespace zasm
             SWITCH_BIT(8);
             SWITCH_BIT(16);
             SWITCH_BIT(32);
+            SWITCH_BIT(48);
             SWITCH_BIT(64);
             SWITCH_BIT(80);
             SWITCH_BIT(128);

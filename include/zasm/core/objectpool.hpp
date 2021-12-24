@@ -25,7 +25,7 @@ namespace zasm
         {
             std::byte data[sizeof(_Ty)];
         };
-#pragma pack()
+#pragma pack(pop)
 
         struct Block
         {
@@ -70,12 +70,12 @@ namespace zasm
 
         pointer address(reference _Val) const noexcept
         {
-            return (_STD addressof(_Val));
+            return std::addressof(_Val);
         }
 
         const_pointer address(const_reference _Val) const noexcept
         {
-            return (_STD addressof(_Val));
+            return std::addressof(_Val);
         }
 
         template<class _Other> ObjectPool(const ObjectPool<_Other>&)

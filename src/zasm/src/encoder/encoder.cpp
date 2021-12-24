@@ -130,7 +130,7 @@ namespace zasm
     }
 
     static ZydisEncoderOperand getOperand(
-        const size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Reg& op)
+        const size_t, ZydisEncoderRequest&, EncoderContext*, const operands::Reg& op)
     {
         ZydisEncoderOperand res{};
         res.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER;
@@ -140,7 +140,7 @@ namespace zasm
     }
 
     static std::pair<int64_t, ZydisBranchType> processRelAddress(
-        ZydisEncoderRequest& req, const EncodeVariantsInfo& info, int64_t va, int64_t targetAddress)
+        ZydisEncoderRequest&, const EncodeVariantsInfo& info, int64_t va, int64_t targetAddress)
     {
         int64_t res{};
         auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
@@ -246,14 +246,14 @@ namespace zasm
     }
 
     static ZydisEncoderOperand getOperand(
-        const size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Mem& op)
+        const size_t, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Mem& op)
     {
         ZydisEncoderOperand res{};
         res.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY;
         res.mem.base = op.getBase().getId();
         res.mem.index = op.getIndex().getId();
         res.mem.scale = op.getScale();
-        res.mem.size = op.getByteSize();
+        res.mem.size = static_cast<uint16_t>(op.getByteSize());
 
         int64_t displacement = op.getDisplacement();
 
@@ -299,7 +299,7 @@ namespace zasm
     }
 
     static ZydisEncoderOperand getOperand(
-        const size_t index, ZydisEncoderRequest&, EncoderContext* ctx, const operands::None& op)
+        const size_t, ZydisEncoderRequest&, EncoderContext*, const operands::None&)
     {
         ZydisEncoderOperand res{};
         res.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_UNUSED;

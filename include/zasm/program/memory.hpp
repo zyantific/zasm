@@ -18,24 +18,24 @@ namespace zasm::operands
         Label::Id _label{ Label::Id::Invalid };
 
     public:
-        constexpr Mem(BitSize bitSize, const Seg& seg, const Reg& base, const Reg& index, uint8_t scale, int64_t disp)
+        constexpr Mem(BitSize bitSize, const Seg& seg, const Reg& base, const Reg& index, int32_t scale, int64_t disp)
             : _bitSize{ bitSize }
             , _seg{ static_cast<Seg::Id>(seg.getId()) }
             , _base{ static_cast<Reg::Id>(base.getId()) }
             , _index{ static_cast<Reg::Id>(index.getId()) }
-            , _scale{ scale }
+            , _scale{ static_cast<uint8_t>(scale) }
             , _disp{ disp }
             , _label{ Label::Id::Invalid }
         {
         }
 
         constexpr Mem(
-            BitSize bitSize, const Seg& seg, const Label& label, const Reg& base, const Reg& index, uint8_t scale, int64_t disp)
+            BitSize bitSize, const Seg& seg, const Label& label, const Reg& base, const Reg& index, int32_t scale, int64_t disp)
             : _bitSize{ bitSize }
             , _seg{ static_cast<Seg::Id>(seg.getId()) }
             , _base{ static_cast<Reg::Id>(base.getId()) }
             , _index{ static_cast<Reg::Id>(index.getId()) }
-            , _scale{ scale }
+            , _scale{ static_cast<uint8_t>(scale) }
             , _disp{ disp }
             , _label{ label.getId() }
         {
@@ -75,7 +75,7 @@ namespace zasm::operands
             return _bitSize;
         }
 
-        constexpr uint16_t getByteSize() const
+        constexpr int32_t getByteSize() const
         {
             return ::zasm::getBitSize(_bitSize) / 8;
         }
@@ -114,9 +114,9 @@ namespace zasm::operands
         return Mem(bitSize, Seg{}, base, Reg{}, Reg{}, 0, offset);
     }
 
-    static constexpr Mem ptr(BitSize bitSize, const Rip& rip, const Label& base, int32_t offset = 0)
+    static constexpr Mem ptr(BitSize bitSize, const Rip& rip_, const Label& base, int32_t offset = 0)
     {
-        return Mem(bitSize, Seg{}, base, rip, Reg{}, 0, offset);
+        return Mem(bitSize, Seg{}, base, rip_, Reg{}, 0, offset);
     }
 
     static constexpr Mem ptr(BitSize bitSize, int64_t base)

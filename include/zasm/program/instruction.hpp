@@ -47,8 +47,8 @@ namespace zasm
         };
 
     private:
-        Mnemonic _id{};
         Operands _operands{};
+        Mnemonic _id{};
         Access _access{};
         Visibility _visibility{};
         Flags _flags{};

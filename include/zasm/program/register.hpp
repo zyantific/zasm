@@ -68,6 +68,8 @@ namespace zasm::operands
                 case ZYDIS_REGISTER_BH:
                 case ZYDIS_REGISTER_DH:
                     return 1;
+                default:
+                    return 0;
             }
             return 0;
         }
@@ -103,6 +105,8 @@ namespace zasm::operands
                 case ZYDIS_REGISTER_BH:
                 case ZYDIS_REGISTER_DH:
                     return false;
+                default:
+                    return true;
             }
             return true;
         }
@@ -118,6 +122,8 @@ namespace zasm::operands
                 case ZYDIS_REGISTER_BH:
                 case ZYDIS_REGISTER_DH:
                     return true;
+                default:
+                    return false;
             }
             return false;
         }
