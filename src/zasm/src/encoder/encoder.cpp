@@ -444,7 +444,7 @@ namespace zasm
         return encode_(buf, nullptr, mode, attribs, id, operands);
     }
 
-    static Error encodeFull(
+    static Error encodeFull_(
         EncoderBuffer& buf, EncoderContext& ctx, ZydisMachineMode mode, Instruction::Attribs prefixes, ZydisMnemonic id,
         const Instruction::Operands& operands)
     {
@@ -491,7 +491,7 @@ namespace zasm
             ops[i] = operands[i];
         }
 
-        return encodeFull(buf, ctx, mode, instr.getAttribs(), instr.getId(), ops);
+        return encodeFull_(buf, ctx, mode, instr.getAttribs(), instr.getId(), ops);
     }
 
 } // namespace zasm
