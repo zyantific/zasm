@@ -93,7 +93,7 @@ namespace zasm
         return Error::None;
     }
 
-    static Error serializeNode(detail::ProgramState& prog, SerializeState& state, const Data& data)
+    static Error serializeNode(detail::ProgramState&, SerializeState& state, const Data& data)
     {
         auto& ctx = state.ctx;
 
@@ -127,7 +127,7 @@ namespace zasm
         encoderCtx.nodes.reserve(_state->nodeCount);
         encoderCtx.baseVA = newBase;
 
-        SerializeState state{ encoderCtx };
+        SerializeState state{ encoderCtx, {} };
 
         int32_t codeDiff = 0;
         int32_t codeSize = 0;

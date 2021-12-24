@@ -9,8 +9,8 @@ namespace zasm
     // Encoder context used for serialization by the Program.
     struct EncoderContext
     {
+        size_t nodeIndex{};
         int32_t pass{};
-        int32_t nodeIndex{};
         int64_t baseVA{};
         int64_t va{};
         int32_t offset{};

@@ -60,8 +60,8 @@ namespace zasm
         constexpr Instruction(
             Attribs attribs, ZydisMnemonic mnemonic, const Operands& operands, const Access& access, const Visibility& vis,
             const Flags& flags, Length length = 0)
-            : _id{ static_cast<Mnemonic>(mnemonic) }
-            , _operands{ operands }
+            : _operands{ operands }
+            , _id{ static_cast<Mnemonic>(mnemonic) }
             , _access{ access }
             , _visibility{ vis }
             , _flags{ flags }

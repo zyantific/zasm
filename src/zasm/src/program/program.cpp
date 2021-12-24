@@ -54,9 +54,7 @@ namespace zasm
 
     const Node* Program::append(const Node* n)
     {
-        auto* head = detail::toInternal(_state->head);
         auto* tail = detail::toInternal(_state->tail);
-
         auto* node = detail::toInternal(n);
 
         node->setNext(nullptr);
