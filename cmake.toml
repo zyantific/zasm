@@ -1,0 +1,44 @@
+# Reference: https://build-cpp.github.io/cmkr/cmake-toml
+[project]
+name = "zasm"
+languages = ["CXX"]
+
+[options]
+ZASM_BUILD_TESTS = false
+
+[conditions]
+tests = "ZASM_BUILD_TESTS"
+
+[find-package.Zydis]
+
+[find-package.GTest]
+required = false
+
+[target.zasm]
+type = "static"
+alias = "zasm::zasm"
+sources = [
+    "src/zasm/**.cpp",
+    "include/zasm/**.hpp",
+]
+include-directories = ["include"]
+compile-features = ["cxx_std_17"]
+link-libraries = ["Zydis::Zydis"]
+
+[target.tests]
+condition = "tests"
+type = "executable"
+sources = [
+    "src/tests/**.cpp",
+    "src/tests/**.hpp",
+]
+link-libraries = [
+    "zasm::zasm",
+    "GTest::gtest",
+]
+
+[target.testing]
+condition = "tests"
+type = "executable"
+sources = ["src/testing/testing.cpp"]
+link-libraries = ["zasm::zasm"]

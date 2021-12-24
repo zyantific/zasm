@@ -150,7 +150,7 @@ namespace zasm
 
         template<class _Objty, class... _Types> void construct(_Objty* _Ptr, _Types&&... _Args)
         {
-            ::new ((void*)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+            ::new ((void*)_Ptr) _Objty(std::forward<_Types>(_Args)...);
         }
 
         template<class _Uty> void destroy(_Uty* _Ptr)
