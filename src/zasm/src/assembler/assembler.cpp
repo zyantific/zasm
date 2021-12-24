@@ -65,7 +65,7 @@ namespace zasm
     {
         auto data = _program.createData(ptr, len);
 
-        auto* dataNode = _program.createNode(data);
+        auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;

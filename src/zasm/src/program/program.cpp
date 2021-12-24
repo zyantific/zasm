@@ -12,8 +12,17 @@ namespace zasm
         : _state{ new detail::ProgramState(mode) }
     {
     }
+
     Program::~Program()
     {
+        const zasm::Node* n = _state->head;
+        // Ensure the destructor is called of each object.
+        while (n != nullptr)
+        {
+            const auto* next = n->getNext();
+            _state->nodePool.destroy(n);
+            n = next;
+        }
         delete _state;
     }
 
@@ -119,6 +128,83 @@ namespace zasm
         return node;
     }
 
+    const Node* Program::detach(const Node* node)
+    {
+        auto* n = detail::toInternal(node);
+        auto* pre = detail::toInternal(n->getPrev());
+        auto* post = detail::toInternal(n->getNext());
+
+        if (pre == nullptr && post == nullptr)
+            return nullptr;
+
+        if (n == _state->head)
+        {
+            _state->head = post;
+
+            if (pre != nullptr)
+            {
+                pre->setPrev(nullptr);
+            }
+
+            if (_state->head == nullptr)
+            {
+                _state->tail = nullptr;
+            }
+        }
+        else if (node == _state->tail)
+        {
+            _state->tail = post;
+
+            if (post != nullptr)
+            {
+                post->setNext(nullptr);
+            }
+
+            if (_state->tail == nullptr)
+            {
+                _state->head = nullptr;
+            }
+        }
+        else
+        {
+            if (pre)
+                pre->setNext(post);
+            if (post)
+                post->setPrev(pre);
+        }
+
+        n->setPrev(nullptr);
+        n->setNext(nullptr);
+
+        _state->nodeCount--;
+
+        return post;
+    }
+
+    const Node* Program::moveAfter(const Node* pos, const Node* node)
+    {
+        detach(node);
+        return insertAfter(pos, node);
+    }
+
+    const Node* Program::moveBefore(const Node* pos, const Node* node)
+    {
+        detach(node);
+        return insertBefore(pos, node);
+    }
+
+    void Program::destroy(const Node* node)
+    {
+        auto* n = detail::toInternal(node);
+
+        // Ensure node is not in the list anymore.
+        detach(node);
+
+        // Release.
+        _state->nodePool.destroy(n);
+        _state->nodePool.deallocate(n, 1);
+    }
+
     size_t Program::size() const
     {
         return _state->nodeCount;
@@ -140,14 +226,14 @@ namespace zasm
         return createNode_(_state->nodePool, instr);
     }
 
-    const Node* Program::createNode(const Label& label)
-    {
-        return createNode_(_state->nodePool, label);
-    }
-
     const Node* Program::createNode(const Data& data)
     {
         return createNode_(_state->nodePool, data);
+    }
+
+    const Node* Program::createNode(Data&& data)
+    {
+        return createNode_(_state->nodePool, std::move(data));
     }
 
     const Label Program::createLabel(const char* name /*= nullptr*/)
@@ -172,7 +258,7 @@ namespace zasm
             return nullptr;
         }
 
-        const auto* node = createNode(label);
+        const auto* node = createNode_(_state->nodePool, label);
 
         auto& entry = _state->labels[entryIdx];
         entry.labelNode = node;

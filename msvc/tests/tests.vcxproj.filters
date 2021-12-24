@@ -7,13 +7,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\tests\main.cpp" />
-    <ClCompile Include="..\..\src\tests\tests\serialization.cpp">
+    <ClCompile Include="..\..\src\tests\tests\tests.serialization.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\tests\tests\instructions.x64.cpp">
+    <ClCompile Include="..\..\src\tests\tests\tests.instructions.x64.cpp">
       <Filter>tests</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\tests\testutils.cpp" />
+    <ClCompile Include="..\..\src\tests\tests\tests.program.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\tests\testutils.hpp" />

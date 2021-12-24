@@ -118,11 +118,34 @@ static void quickTest()
     std::cout << codeDump << "\n";
 }
 
+static void quickLeakTest()
+{
+    using namespace zasm;
+    using namespace zasm::operands;
+
+    constexpr uint8_t ConstData[128]{};
+
+    for (int i = 0; i < 100000; i++)
+    {
+        // Program contains all the nodes and labels.
+        Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
+
+        // Emitter
+        Assembler a(program);
+
+        a.push(Imm(0xC11));
+        a.embed(ConstData, sizeof(ConstData));
+
+        program.serialize(0x00007FF7B7D84DB0);
+    }
+}
+
 static void decodeToAssembler()
 {
     using namespace zasm;
     using namespace zasm::operands;
 
+    const uint64_t baseAddr = 0x00007FF6BC738ED4;
     const std::array<uint8_t, 24> code = {
         0x40, 0x53,             // push rbx
         0x45, 0x8B, 0x18,       // mov r11d, dword ptr ds:[r8]
@@ -135,30 +158,30 @@ static void decodeToAssembler()
     };
 
     Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
-    Decoder decoder(program.getMode());
     Assembler assembler(program);
 
-    uint64_t base = 0x00007FF6BC738ED4;
-    uint64_t addr = base;
+    Decoder decoder(program.getMode());
+
     size_t bytesDecoded = 0;
 
     while (bytesDecoded < code.size())
     {
-        auto decoderRes = decoder.decode(code.data() + bytesDecoded, code.size() - bytesDecoded, addr);
+        const auto curAddress = baseAddr + bytesDecoded;
+
+        auto decoderRes = decoder.decode(code.data() + bytesDecoded, code.size() - bytesDecoded, curAddress);
         if (!decoderRes)
         {
-            std::cout << "Failed to decode at " << std::hex << addr << ", " << decoderRes.error() << "\n";
+            std::cout << "Failed to decode at " << std::hex << curAddress << ", " << decoderRes.error() << "\n";
             return;
         }
 
         const auto& instr = decoderRes.value();
         assembler.fromInstruction(instr);
 
-        addr += instr.getLength();
         bytesDecoded += instr.getLength();
     }
 
-    program.serialize(base);
+    program.serialize(baseAddr);
 
     const auto codeDump = getHexDump(program.getCode(), program.getCodeSize());
     std::cout << codeDump << "\n";
@@ -166,6 +189,7 @@ static void decodeToAssembler()
 
 int main()
 {
+    quickLeakTest();
     decodeToAssembler();
     quickTest();
     // measureSerializePerformance();

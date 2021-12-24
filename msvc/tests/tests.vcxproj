@@ -185,8 +185,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\tests\main.cpp" />
-    <ClCompile Include="..\..\src\tests\tests\instructions.x64.cpp" />
-    <ClCompile Include="..\..\src\tests\tests\serialization.cpp" />
+    <ClCompile Include="..\..\src\tests\tests\tests.instructions.x64.cpp" />
+    <ClCompile Include="..\..\src\tests\tests\tests.program.cpp" />
+    <ClCompile Include="..\..\src\tests\tests\tests.serialization.cpp" />
     <ClCompile Include="..\..\src\tests\testutils.cpp" />
   </ItemGroup>
   <ItemGroup>

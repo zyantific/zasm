@@ -95,6 +95,35 @@ namespace zasm
             return _operands;
         }
 
+        template<size_t TIndex, typename T = Operand>
+        constexpr const T& getOperand() const
+        {
+            if constexpr (std::is_same_v<T, Operand>)
+            {
+                return std::get<TIndex>(_operands);
+            }
+            else
+            {
+                auto& op = std::get<TIndex>(_operands);
+                return op.as<T>();
+            }
+        }
+
+        constexpr const Operand& getOperand(size_t index) const
+        {
+            return _operands[index];
+        }
+
+        template<typename T>
+        constexpr const T* tryGetOperandAs(size_t index) const noexcept
+        {
+            if (index >= _operands.size())
+                return nullptr;
+
+            auto& op = _operands[index];
+            return op.tryAs<T>();
+        }
+
         constexpr const Visibility& getVisibility() const
         {
             return _visibility;
