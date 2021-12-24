@@ -31,7 +31,7 @@ namespace zasm::tests
         char temp[3]{};
         for (size_t i = 0; i < size; i++)
         {
-            sprintf_s(temp, "%02X", data[i]);
+            snprintf(temp, std::size(temp), "%02X", data[i]);
             res += temp;
         }
         return res;

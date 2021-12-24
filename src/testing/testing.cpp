@@ -1,5 +1,6 @@
 #include <chrono>
 #include <iostream>
+#include <iomanip>
 #include <zasm/zasm.hpp>
 
 static std::string getHexDump(const uint8_t* buf, size_t len)
@@ -8,7 +9,7 @@ static std::string getHexDump(const uint8_t* buf, size_t len)
     for (size_t i = 0; i < len; i++)
     {
         char temp[3]{};
-        sprintf_s(temp, "%02X", buf[i]);
+        snprintf(temp, std::size(temp), "%02X", buf[i]);
         res += temp;
     }
     return res;

@@ -1,5 +1,6 @@
 #include "zasm/program/data.hpp"
 
+#include <cstdlib>
 #include <cstring>
 #include <limits>
 
@@ -14,7 +15,7 @@ namespace zasm
         }
         else
         {
-            void* data = malloc(len);
+            void* data = std::malloc(len);
             std::memcpy(data, ptr, len);
 
             _storage.ptr = data;
@@ -27,7 +28,7 @@ namespace zasm
         if (_size & kInlineDataFlag)
             return;
 
-        free(const_cast<void*>(_storage.ptr));
+        std::free(const_cast<void*>(_storage.ptr));
         _storage.ptr = nullptr;
     }
 
