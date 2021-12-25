@@ -16,7 +16,7 @@ namespace zasm::operands
 #else
         using Id = uint16_t;
 #endif
-    private:
+    protected:
         Id _reg{ ZYDIS_REGISTER_NONE };
 
     public:
@@ -182,13 +182,88 @@ namespace zasm::operands
         {
             return _reg > other._reg;
         }
+
+        template<typename T> T& as()
+        {
+            return static_cast<T&>(*this);
+        }
+
+        template<typename T> const T& as() const
+        {
+            return static_cast<T&>(*this);
+        }
     };
 
     // Strong type for general purpose regs.
     class Gp : public Reg
     {
+        static_assert(ZYDIS_REGISTER_AL < ZYDIS_REGISTER_AH);
+        static constexpr int8_t kGp8HiStartIndex = ZYDIS_REGISTER_AH - ZYDIS_REGISTER_AL;
+        static_assert(kGp8HiStartIndex == 4, "This should be 4, if this triggers the definition probably changed");
+
     public:
         using Reg::Reg;
+
+        Gp r8lo() const noexcept
+        {
+            auto regIndex = getNormalizedIndex();
+            if (regIndex >= kGp8HiStartIndex)
+            {
+                // Skip the hi ones.
+                regIndex += kGp8HiStartIndex;
+            }
+            auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR8, regIndex);
+            return Gp{ reg };
+        }
+
+        Gp r8hi() const noexcept
+        {
+            auto regIndex = getNormalizedIndex();
+            if (regIndex >= kGp8HiStartIndex)
+            {
+                // Unsupported.
+                return Gp{};
+            }
+            auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR8, regIndex + kGp8HiStartIndex);
+            return Gp{ reg };
+        }
+
+        Gp r16() const noexcept
+        {
+            auto regIndex = getNormalizedIndex();
+            auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR16, regIndex);
+            return Gp{ reg };
+        }
+
+        Gp r32() const noexcept
+        {
+            auto regIndex = getNormalizedIndex();
+            auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR32, regIndex);
+            return Gp{ reg };
+        }
+
+        Gp r64() const noexcept
+        {
+            auto regIndex = getNormalizedIndex();
+            auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR64, regIndex);
+            return Gp{ reg };
+        }
+
+    private:
+        /// <summary>
+        /// Converts the register index to a range from 0 to 15. This function
+        /// normalizes the index for the Gp8 group which contains 20 register ids.
+        /// </summary>
+        /// <returns>Normalized index</returns>
+        int8_t getNormalizedIndex() const noexcept
+        {
+            const auto regIndex = getIndex();
+            if (isGp8() && regIndex >= kGp8HiStartIndex)
+            {
+                return regIndex - kGp8HiStartIndex;
+            }
+            return regIndex;
+        }
     };
 
     class Gp8 : public Gp
