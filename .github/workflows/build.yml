@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019, macos-10.15, ubuntu-20.04]
+        os: [macos-10.15, ubuntu-20.04]
     env:
       BUILD_TYPE: Release
     steps:
@@ -22,17 +22,18 @@ jobs:
         cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DZASM_BUILD_TESTS=ON
         cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
         cmake --install build --prefix ./install --config ${{ env.BUILD_TYPE }}
+        ls -a ./build
+        ls -a ./install
 
     - name: Test
       run: |
-        cd ./build
-        ctest -C ${{ env.BUILD_TYPE }}
+        ./build/tests
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: ${{ github.event.repository.name }}-${{ matrix.os }}
-        path: build/*
+        path: install/*
 
     - name: Get lowercase OS name
       id: osname
@@ -43,7 +44,7 @@ jobs:
     - name: Compress artifacts
       uses: papeloto/action-zip@v1
       with:
-        files: build/
+        files: install/
         dest: ${{ github.event.repository.name }}-${{ steps.osname.outputs.lowercase }}.zip
 
     - name: Release
