@@ -25,14 +25,14 @@ jobs:
 
     - name: Test
       run: |
-        cd ./install
+        cd ./build
         ctest -C ${{ env.BUILD_TYPE }}
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: ${{ github.event.repository.name }}-${{ matrix.os }}
-        path: install/bin/*
+        path: build/*
 
     - name: Get lowercase OS name
       id: osname
@@ -43,7 +43,7 @@ jobs:
     - name: Compress artifacts
       uses: papeloto/action-zip@v1
       with:
-        files: install/bin/
+        files: build/
         dest: ${{ github.event.repository.name }}-${{ steps.osname.outputs.lowercase }}.zip
 
     - name: Release
