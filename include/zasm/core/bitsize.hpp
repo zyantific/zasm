@@ -18,7 +18,9 @@ namespace zasm
         _64,
         _80,
         _128,
+        _160,
         _256,
+        _320,
         _512,
         _1024,
         _2048,
@@ -39,10 +41,13 @@ namespace zasm
             SWITCH_BIT(8);
             SWITCH_BIT(16);
             SWITCH_BIT(32);
+            SWITCH_BIT(48);
             SWITCH_BIT(64);
             SWITCH_BIT(80);
             SWITCH_BIT(128);
+            SWITCH_BIT(160);
             SWITCH_BIT(256);
+            SWITCH_BIT(320);
             SWITCH_BIT(512);
             SWITCH_BIT(1024);
             SWITCH_BIT(2048);
@@ -72,7 +77,9 @@ namespace zasm
             SWITCH_BIT(64);
             SWITCH_BIT(80);
             SWITCH_BIT(128);
+            SWITCH_BIT(160);
             SWITCH_BIT(256);
+            SWITCH_BIT(320);
             SWITCH_BIT(512);
             SWITCH_BIT(1024);
             SWITCH_BIT(2048);
