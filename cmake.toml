@@ -7,7 +7,7 @@ languages = ["CXX"]
 ZASM_BUILD_TESTS = false
 ZYDIS_BUILD_EXAMPLES = false
 ZYDIS_BUILD_TOOLS = false
-INSTALL_GTEST = false
+INSTALL_GTEST = true
 
 [conditions]
 tests = "ZASM_BUILD_TESTS"

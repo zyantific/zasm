@@ -58,7 +58,7 @@ FetchContent_MakeAvailable(GTest)
 option(ZASM_BUILD_TESTS OFF)
 option(ZYDIS_BUILD_EXAMPLES OFF)
 option(ZYDIS_BUILD_TOOLS OFF)
-option(INSTALL_GTEST OFF)
+option(INSTALL_GTEST ON)
 
 # Target zasm
 set(CMKR_TARGET zasm)
