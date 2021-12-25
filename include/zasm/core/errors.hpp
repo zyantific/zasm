@@ -49,9 +49,11 @@ namespace zasm
         return nullptr;
     }
 
+    // gtest support.
+    inline std::ostream& operator<<(std::ostream& os, const Error& err)
+    {
+        return os << zasm::getErrorName(err);
+    }
+
 } // namespace zasm
 
-inline std::ostream& operator<<(std::ostream& os, const zasm::Error err)
-{
-    return os << zasm::getErrorName(err);
-}

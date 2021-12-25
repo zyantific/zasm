@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+#include <cstddef>
 #include <string.h>
 #include <string>
 #include <vector>

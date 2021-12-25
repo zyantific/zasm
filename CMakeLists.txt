@@ -130,8 +130,9 @@ if(ZASM_BUILD_TESTS) # tests
 
 	list(APPEND tests_SOURCES
 		"src/tests/main.cpp"
-		"src/tests/tests/instructions.x64.cpp"
-		"src/tests/tests/serialization.cpp"
+		"src/tests/tests/tests.instructions.x64.cpp"
+		"src/tests/tests/tests.program.cpp"
+		"src/tests/tests/tests.serialization.cpp"
 		"src/tests/testutils.cpp"
 		"src/tests/instructiontest.hpp"
 		"src/tests/testutils.hpp"
@@ -154,6 +155,12 @@ if(ZASM_BUILD_TESTS) # tests
 	endif()
 
 	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${tests_SOURCES})
+
+	if(MSVC) # msvc
+		target_compile_options(tests PRIVATE
+			"/bigobj"
+		)
+	endif()
 
 	target_link_libraries(tests PRIVATE
 		zasm::zasm
