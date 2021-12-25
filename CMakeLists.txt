@@ -132,6 +132,7 @@ if(ZASM_BUILD_TESTS) # tests
 		"src/tests/main.cpp"
 		"src/tests/tests/tests.instructions.x64.cpp"
 		"src/tests/tests/tests.program.cpp"
+		"src/tests/tests/tests.registers.cpp"
 		"src/tests/tests/tests.serialization.cpp"
 		"src/tests/testutils.cpp"
 		"src/tests/instructiontest.hpp"
