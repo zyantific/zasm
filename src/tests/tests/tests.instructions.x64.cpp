@@ -10141,4 +10141,32 @@ namespace zasm::tests
 		}
 	);
 
+	TEST(InstructionTests, Combined)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Assembler assembler(program);
+
+		for (const auto& instrEntry : InstrTests)
+		{
+			ASSERT_EQ(instrEntry.gen(assembler), Error::None);
+		}
+
+		ASSERT_EQ(program.serialize(0x0000000000401000), Error::None);
+
+		const uint8_t* codeBuf = program.getCode();
+		size_t offset = 0;
+		for (const auto& instrEntry : InstrTests)
+		{
+			const auto numBytes = strlen(instrEntry.instrBytes) / 2;
+			ASSERT_LE(offset + numBytes, program.getCodeSize());
+
+			const auto hexEncoded = hexEncode(codeBuf + offset, numBytes);
+			ASSERT_EQ(std::string(instrEntry.instrBytes), hexEncoded);
+
+			offset += numBytes;
+		}
+    }
+
 } // namespace zasm::tests
