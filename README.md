@@ -1,4 +1,4 @@
-# Zasm : x86-64 Assembler based on Zydis
+# Zasm : x86-64 Assembler based on [Zydis](https://github.com/zyantific/zydis)
 
 ## Why?
 Some of my projects were using Zydis and AsmJit where instructions where were first decoded with Zydis and then put into AsmJit's Builder to allow processing/analysing of the instructions/branches before re-encoding/relocating the modified code, there are a couple of downsides to this approach which will be explained further down. Zydis recently introduced a way to use the same structures/data it already has to encode instructions which lead to Zasm. This library aims to be a higher level assembler/decoder which can be used for various things like the previously mentioned example.
