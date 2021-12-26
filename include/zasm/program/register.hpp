@@ -216,6 +216,11 @@ namespace zasm::operands
             return Gp{ reg };
         }
 
+        Gp r8() const noexcept
+        {
+            return r8lo();
+        }
+
         Gp r8hi() const noexcept
         {
             auto regIndex = getNormalizedIndex();
