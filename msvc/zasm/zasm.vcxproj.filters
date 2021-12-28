@@ -102,6 +102,9 @@
     <ClInclude Include="..\..\include\zasm\zasm.hpp">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\zasm\core\enumflags.hpp">
+      <Filter>include\core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\zasm\src\zasm.cpp">

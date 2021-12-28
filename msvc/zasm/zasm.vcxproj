@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\zasm\assembler\assembler.hpp" />
     <ClInclude Include="..\..\include\zasm\core\bitsize.hpp" />
+    <ClInclude Include="..\..\include\zasm\core\enumflags.hpp" />
     <ClInclude Include="..\..\include\zasm\core\errors.hpp" />
     <ClInclude Include="..\..\include\zasm\core\expected.hpp" />
     <ClInclude Include="..\..\include\zasm\core\objectpool.hpp" />
