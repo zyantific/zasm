@@ -3,6 +3,7 @@
 #include "data.hpp"
 #include "instruction.hpp"
 #include "label.hpp"
+#include "section.hpp"
 
 #include <variant>
 
@@ -20,7 +21,7 @@ namespace zasm
     protected:
         const Node* _prev{};
         const Node* _next{};
-        const std::variant<NodePoint, Instruction, Label, Data> _data{};
+        const std::variant<NodePoint, Instruction, Label, Data, Section> _data{};
 
     protected:
         constexpr Node(const NodePoint& val) noexcept
@@ -40,6 +41,10 @@ namespace zasm
         {
         }
         constexpr Node(const Label& val) noexcept
+            : _data{ val }
+        {
+        }
+        constexpr Node(const Section& val) noexcept
             : _data{ val }
         {
         }

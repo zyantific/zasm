@@ -245,7 +245,7 @@ namespace zasm
         entry.id = labelId;
         if (name != nullptr)
         {
-            entry.nameId = _state->labelNames.aquire(name);
+            entry.nameId = _state->symbolNames.aquire(name);
         }
 
         return Label{ labelId };
@@ -262,7 +262,7 @@ namespace zasm
         const auto* node = createNode_(_state->nodePool, label);
 
         auto& entry = _state->labels[entryIdx];
-        entry.labelNode = node;
+        entry.node = node;
 
         return node;
     }
@@ -287,6 +287,52 @@ namespace zasm
         return Data(ptr, len);
     }
 
+    const Section Program::createSection(const char* name, Section::Attribs attribs, int32_t align)
+    {
+        const auto sectId = static_cast<Section::Id>(_state->sections.size());
+
+        auto& entry = _state->sections.emplace_back();
+        entry.id = sectId;
+        entry.attribs = attribs;
+        entry.align = align;
+
+        if (name != nullptr)
+        {
+            entry.nameId = _state->symbolNames.aquire(name);
+        }
+
+        return Section{ sectId };
+    }
+
+    const Node* Program::bindSection(const Section& section)
+    {
+        const auto entryIdx = static_cast<size_t>(section.getId());
+        if (entryIdx >= _state->sections.size())
+        {
+            return nullptr;
+        }
+
+        const auto* node = createNode_(_state->nodePool, section);
+
+        auto& entry = _state->sections[entryIdx];
+        entry.node = node;
+
+        return node;
+    }
+
+    const char* Program::getSectionName(const Section& section) const noexcept
+    {
+        const auto sectIdx = static_cast<size_t>(section.getId());
+        if (sectIdx >= _state->sections.size())
+        {
+            return nullptr;
+        }
+
+        const auto& sectData = _state->sections[sectIdx];
+
+        return _state->symbolNames.get(sectData.nameId);
+    }
+
     size_t Program::getCodeSize() const
     {
         return _state->codeBuffer.size();
@@ -295,6 +341,19 @@ namespace zasm
     const uint8_t* Program::getCode() const
     {
         return _state->codeBuffer.data();
+    }
+
+    size_t Program::getSectionCount() const
+    {
+        return _state->sectionInfo.size();
+    }
+
+    const SectionInfo* Program::getSectionInfo(size_t sectionIndex) const
+    {
+        if (sectionIndex >= _state->sectionInfo.size())
+            return nullptr;
+
+        return &_state->sectionInfo[sectionIndex];
     }
 
 } // namespace zasm

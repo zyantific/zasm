@@ -2,11 +2,33 @@
 
 #include "operand.hpp"
 
-#include <array>
 #include <Zydis/Zydis.h>
+#include <array>
+#include <zasm/core/enumflags.hpp>
 
 namespace zasm
 {
+    namespace detail
+    {
+        enum class InstructionAttribs : uint16_t
+        {
+            None = 0,
+            Lock = (1u << 0),
+            Rep = (1u << 1),
+            Repe = (1u << 2),
+            Repne = (1u << 3),
+            Bnd = (1u << 4),
+            Xacquire = (1u << 5),
+            Xrelease = (1u << 6),
+            OperandSize8 = (1u << 7),
+            OperandSize16 = (1u << 8),
+            OperandSize32 = (1u << 9),
+            OperandSize64 = (1u << 10),
+        };
+        ZASM_ENABLE_ENUM_OPERATORS(InstructionAttribs);
+
+    } // namespace detail
+
 #pragma pack(push, 1)
     class Instruction
     {
@@ -30,21 +52,7 @@ namespace zasm
             uint32_t undefined;
         };
 
-        enum class Attribs : uint16_t
-        {
-            None = 0,
-            Lock = (1u << 0),
-            Rep = (1u << 1),
-            Repe = (1u << 2),
-            Repne = (1u << 3),
-            Bnd = (1u << 4),
-            Xacquire = (1u << 5),
-            Xrelease = (1u << 6),
-            OperandSize8 = (1u << 7),
-            OperandSize16 = (1u << 8),
-            OperandSize32 = (1u << 9),
-            OperandSize64 = (1u << 10),
-        };
+        using Attribs = detail::InstructionAttribs;
 
     private:
         Operands _operands{};
@@ -82,7 +90,7 @@ namespace zasm
 
         constexpr bool hasAttrib(Attribs attrib) const
         {
-            return (static_cast<unsigned>(_attribs) & static_cast<unsigned>(attrib)) != 0u;
+            return (_attribs & attrib) != Attribs::None;
         }
 
         constexpr Length getLength() const
@@ -95,8 +103,7 @@ namespace zasm
             return _operands;
         }
 
-        template<size_t TIndex, typename T = Operand>
-        constexpr const T& getOperand() const
+        template<size_t TIndex, typename T = Operand> constexpr const T& getOperand() const
         {
             if constexpr (std::is_same_v<T, Operand>)
             {
@@ -114,8 +121,7 @@ namespace zasm
             return _operands[index];
         }
 
-        template<typename T>
-        constexpr const T* tryGetOperandAs(size_t index) const noexcept
+        template<typename T> constexpr const T* tryGetOperandAs(size_t index) const noexcept
         {
             if (index >= _operands.size())
                 return nullptr;

@@ -16,6 +16,7 @@ namespace zasm
         LabelNotFound,
         UnresolvedLabel,
         InvalidLabel,
+        SectionNotFound,
         // Decoder.
         InvalidInstruction,
         OutOfBounds,

@@ -3,6 +3,7 @@
 #include <zasm/core/errors.hpp>
 #include <zasm/program/instruction.hpp>
 #include <zasm/program/operand.hpp>
+#include <zasm/program/section.hpp>
 
 namespace zasm
 {
@@ -29,6 +30,9 @@ namespace zasm
         Error bind(const Label& label);
 
     public:
+        Error section(const char* name, Section::Attribs attribs = Section::Attribs::Code, int32_t align = 0x1000);
+
+    public:
         // Data emitter.
         Error db(uint8_t val);
         Error dw(uint16_t val);
@@ -47,7 +51,7 @@ namespace zasm
         template<typename... TArgs> Error emit(ZydisMnemonic id, TArgs&&... args)
         {
             const auto attribs = _attribState;
-            _attribState = {};
+            _attribState = Instruction::Attribs::None;
             return emit(attribs, id, std::forward<TArgs&&>(args)...);
         }
 
@@ -56,9 +60,7 @@ namespace zasm
 
         void addAttrib(Instruction::Attribs attrib) noexcept
         {
-            using T = std::underlying_type_t<Instruction::Attribs>;
-
-            _attribState = static_cast<Instruction::Attribs>(static_cast<T>(_attribState) | static_cast<T>(attrib));
+            _attribState = _attribState | attrib;
         }
 
     public: // Attribs/State modifier.

@@ -24,6 +24,7 @@
     <ClInclude Include="..\..\include\zasm\core\enumflags.hpp" />
     <ClInclude Include="..\..\include\zasm\core\errors.hpp" />
     <ClInclude Include="..\..\include\zasm\core\expected.hpp" />
+    <ClInclude Include="..\..\include\zasm\core\math.hpp" />
     <ClInclude Include="..\..\include\zasm\core\objectpool.hpp" />
     <ClInclude Include="..\..\include\zasm\core\stringpool.hpp" />
     <ClInclude Include="..\..\include\zasm\decoder\decoder.hpp" />
@@ -37,6 +38,7 @@
     <ClInclude Include="..\..\include\zasm\program\operand.hpp" />
     <ClInclude Include="..\..\include\zasm\program\program.hpp" />
     <ClInclude Include="..\..\include\zasm\program\register.hpp" />
+    <ClInclude Include="..\..\include\zasm\program\section.hpp" />
     <ClInclude Include="..\..\include\zasm\zasm.hpp" />
     <ClInclude Include="..\..\src\zasm\src\encoder\encoder.context.hpp" />
     <ClInclude Include="..\..\src\zasm\src\encoder\generator.hpp" />

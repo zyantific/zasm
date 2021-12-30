@@ -29,12 +29,12 @@ namespace zasm
             return std::nullopt;
 
         const auto& entry = getOrCreateLabelLink(ctx, id);
-        if (entry.boundOffset == -1)
+        if (entry.boundVA == -1)
         {
             return std::nullopt;
         }
 
-        return ctx->baseVA + entry.boundOffset;
+        return entry.boundVA;
     }
 
     struct EncodeVariantsInfo
@@ -97,24 +97,19 @@ namespace zasm
         return target - (va + instrSize);
     }
 
-    static bool hasAttrib(Instruction::Attribs attribs, Instruction::Attribs p)
+    static bool hasAttrib(Instruction::Attribs attribs, Instruction::Attribs other)
     {
-        using T = std::underlying_type_t<Instruction::Attribs>;
-        if (static_cast<T>(attribs) & static_cast<T>(p))
-        {
-            return true;
-        }
-        return false;
+        return (attribs & other) != Instruction::Attribs::None;
     }
 
-    static ZydisInstructionAttributes getAttribs(Instruction::Attribs prefixes)
+    static ZydisInstructionAttributes getAttribs(Instruction::Attribs attribs)
     {
         ZydisInstructionAttributes res{};
 
-        const auto translateAttrib = [&](Instruction::Attribs p, ZydisInstructionAttributes a) {
-            if (hasAttrib(prefixes, p))
+        const auto translateAttrib = [&](Instruction::Attribs other, ZydisInstructionAttributes newAttrib) {
+            if (hasAttrib(attribs, other))
             {
-                res |= a;
+                res |= newAttrib;
             }
         };
 
@@ -263,13 +258,22 @@ namespace zasm
             ctx->instrSize = -1;
         }
 
+        bool usingLabel = false;
         if (auto labelId = op.getLabelId(); labelId != Label::Id::Invalid && ctx != nullptr)
         {
             auto labelVA = getLabelAddress(ctx, labelId);
             if (labelVA.has_value())
             {
                 displacement += *labelVA;
+                usingLabel = true;
             }
+        }
+
+        // NOTE: For x64 we want rip-relative by default so when rip is not specified
+        // but a label is used we just treat it as if it were rip.
+        if (usingLabel && dst.mem.base == ZYDIS_REGISTER_NONE && req.machine_mode == ZYDIS_MACHINE_MODE_LONG_64)
+        {
+            dst.mem.base = ZYDIS_REGISTER_RIP;
         }
 
         // FIXME: This only works for 64 bit.

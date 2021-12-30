@@ -27,6 +27,11 @@ namespace zasm
         {
             return _id;
         }
+
+        constexpr bool isValid() const
+        {
+            return _id != Id::Invalid;
+        }
     };
 
     namespace operands
