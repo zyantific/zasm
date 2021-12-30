@@ -8,6 +8,7 @@ ZASM_BUILD_TESTS = false
 ZYDIS_BUILD_EXAMPLES = false
 ZYDIS_BUILD_TOOLS = false
 INSTALL_GTEST = false
+BUILD_GMOCK = false
 
 [conditions]
 tests = "ZASM_BUILD_TESTS"
@@ -49,3 +50,8 @@ condition = "tests"
 type = "executable"
 sources = ["src/testing/testing.cpp"]
 link-libraries = ["zasm::zasm"]
+
+[[test]]
+condition = "tests"
+name = "tests"
+command = "$<TARGET_FILE:tests>"
