@@ -53,7 +53,7 @@ namespace zasm
         _storage.ptr = nullptr;
     }
 
-    const void* Data::getData() const
+    const void* Data::getData() const noexcept
     {
         if (_size == 0)
             return nullptr;
@@ -64,7 +64,7 @@ namespace zasm
         return _storage.ptr;
     }
 
-    size_t Data::getSize() const
+    size_t Data::getSize() const noexcept
     {
         return (_size & ~kInlineDataFlag);
     }

@@ -13,23 +13,23 @@ namespace zasm::operands
         };
 
     public:
-        constexpr Imm()
+        constexpr Imm() noexcept
             : s{}
         {
         }
-        constexpr Imm(uint32_t imm)
+        constexpr Imm(uint32_t imm) noexcept
             : u{ imm }
         {
         }
-        constexpr Imm(int32_t imm)
+        constexpr Imm(int32_t imm) noexcept
             : s{ imm }
         {
         }
-        constexpr Imm(int64_t imm)
+        constexpr Imm(int64_t imm) noexcept
             : s{ imm }
         {
         }
-        constexpr Imm(uint64_t imm)
+        constexpr Imm(uint64_t imm) noexcept
             : u{ imm }
         {
         }
@@ -45,7 +45,7 @@ namespace zasm::operands
         {
         public:
             template<typename T2>
-            constexpr ImmT(const T2 val)
+            constexpr ImmT(const T2 val) noexcept
                 : Imm(static_cast<T>(val))
             {
             }

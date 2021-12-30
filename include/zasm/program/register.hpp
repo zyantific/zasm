@@ -20,28 +20,28 @@ namespace zasm::operands
         Id _reg{ ZYDIS_REGISTER_NONE };
 
     public:
-        constexpr Reg() = default;
-        constexpr Reg(const ZydisRegister reg)
+        constexpr Reg() noexcept = default;
+        constexpr Reg(const ZydisRegister reg) noexcept
             : _reg{ static_cast<Id>(reg) }
         {
         }
 #ifndef _DEBUG
-        constexpr Reg(const Id reg)
+        constexpr Reg(const Id reg) noexcept
             : _reg{ reg }
         {
         }
 #endif
-        BitSize getSize(ZydisMachineMode mode) const
+        BitSize getSize(ZydisMachineMode mode) const noexcept
         {
             return toBitSize(ZydisRegisterGetWidth(mode, getId()));
         }
 
-        ZydisRegisterClass getClass() const
+        ZydisRegisterClass getClass() const noexcept
         {
             return ZydisRegisterGetClass(getId());
         }
 
-        constexpr ZydisRegister getId() const
+        constexpr ZydisRegister getId() const noexcept
         {
             return static_cast<ZydisRegister>(_reg);
         }
@@ -50,7 +50,7 @@ namespace zasm::operands
         /// Returns the index per register class
         /// NOTE: For Gp8 there are 20 registers, hi/lo regs are in the same class.
         /// </summary>
-        int8_t getIndex() const
+        int8_t getIndex() const noexcept
         {
             return ZydisRegisterGetId(getId());
         }
@@ -59,7 +59,7 @@ namespace zasm::operands
         /// Returns the offset in the space of the root register as bytes.
         /// This is typically 0 except for Gp8Hi registers.
         /// </summary>
-        constexpr int8_t getOffset() const
+        constexpr int8_t getOffset() const noexcept
         {
             switch (getId())
             {
@@ -79,7 +79,7 @@ namespace zasm::operands
         /// would be eax on 32 bit mode and rax on 64 bit.
         /// In case the register has no root it will return Reg::None.
         /// </summary>
-        Reg getRoot(ZydisMachineMode mode) const
+        Reg getRoot(ZydisMachineMode mode) const noexcept
         {
             return Reg{ ZydisRegisterGetLargestEnclosing(mode, getId()) };
         }
@@ -89,12 +89,12 @@ namespace zasm::operands
             return getId() != ZYDIS_REGISTER_NONE;
         }
 
-        bool isGp8() const
+        bool isGp8() const noexcept
         {
             return getClass() == ZydisRegisterClass::ZYDIS_REGCLASS_GPR8;
         }
 
-        bool isGp8Lo() const
+        bool isGp8Lo() const noexcept
         {
             if (!isGp8())
                 return false;
@@ -111,7 +111,7 @@ namespace zasm::operands
             return true;
         }
 
-        bool isGp8Hi() const
+        bool isGp8Hi() const noexcept
         {
             if (!isGp8())
                 return false;
@@ -128,37 +128,37 @@ namespace zasm::operands
             return false;
         }
 
-        bool isGp16() const
+        bool isGp16() const noexcept
         {
             return getClass() == ZydisRegisterClass::ZYDIS_REGCLASS_GPR16;
         }
 
-        bool isGp32() const
+        bool isGp32() const noexcept
         {
             return getClass() == ZydisRegisterClass::ZYDIS_REGCLASS_GPR32;
         }
 
-        bool isGp64() const
+        bool isGp64() const noexcept
         {
             return getClass() == ZydisRegisterClass::ZYDIS_REGCLASS_GPR64;
         }
 
-        bool isGp() const
+        bool isGp() const noexcept
         {
             return isGp8() || isGp16() || isGp32() || isGp64();
         }
 
-        bool isXmm() const
+        bool isXmm() const noexcept
         {
             return getClass() == ZydisRegisterClass::ZYDIS_REGCLASS_XMM;
         }
 
-        bool isYmm() const
+        bool isYmm() const noexcept
         {
             return getClass() == ZydisRegisterClass::ZYDIS_REGCLASS_YMM;
         }
 
-        bool isZmm() const
+        bool isZmm() const noexcept
         {
             return getClass() == ZydisRegisterClass::ZYDIS_REGCLASS_ZMM;
         }
@@ -183,12 +183,12 @@ namespace zasm::operands
             return _reg > other._reg;
         }
 
-        template<typename T> T& as()
+        template<typename T> constexpr T& as() noexcept
         {
             return static_cast<T&>(*this);
         }
 
-        template<typename T> const T& as() const
+        template<typename T> constexpr const T& as() const noexcept
         {
             return static_cast<T&>(*this);
         }
@@ -295,14 +295,12 @@ namespace zasm::operands
         using Gp::Gp;
     };
 
-    // Strong type for Rip related registers.
     class Rip : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    // Strong type for segment related registers.
     class Seg : public Reg
     {
     public:
@@ -327,21 +325,18 @@ namespace zasm::operands
         using Reg::Reg;
     };
 
-    // Strong type for segment related registers.
     class Xmm : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    // Strong type for segment related registers.
     class Ymm : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    // Strong type for segment related registers.
     class Zmm : public Reg
     {
     public:

@@ -10,7 +10,7 @@ namespace zasm
         {
             const T failure;
 
-            constexpr Unexpected(const T& val)
+            constexpr Unexpected(const T& val) noexcept
                 : failure{ val }
             {
             }
@@ -22,23 +22,23 @@ namespace zasm
         std::variant<TSuccess, detail::Unexpected<TFailure>> data;
 
     public:
-        constexpr Expected(const TSuccess& val)
+        constexpr Expected(const TSuccess& val) noexcept
             : data{ val }
         {
         }
-        constexpr Expected(TSuccess&& val)
+        constexpr Expected(TSuccess&& val) noexcept
             : data{ std::move(val) }
         {
         }
-        constexpr Expected(const detail::Unexpected<TFailure>& val)
+        constexpr Expected(const detail::Unexpected<TFailure>& val) noexcept
             : data{ val }
         {
         }
-        constexpr Expected(detail::Unexpected<TFailure>&& val)
+        constexpr Expected(detail::Unexpected<TFailure>&& val) noexcept
             : data{ std::move(val) }
         {
         }
-        constexpr operator bool() const
+        constexpr operator bool() const noexcept
         {
             return data.index() == 0;
         }
@@ -64,7 +64,7 @@ namespace zasm
         }
     };
 
-    template<typename T> constexpr detail::Unexpected<T> makeUnexpected(const T& val)
+    template<typename T> constexpr detail::Unexpected<T> makeUnexpected(const T& val) noexcept
     {
         return detail::Unexpected<T>(val);
     }

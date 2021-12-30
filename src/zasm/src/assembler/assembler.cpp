@@ -41,6 +41,17 @@ namespace zasm
         return Error::None;
     }
 
+    Error Assembler::section(
+        const char* name, Section::Attribs attribs /*= Section::Attribs::Code*/, int32_t align /*= 0x1000*/)
+    {
+        auto newSect = _program.createSection(name, attribs, align);
+
+        auto* sectNode = _program.bindSection(newSect);
+        _cursor = _program.insertAfter(_cursor, sectNode);
+
+        return Error::None;
+    }
+
     Error Assembler::db(uint8_t val)
     {
         return embed(&val, sizeof(val));
@@ -85,7 +96,7 @@ namespace zasm
         return Error::None;
     }
 
-    zasm::Error Assembler::fromInstruction(const Instruction& instr)
+    Error Assembler::fromInstruction(const Instruction& instr)
     {
         auto* instrNode = _program.createNode(instr);
         _cursor = _program.insertAfter(_cursor, instrNode);

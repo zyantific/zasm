@@ -10153,8 +10153,7 @@ namespace zasm::tests
 			ASSERT_EQ(instrEntry.gen(assembler), Error::None);
 		}
 
-		for(int i = 0; i < 1000; i++)
-			ASSERT_EQ(program.serialize(0x0000000000401000), Error::None);
+		ASSERT_EQ(program.serialize(0x0000000000401000), Error::None);
 
 		const uint8_t* codeBuf = program.getCode();
 		size_t offset = 0;

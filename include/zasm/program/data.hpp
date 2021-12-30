@@ -28,27 +28,27 @@ namespace zasm
         size_t _size{};
 
     public:
-        constexpr Data() = default;
+        constexpr Data() noexcept = default;
 
-        constexpr Data(uint8_t val)
+        constexpr Data(uint8_t val) noexcept
         {
             _storage.u8 = val;
             _size = kInlineDataFlag | sizeof(val);
         }
 
-        constexpr Data(uint16_t val)
+        constexpr Data(uint16_t val) noexcept
         {
             _storage.u16 = val;
             _size = kInlineDataFlag | sizeof(val);
         }
 
-        constexpr Data(uint32_t val)
+        constexpr Data(uint32_t val) noexcept
         {
             _storage.u32 = val;
             _size = kInlineDataFlag | sizeof(val);
         }
 
-        constexpr Data(uint64_t val)
+        constexpr Data(uint64_t val) noexcept
         {
             _storage.u64 = val;
             _size = kInlineDataFlag | sizeof(val);
@@ -59,8 +59,8 @@ namespace zasm
         Data(Data&& other) noexcept;
         ~Data();
 
-        const void* getData() const;
-        size_t getSize() const;
+        const void* getData() const noexcept;
+        size_t getSize() const noexcept;
 
         Data& operator=(const Data& other);
         Data& operator=(Data&& other) noexcept;

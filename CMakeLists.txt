@@ -77,8 +77,10 @@ list(APPEND zasm_SOURCES
 	"src/zasm/src/zasm.cpp"
 	"include/zasm/assembler/assembler.hpp"
 	"include/zasm/core/bitsize.hpp"
+	"include/zasm/core/enumflags.hpp"
 	"include/zasm/core/errors.hpp"
 	"include/zasm/core/expected.hpp"
+	"include/zasm/core/math.hpp"
 	"include/zasm/core/objectpool.hpp"
 	"include/zasm/core/stringpool.hpp"
 	"include/zasm/decoder/decoder.hpp"
@@ -92,6 +94,7 @@ list(APPEND zasm_SOURCES
 	"include/zasm/program/operand.hpp"
 	"include/zasm/program/program.hpp"
 	"include/zasm/program/register.hpp"
+	"include/zasm/program/section.hpp"
 	"include/zasm/zasm.hpp"
 )
 
@@ -134,7 +137,9 @@ if(ZASM_BUILD_TESTS) # tests
 		"src/tests/tests/tests.instructions.x64.cpp"
 		"src/tests/tests/tests.program.cpp"
 		"src/tests/tests/tests.registers.cpp"
+		"src/tests/tests/tests.sections.cpp"
 		"src/tests/tests/tests.serialization.cpp"
+		"src/tests/tests/tests.stringpool.cpp"
 		"src/tests/testutils.cpp"
 		"src/tests/instructiontest.hpp"
 		"src/tests/testutils.hpp"

@@ -12,10 +12,12 @@ namespace zasm
         InvalidMode,
         NotInitialized,
         InvalidOperation,
+        InvalidParameter,
         // Program
         LabelNotFound,
         UnresolvedLabel,
         InvalidLabel,
+        SectionNotFound,
         // Decoder.
         InvalidInstruction,
         OutOfBounds,
@@ -23,7 +25,7 @@ namespace zasm
         ImpossibleInstruction,
     };
 
-    inline constexpr const char* getErrorName(Error err)
+    inline constexpr const char* getErrorName(Error err) noexcept
     {
 #define ERROR_STRING(e)                                                                                                        \
     case e:                                                                                                                    \
@@ -35,6 +37,7 @@ namespace zasm
             ERROR_STRING(Error::InvalidMode);
             ERROR_STRING(Error::NotInitialized);
             ERROR_STRING(Error::InvalidOperation);
+            ERROR_STRING(Error::InvalidParameter);
             ERROR_STRING(Error::LabelNotFound);
             ERROR_STRING(Error::UnresolvedLabel);
             ERROR_STRING(Error::InvalidLabel);

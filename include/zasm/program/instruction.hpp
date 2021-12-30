@@ -2,11 +2,33 @@
 
 #include "operand.hpp"
 
-#include <array>
 #include <Zydis/Zydis.h>
+#include <array>
+#include <zasm/core/enumflags.hpp>
 
 namespace zasm
 {
+    namespace detail
+    {
+        enum class InstructionAttribs : uint16_t
+        {
+            None = 0,
+            Lock = (1u << 0),
+            Rep = (1u << 1),
+            Repe = (1u << 2),
+            Repne = (1u << 3),
+            Bnd = (1u << 4),
+            Xacquire = (1u << 5),
+            Xrelease = (1u << 6),
+            OperandSize8 = (1u << 7),
+            OperandSize16 = (1u << 8),
+            OperandSize32 = (1u << 9),
+            OperandSize64 = (1u << 10),
+        };
+        ZASM_ENABLE_ENUM_OPERATORS(InstructionAttribs);
+
+    } // namespace detail
+
 #pragma pack(push, 1)
     class Instruction
     {
@@ -30,21 +52,7 @@ namespace zasm
             uint32_t undefined;
         };
 
-        enum class Attribs : uint16_t
-        {
-            None = 0,
-            Lock = (1u << 0),
-            Rep = (1u << 1),
-            Repe = (1u << 2),
-            Repne = (1u << 3),
-            Bnd = (1u << 4),
-            Xacquire = (1u << 5),
-            Xrelease = (1u << 6),
-            OperandSize8 = (1u << 7),
-            OperandSize16 = (1u << 8),
-            OperandSize32 = (1u << 9),
-            OperandSize64 = (1u << 10),
-        };
+        using Attribs = detail::InstructionAttribs;
 
     private:
         Operands _operands{};
@@ -56,10 +64,10 @@ namespace zasm
         Length _length{};
 
     public:
-        constexpr Instruction() = default;
+        constexpr Instruction() noexcept = default;
         constexpr Instruction(
             Attribs attribs, ZydisMnemonic mnemonic, const Operands& operands, const Access& access, const Visibility& vis,
-            const Flags& flags, Length length = 0)
+            const Flags& flags, Length length = 0) noexcept
             : _operands{ operands }
             , _id{ static_cast<Mnemonic>(mnemonic) }
             , _access{ access }
@@ -70,33 +78,32 @@ namespace zasm
         {
         }
 
-        constexpr ZydisMnemonic getId() const
+        constexpr ZydisMnemonic getId() const noexcept
         {
             return static_cast<ZydisMnemonic>(_id);
         }
 
-        constexpr Attribs getAttribs() const
+        constexpr Attribs getAttribs() const noexcept
         {
             return _attribs;
         }
 
-        constexpr bool hasAttrib(Attribs attrib) const
+        constexpr bool hasAttrib(Attribs attrib) const noexcept
         {
-            return (static_cast<unsigned>(_attribs) & static_cast<unsigned>(attrib)) != 0u;
+            return (_attribs & attrib) != Attribs::None;
         }
 
-        constexpr Length getLength() const
+        constexpr Length getLength() const noexcept
         {
             return _length;
         }
 
-        constexpr const Operands& getOperands() const
+        constexpr const Operands& getOperands() const noexcept
         {
             return _operands;
         }
 
-        template<size_t TIndex, typename T = Operand>
-        constexpr const T& getOperand() const
+        template<size_t TIndex, typename T = Operand> constexpr const T& getOperand() const
         {
             if constexpr (std::is_same_v<T, Operand>)
             {
@@ -109,13 +116,12 @@ namespace zasm
             }
         }
 
-        constexpr const Operand& getOperand(size_t index) const
+        constexpr const Operand& getOperand(size_t index) const noexcept
         {
             return _operands[index];
         }
 
-        template<typename T>
-        constexpr const T* tryGetOperandAs(size_t index) const noexcept
+        template<typename T> constexpr const T* tryGetOperandAs(size_t index) const noexcept
         {
             if (index >= _operands.size())
                 return nullptr;
@@ -124,23 +130,21 @@ namespace zasm
             return op.template tryAs<T>();
         }
 
-        constexpr const Visibility& getVisibility() const
+        constexpr const Visibility& getVisibility() const noexcept
         {
             return _visibility;
         }
 
-        constexpr const Access& getAccess() const
+        constexpr const Access& getAccess() const noexcept
         {
             return _access;
         }
 
-        constexpr const Flags& getFlags() const
+        constexpr const Flags& getFlags() const noexcept
         {
             return _flags;
         }
     };
 #pragma pack(pop)
-
-    static constexpr auto SizeOfInstruction = sizeof(Instruction);
 
 } // namespace zasm

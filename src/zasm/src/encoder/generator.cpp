@@ -5,7 +5,7 @@
 namespace zasm
 {
     // FIXME: Duplicate code, move this somewhere.
-    static bool isImmediateControlFlow(ZydisMnemonic mnemonic)
+    static bool isImmediateControlFlow(ZydisMnemonic mnemonic) noexcept
     {
         switch (mnemonic)
         {
@@ -41,14 +41,14 @@ namespace zasm
     }
 
 
-    InstrGenerator::InstrGenerator(ZydisMachineMode mode)
+    InstrGenerator::InstrGenerator(ZydisMachineMode mode) noexcept
         : _decoder(mode)
         , _mode(mode)
     {
     }
 
     InstrGenerator::Result InstrGenerator::generate(
-        Instruction::Attribs attribs, ZydisMnemonic mnemonic, const Instruction::Operands& operands)
+        Instruction::Attribs attribs, ZydisMnemonic mnemonic, const Instruction::Operands& operands) noexcept
     {
         EncoderBuffer buf{};
 

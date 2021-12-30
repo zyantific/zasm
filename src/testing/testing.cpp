@@ -60,6 +60,8 @@ static void measureSerializePerformance()
             a.bind(label2);
             a.nop();
             a.mov(rax, Imm(0xBAD));
+
+            a.lea(rsp, qword_ptr(rsp, 0x50));
         }
 
         // Embedding data.
@@ -188,12 +190,57 @@ static void decodeToAssembler()
     std::cout << codeDump << "\n";
 }
 
+static void sectionTest()
+{
+    using namespace zasm;
+    using namespace zasm::operands;
+
+    Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
+    Assembler a(program);
+
+    auto labelA = a.createLabel();
+    auto labelB = a.createLabel();
+    auto labelC = a.createLabel();
+
+    a.section(".text");
+    {
+        a.lea(rax, qword_ptr(labelA));
+        a.lea(rbx, qword_ptr(labelB));
+        a.lea(rdx, qword_ptr(labelC));
+    }
+
+    a.section(".data", Section::Attribs::Data);
+    {
+        a.bind(labelA);
+        a.dq(0x123456789);
+        a.bind(labelB);
+        a.dq(0x987654321);
+        a.bind(labelC);
+        a.dq(0xABCDEF123);
+    }
+
+    auto res = program.serialize(0x00400000);
+    assert(res == Error::None);
+
+    for (size_t i = 0; i < program.getSectionCount(); ++i)
+    {
+        const auto* sect = program.getSectionInfo(i);
+
+        std::cout << ".section " << sect->name << ", VA: 0x" << std::hex << sect->va << ", VSize: 0x" << sect->virtualSize
+                  << ", Raw: 0x" << sect->physicalSize << "\n";
+
+        const auto byteDump = getHexDump(sect->buffer, sect->physicalSize);
+        std::cout << byteDump << "\n";
+    }
+}
+
 int main()
 {
-    quickLeakTest();
-    decodeToAssembler();
-    quickTest();
-    // measureSerializePerformance();
+    sectionTest();
+    // quickLeakTest();
+    // decodeToAssembler();
+    // quickTest();
+    //  measureSerializePerformance();
 
     return EXIT_SUCCESS;
 }
