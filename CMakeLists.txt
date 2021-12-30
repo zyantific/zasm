@@ -27,6 +27,13 @@ if(CMKR_ROOT_PROJECT)
 	configure_file(cmake.toml cmake.toml COPYONLY)
 endif()
 
+# Options
+option(ZASM_BUILD_TESTS OFF)
+option(ZYDIS_BUILD_EXAMPLES OFF)
+option(ZYDIS_BUILD_TOOLS OFF)
+option(INSTALL_GTEST OFF)
+option(BUILD_GMOCK OFF)
+
 project(zasm
 	LANGUAGES
 		CXX
@@ -34,7 +41,7 @@ project(zasm
 
 include(FetchContent)
 
-message(STATUS "Fetching Zydis...")
+message(STATUS "Fetching Zydis (4756724)...")
 FetchContent_Declare(
 	Zydis
 	GIT_REPOSITORY
@@ -44,7 +51,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Zydis)
 
-message(STATUS "Fetching GTest...")
+message(STATUS "Fetching GTest (release-1.11.0)...")
 FetchContent_Declare(
 	GTest
 	GIT_REPOSITORY
@@ -53,12 +60,6 @@ FetchContent_Declare(
 		release-1.11.0
 )
 FetchContent_MakeAvailable(GTest)
-
-# Options
-option(ZASM_BUILD_TESTS OFF)
-option(ZYDIS_BUILD_EXAMPLES OFF)
-option(ZYDIS_BUILD_TOOLS OFF)
-option(INSTALL_GTEST OFF)
 
 # Target zasm
 set(CMKR_TARGET zasm)
@@ -207,3 +208,16 @@ if(ZASM_BUILD_TESTS) # tests
 	unset(CMKR_SOURCES)
 endif()
 
+enable_testing()
+
+if(ZASM_BUILD_TESTS) # tests
+	add_test(
+		NAME
+			tests
+		WORKING_DIRECTORY
+			"${CMAKE_CURRENT_LIST_DIR}/"
+		COMMAND
+			$<TARGET_FILE:tests>
+	)
+
+endif()
