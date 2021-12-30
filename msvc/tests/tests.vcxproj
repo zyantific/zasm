@@ -187,6 +187,7 @@
     <ClCompile Include="..\..\src\tests\tests\tests.registers.cpp" />
     <ClCompile Include="..\..\src\tests\tests\tests.sections.cpp" />
     <ClCompile Include="..\..\src\tests\tests\tests.serialization.cpp" />
+    <ClCompile Include="..\..\src\tests\tests\tests.stringpool.cpp" />
     <ClCompile Include="..\..\src\tests\testutils.cpp" />
   </ItemGroup>
   <ItemGroup>

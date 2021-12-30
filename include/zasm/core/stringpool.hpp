@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstring>
 #include <string.h>
 #include <string>
 #include <vector>
@@ -14,10 +15,10 @@ namespace zasm
         struct Entry
         {
             size_t hash{};
-            size_t offset{};
-            size_t len{};
-            size_t capacity{};
-            size_t refCount{};
+            int32_t offset{};
+            int32_t len{};
+            int32_t capacity{};
+            int32_t refCount{};
         };
 
         std::vector<Entry> _entries;
@@ -78,7 +79,29 @@ namespace zasm
                 return nullptr;
             }
             const auto& entry = _entries[static_cast<size_t>(id)];
+            if (entry.refCount == 0)
+                return nullptr;
             return _data.data() + entry.offset;
+        }
+
+        int32_t getLength(Id id) const noexcept
+        {
+            if (!isValid(id))
+            {
+                return 0;
+            }
+            const auto& entry = _entries[static_cast<size_t>(id)];
+            return entry.len;
+        }
+
+        int32_t getRefCount(Id id) const noexcept
+        {
+            if (!isValid(id))
+            {
+                return 0;
+            }
+            const auto& entry = _entries[static_cast<size_t>(id)];
+            return entry.refCount;
         }
 
         void clear() noexcept
@@ -120,11 +143,11 @@ namespace zasm
                 return id;
             }
 
+            const auto len2 = static_cast<int32_t>(len);
+
             // Use empty entry if any exist.
-            auto it = std::find_if(_entries.begin(), _entries.end(), [&](auto&& entry)
-            {
-                return entry.refCount == 0 && entry.capacity >= len;
-            });
+            auto it = std::find_if(
+                _entries.begin(), _entries.end(), [&](auto&& entry) { return entry.refCount == 0 && entry.capacity >= len2; });
 
             if (it != _entries.end())
             {
@@ -132,18 +155,21 @@ namespace zasm
                 auto& entry = *it;
 
                 id = static_cast<Id>(std::distance(_entries.begin(), it));
-                std::memcpy(_data.data() + entry.offset, buf, len);
+                std::memcpy(_data.data() + entry.offset, buf, len2);
 
-                entry.len = len;
+                entry.hash = hash;
+                entry.len = len2;
+                entry.refCount = 1;
             }
             else
             {
                 // New entry.
-                const size_t offset = _data.size();
+                const int32_t offset = static_cast<int32_t>(_data.size());
                 _data.insert(_data.end(), buf, buf + len);
 
                 id = static_cast<Id>(_entries.size());
-                _entries.push_back({ hash, offset, len, len, 1 });
+
+                _entries.push_back({ hash, offset, len2, len2, 1 });
             }
 
             return id;

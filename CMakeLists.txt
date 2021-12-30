@@ -139,6 +139,7 @@ if(ZASM_BUILD_TESTS) # tests
 		"src/tests/tests/tests.registers.cpp"
 		"src/tests/tests/tests.sections.cpp"
 		"src/tests/tests/tests.serialization.cpp"
+		"src/tests/tests/tests.stringpool.cpp"
 		"src/tests/testutils.cpp"
 		"src/tests/instructiontest.hpp"
 		"src/tests/testutils.hpp"
