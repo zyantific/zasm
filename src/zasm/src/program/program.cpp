@@ -304,33 +304,82 @@ namespace zasm
         return Section{ sectId };
     }
 
+    static detail::SectionData* getSectionData(detail::ProgramState& prog, Section::Id id)
+    {
+        const auto entryIdx = static_cast<size_t>(id);
+        if (entryIdx >= prog.sections.size())
+        {
+            return nullptr;
+        }
+        return &prog.sections[entryIdx];
+    }
+
     const Node* Program::bindSection(const Section& section)
     {
-        const auto entryIdx = static_cast<size_t>(section.getId());
-        if (entryIdx >= _state->sections.size())
+        auto* sectEntry = getSectionData(*_state, section.getId());
+        if (sectEntry == nullptr)
         {
             return nullptr;
         }
 
-        const auto* node = createNode_(_state->nodePool, section);
+        sectEntry->node = createNode_(_state->nodePool, section);
 
-        auto& entry = _state->sections[entryIdx];
-        entry.node = node;
-
-        return node;
+        return sectEntry->node;
     }
 
     const char* Program::getSectionName(const Section& section) const noexcept
     {
-        const auto sectIdx = static_cast<size_t>(section.getId());
-        if (sectIdx >= _state->sections.size())
+        auto* sectEntry = getSectionData(*_state, section.getId());
+        if (sectEntry == nullptr)
         {
             return nullptr;
         }
 
-        const auto& sectData = _state->sections[sectIdx];
+        return _state->symbolNames.get(sectEntry->nameId);
+    }
 
-        return _state->symbolNames.get(sectData.nameId);
+    Error Program::setSectionName(const Section& section, const char* name)
+    {
+        auto* sectEntry = getSectionData(*_state, section.getId());
+        if (sectEntry == nullptr)
+        {
+            return Error::SectionNotFound;
+        }
+
+        if (sectEntry->nameId != StringPool::Id::Invalid)
+        {
+            _state->symbolNames.release(sectEntry->nameId);
+            sectEntry->nameId = StringPool::Id::Invalid;
+        }
+
+        sectEntry->nameId = _state->symbolNames.aquire(name);
+        return Error::None;
+    }
+
+    int32_t Program::getSectionAlign(const Section& section)
+    {
+        auto* sectEntry = getSectionData(*_state, section.getId());
+        if (sectEntry == nullptr)
+        {
+            return -1;
+        }
+        return sectEntry->align;
+    }
+
+    Error Program::setSectionAlign(const Section& section, int32_t align)
+    {
+        auto* sectEntry = getSectionData(*_state, section.getId());
+        if (sectEntry == nullptr)
+        {
+            return Error::SectionNotFound;
+        }
+
+        if (align <= 0)
+            return Error::InvalidParameter;
+
+        sectEntry->align = align;
+
+        return Error::None;
     }
 
     size_t Program::getCodeSize() const

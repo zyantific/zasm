@@ -12,6 +12,7 @@ namespace zasm
         InvalidMode,
         NotInitialized,
         InvalidOperation,
+        InvalidParameter,
         // Program
         LabelNotFound,
         UnresolvedLabel,
@@ -36,6 +37,7 @@ namespace zasm
             ERROR_STRING(Error::InvalidMode);
             ERROR_STRING(Error::NotInitialized);
             ERROR_STRING(Error::InvalidOperation);
+            ERROR_STRING(Error::InvalidParameter);
             ERROR_STRING(Error::LabelNotFound);
             ERROR_STRING(Error::UnresolvedLabel);
             ERROR_STRING(Error::InvalidLabel);
