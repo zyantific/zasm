@@ -41,15 +41,20 @@ namespace zasm
         Id _id{ Id::Invalid };
 
     public:
-        constexpr Section() = default;
-        constexpr Section(const Id id)
+        constexpr Section() noexcept = default;
+        constexpr Section(const Id id) noexcept
             : _id{ id }
         {
         }
 
-        constexpr Id getId() const
+        constexpr Id getId() const noexcept
         {
             return _id;
+        }
+
+        constexpr bool isValid() const noexcept
+        {
+            return _id != Id::Invalid;
         }
     };
 

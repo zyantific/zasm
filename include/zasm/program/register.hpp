@@ -128,37 +128,37 @@ namespace zasm::operands
             return false;
         }
 
-        bool isGp16() const
+        bool isGp16() const noexcept
         {
             return getClass() == ZydisRegisterClass::ZYDIS_REGCLASS_GPR16;
         }
 
-        bool isGp32() const
+        bool isGp32() const noexcept
         {
             return getClass() == ZydisRegisterClass::ZYDIS_REGCLASS_GPR32;
         }
 
-        bool isGp64() const
+        bool isGp64() const noexcept
         {
             return getClass() == ZydisRegisterClass::ZYDIS_REGCLASS_GPR64;
         }
 
-        bool isGp() const
+        bool isGp() const noexcept
         {
             return isGp8() || isGp16() || isGp32() || isGp64();
         }
 
-        bool isXmm() const
+        bool isXmm() const noexcept
         {
             return getClass() == ZydisRegisterClass::ZYDIS_REGCLASS_XMM;
         }
 
-        bool isYmm() const
+        bool isYmm() const noexcept
         {
             return getClass() == ZydisRegisterClass::ZYDIS_REGCLASS_YMM;
         }
 
-        bool isZmm() const
+        bool isZmm() const noexcept
         {
             return getClass() == ZydisRegisterClass::ZYDIS_REGCLASS_ZMM;
         }
@@ -183,12 +183,12 @@ namespace zasm::operands
             return _reg > other._reg;
         }
 
-        template<typename T> T& as()
+        template<typename T> constexpr T& as() noexcept
         {
             return static_cast<T&>(*this);
         }
 
-        template<typename T> const T& as() const
+        template<typename T> constexpr const T& as() const noexcept
         {
             return static_cast<T&>(*this);
         }

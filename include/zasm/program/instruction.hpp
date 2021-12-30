@@ -64,10 +64,10 @@ namespace zasm
         Length _length{};
 
     public:
-        constexpr Instruction() = default;
+        constexpr Instruction() noexcept = default;
         constexpr Instruction(
             Attribs attribs, ZydisMnemonic mnemonic, const Operands& operands, const Access& access, const Visibility& vis,
-            const Flags& flags, Length length = 0)
+            const Flags& flags, Length length = 0) noexcept
             : _operands{ operands }
             , _id{ static_cast<Mnemonic>(mnemonic) }
             , _access{ access }
@@ -78,27 +78,27 @@ namespace zasm
         {
         }
 
-        constexpr ZydisMnemonic getId() const
+        constexpr ZydisMnemonic getId() const noexcept
         {
             return static_cast<ZydisMnemonic>(_id);
         }
 
-        constexpr Attribs getAttribs() const
+        constexpr Attribs getAttribs() const noexcept
         {
             return _attribs;
         }
 
-        constexpr bool hasAttrib(Attribs attrib) const
+        constexpr bool hasAttrib(Attribs attrib) const noexcept
         {
             return (_attribs & attrib) != Attribs::None;
         }
 
-        constexpr Length getLength() const
+        constexpr Length getLength() const noexcept
         {
             return _length;
         }
 
-        constexpr const Operands& getOperands() const
+        constexpr const Operands& getOperands() const noexcept
         {
             return _operands;
         }
@@ -116,7 +116,7 @@ namespace zasm
             }
         }
 
-        constexpr const Operand& getOperand(size_t index) const
+        constexpr const Operand& getOperand(size_t index) const noexcept
         {
             return _operands[index];
         }
@@ -130,23 +130,21 @@ namespace zasm
             return op.template tryAs<T>();
         }
 
-        constexpr const Visibility& getVisibility() const
+        constexpr const Visibility& getVisibility() const noexcept
         {
             return _visibility;
         }
 
-        constexpr const Access& getAccess() const
+        constexpr const Access& getAccess() const noexcept
         {
             return _access;
         }
 
-        constexpr const Flags& getFlags() const
+        constexpr const Flags& getFlags() const noexcept
         {
             return _flags;
         }
     };
 #pragma pack(pop)
-
-    static constexpr auto SizeOfInstruction = sizeof(Instruction);
 
 } // namespace zasm

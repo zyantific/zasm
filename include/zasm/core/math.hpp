@@ -3,7 +3,7 @@
 namespace zasm::math
 {
 
-    template<typename T> T alignTo(T val, T align)
+    template<typename T> T alignTo(T val, T align) noexcept
     {
         if (val % align == 0)
             return val;

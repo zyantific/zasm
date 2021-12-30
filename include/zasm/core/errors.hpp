@@ -24,7 +24,7 @@ namespace zasm
         ImpossibleInstruction,
     };
 
-    inline constexpr const char* getErrorName(Error err)
+    inline constexpr const char* getErrorName(Error err) noexcept
     {
 #define ERROR_STRING(e)                                                                                                        \
     case e:                                                                                                                    \

@@ -7,7 +7,7 @@
 
 namespace zasm
 {
-    static Operand getOperand(const ZydisDecodedInstruction& instr, const ZydisDecodedOperand& srcOp, uint64_t va)
+    static Operand getOperand(const ZydisDecodedInstruction& instr, const ZydisDecodedOperand& srcOp, uint64_t va) noexcept
     {
         if (srcOp.type == ZydisOperandType::ZYDIS_OPERAND_TYPE_UNUSED)
         {
@@ -75,7 +75,7 @@ namespace zasm
         return res;
     }
 
-    Decoder::Decoder(ZydisMachineMode mode)
+    Decoder::Decoder(ZydisMachineMode mode) noexcept
     {
         ZyanStatus status{};
         switch (mode)
@@ -103,7 +103,7 @@ namespace zasm
         }
     }
 
-    Decoder::Result Decoder::decode(const void* data, const size_t len, uint64_t va)
+    Decoder::Result Decoder::decode(const void* data, const size_t len, uint64_t va) noexcept
     {
         if (_status != Error::None)
         {

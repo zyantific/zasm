@@ -17,18 +17,18 @@ namespace zasm
         Id _id{ Id::Invalid };
 
     public:
-        constexpr Label() = default;
-        constexpr Label(const Id id)
+        constexpr Label() noexcept = default;
+        constexpr Label(const Id id) noexcept
             : _id{ id }
         {
         }
 
-        constexpr Id getId() const
+        constexpr Id getId() const noexcept
         {
             return _id;
         }
 
-        constexpr bool isValid() const
+        constexpr bool isValid() const noexcept
         {
             return _id != Id::Invalid;
         }

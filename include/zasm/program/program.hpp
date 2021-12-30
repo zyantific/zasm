@@ -23,32 +23,32 @@ namespace zasm
         Program(ZydisMachineMode mode);
         ~Program();
 
-        ZydisMachineMode getMode() const;
+        ZydisMachineMode getMode() const noexcept;
 
     public:
         /// <summary>
         /// Returns the first node in the Program, if none exists it will return null.
         /// </summary>
-        const Node* getHead() const;
+        const Node* getHead() const noexcept;
 
         /// <summary>
         /// Returns the last node in the Program, if none exists it will return null.
         /// </summary>
-        const Node* getTail() const;
+        const Node* getTail() const noexcept;
 
         /// <summary>
         /// Prepends the specified node to the start of the Program.
         /// </summary>
         /// <param name="node">The node to prepend</param>
         /// <returns>The newly inserted node</returns>
-        const Node* prepend(const Node* node);
+        const Node* prepend(const Node* node) noexcept;
 
         /// <summary>
         /// Appends the specified node to the end of the Program.
         /// </summary>
         /// <param name="node">The node to append</param>
         /// <returns>The newly inserted node</returns>
-        const Node* append(const Node* node);
+        const Node* append(const Node* node) noexcept;
 
         /// <summary>
         /// Inserts the node into the Program before the specified position.
@@ -56,7 +56,7 @@ namespace zasm
         /// <param name="pos">Position of insertion</param>
         /// <param name="node">The node to insert</param>
         /// <returns>The newly inserted node</returns>
-        const Node* insertBefore(const Node* pos, const Node* node);
+        const Node* insertBefore(const Node* pos, const Node* node) noexcept;
 
         /// <summary>
         /// Inserts the node into the program after the specified position.
@@ -64,7 +64,7 @@ namespace zasm
         /// <param name="pos">Position of insertion</param>
         /// <param name="node">The node to insert</param>
         /// <returns>The newly inserted node</returns>
-        const Node* insertAfter(const Node* pos, const Node* node);
+        const Node* insertAfter(const Node* pos, const Node* node) noexcept;
 
         /// <summary>
         /// Detaches the node from the program, the node will be not destroyed this just unlinks it from the
@@ -73,7 +73,7 @@ namespace zasm
         /// <param name="node">The node to detach</param>
         /// <returns>The next node</returns>
         /// <note>Nodes that are detached are not tracked, make sure they don't get lost to avoid memory leaks</note>
-        const Node* detach(const Node* node);
+        const Node* detach(const Node* node) noexcept;
 
         /// <summary>
         /// Moves the node after the specified position, if the node is unlinked it will act as insert.
@@ -81,7 +81,7 @@ namespace zasm
         /// <param name="pos">Position of node to move after</param>
         /// <param name="node">The node to move</param>
         /// <returns>The moved node</returns>
-        const Node* moveAfter(const Node* pos, const Node* node);
+        const Node* moveAfter(const Node* pos, const Node* node) noexcept;
 
         /// <summary>
         /// Moves the node before the specified position, if the node is unlinked it will act as insert.
@@ -89,7 +89,7 @@ namespace zasm
         /// <param name="pos">Position of node to move before</param>
         /// <param name="node">The node to move</param>
         /// <returns>The moved node</returns>
-        const Node* moveBefore(const Node* pos, const Node* node);
+        const Node* moveBefore(const Node* pos, const Node* node) noexcept;
 
         /// <summary>
         /// Releases the memory of node back into the pool, the memory is considered invalid after the
@@ -102,7 +102,7 @@ namespace zasm
         /// Returns the current amount of nodes in the list.
         /// </summary>
         /// <returns>Node count</returns>
-        size_t size() const;
+        size_t size() const noexcept;
 
     public:
         /// <summary>

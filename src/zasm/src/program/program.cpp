@@ -27,22 +27,22 @@ namespace zasm
         delete _state;
     }
 
-    ZydisMachineMode Program::getMode() const
+    ZydisMachineMode Program::getMode() const noexcept
     {
         return _state->mode;
     }
 
-    const Node* Program::getHead() const
+    const Node* Program::getHead() const noexcept
     {
         return _state->head;
     }
 
-    const Node* Program::getTail() const
+    const Node* Program::getTail() const noexcept
     {
         return _state->tail;
     }
 
-    const Node* Program::prepend(const Node* n)
+    const Node* Program::prepend(const Node* n) noexcept
     {
         auto* head = detail::toInternal(_state->head);
         auto* tail = detail::toInternal(_state->tail);
@@ -62,7 +62,7 @@ namespace zasm
         return _state->head;
     }
 
-    const Node* Program::append(const Node* n)
+    const Node* Program::append(const Node* n) noexcept
     {
         auto* tail = detail::toInternal(_state->tail);
         auto* node = detail::toInternal(n);
@@ -85,7 +85,7 @@ namespace zasm
         return node;
     }
 
-    const Node* Program::insertBefore(const Node* p, const Node* n)
+    const Node* Program::insertBefore(const Node* p, const Node* n) noexcept
     {
         auto* pos = detail::toInternal(p);
         if (pos == _state->head || pos == nullptr)
@@ -105,7 +105,7 @@ namespace zasm
         return node;
     }
 
-    const Node* Program::insertAfter(const Node* p, const Node* n)
+    const Node* Program::insertAfter(const Node* p, const Node* n) noexcept
     {
         auto* pos = detail::toInternal(p);
         if (pos == _state->tail || pos == nullptr)
@@ -129,7 +129,7 @@ namespace zasm
         return node;
     }
 
-    const Node* Program::detach(const Node* node)
+    const Node* Program::detach(const Node* node) noexcept
     {
         auto* n = detail::toInternal(node);
         auto* pre = detail::toInternal(n->getPrev());
@@ -182,13 +182,13 @@ namespace zasm
         return post;
     }
 
-    const Node* Program::moveAfter(const Node* pos, const Node* node)
+    const Node* Program::moveAfter(const Node* pos, const Node* node) noexcept
     {
         detach(node);
         return insertAfter(pos, node);
     }
 
-    const Node* Program::moveBefore(const Node* pos, const Node* node)
+    const Node* Program::moveBefore(const Node* pos, const Node* node) noexcept
     {
         detach(node);
         return insertBefore(pos, node);
@@ -206,7 +206,7 @@ namespace zasm
         _state->nodePool.deallocate(n, 1);
     }
 
-    size_t Program::size() const
+    size_t Program::size() const noexcept
     {
         return _state->nodeCount;
     }

@@ -27,7 +27,7 @@ namespace zasm
         _4096,
     };
 
-    static constexpr BitSize toBitSize(int32_t numBits)
+    static constexpr BitSize toBitSize(int32_t numBits) noexcept
     {
 #define SWITCH_BIT(n)                                                                                                          \
     case n:                                                                                                                    \
@@ -59,7 +59,7 @@ namespace zasm
         return BitSize::_0;
     }
 
-    static constexpr int32_t getBitSize(BitSize bitSize)
+    static constexpr int32_t getBitSize(BitSize bitSize) noexcept
     {
 #define SWITCH_BIT(n)                                                                                                          \
     case BitSize::_##n:                                                                                                        \
