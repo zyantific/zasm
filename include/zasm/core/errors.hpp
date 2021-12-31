@@ -17,7 +17,9 @@ namespace zasm
         LabelNotFound,
         UnresolvedLabel,
         InvalidLabel,
+        LabelAlreadyBound,
         SectionNotFound,
+        SectionAlreadyBound,
         // Decoder.
         InvalidInstruction,
         OutOfBounds,
@@ -41,6 +43,9 @@ namespace zasm
             ERROR_STRING(Error::LabelNotFound);
             ERROR_STRING(Error::UnresolvedLabel);
             ERROR_STRING(Error::InvalidLabel);
+            ERROR_STRING(Error::LabelAlreadyBound);
+            ERROR_STRING(Error::SectionNotFound);
+            ERROR_STRING(Error::SectionAlreadyBound);
             ERROR_STRING(Error::InvalidInstruction);
             ERROR_STRING(Error::OutOfBounds);
             ERROR_STRING(Error::ImpossibleInstruction);

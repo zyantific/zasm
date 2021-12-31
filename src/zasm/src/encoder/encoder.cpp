@@ -2,12 +2,23 @@
 
 #include "encoder.context.hpp"
 
+#include <Zydis/Decoder.h>
 #include <Zydis/Encoder.h>
 #include <limits>
 #include <optional>
 
 namespace zasm
 {
+    struct EncoderState
+    {
+        EncoderContext* ctx{};
+        ZydisEncoderRequest req{};
+        size_t operandIndex{};
+        size_t relocatableOperand{};
+    };
+
+    static constexpr int32_t kTemporaryRel32Value = 0x123456;
+
     static EncoderContext::LabelLink& getOrCreateLabelLink(EncoderContext* ctx, Label::Id id)
     {
         const auto labelIdx = static_cast<size_t>(id);
@@ -125,7 +136,7 @@ namespace zasm
     }
 
     static std::pair<int64_t, ZydisBranchType> processRelAddress(
-        ZydisEncoderRequest&, const EncodeVariantsInfo& info, int64_t va, int64_t targetAddress)
+        const EncodeVariantsInfo& info, int64_t va, int64_t targetAddress)
     {
         int64_t res{};
         auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
@@ -155,8 +166,7 @@ namespace zasm
         return { res, desiredBranchType };
     }
 
-    static Error buildOperand(
-        ZydisEncoderOperand& dst, const size_t, ZydisEncoderRequest&, EncoderContext*, const operands::Reg& op) noexcept
+    static Error buildOperand(ZydisEncoderOperand& dst, EncoderState&, const operands::Reg& op) noexcept
     {
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER;
         dst.reg.value = op.getId();
@@ -164,24 +174,24 @@ namespace zasm
         return Error::None;
     }
 
-    static Error buildOperand(
-        ZydisEncoderOperand& dst, const size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Label& op) noexcept
+    static Error buildOperand(ZydisEncoderOperand& dst, EncoderState& state, const operands::Label& op) noexcept
     {
+        auto* ctx = state.ctx;
         auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
 
         // Initially a temporary placeholder. Make sure this is within rel32 if a
         // context is provided.
-        int64_t immValue = ctx ? ctx->va + 0x123456 : 0x123456;
+        int64_t immValue = ctx != nullptr ? ctx->va + kTemporaryRel32Value : kTemporaryRel32Value;
 
         auto labelVA = getLabelAddress(ctx, op.getId());
 
         // Check if this operand is used as the control flow target.
-        const auto encodeInfo = getEncodeVariantInfo(req.mnemonic);
-        if (index == 0 && encodeInfo.isControlFlow)
+        const auto encodeInfo = getEncodeVariantInfo(state.req.mnemonic);
+        if (state.operandIndex == 0 && encodeInfo.isControlFlow)
         {
             auto targetAddress = labelVA.has_value() ? *labelVA : immValue;
 
-            auto [addrRel, branchType] = processRelAddress(req, encodeInfo, ctx ? ctx->va : 0, targetAddress);
+            auto [addrRel, branchType] = processRelAddress(encodeInfo, ctx ? ctx->va : 0, targetAddress);
 
             immValue = addrRel;
             desiredBranchType = branchType;
@@ -198,7 +208,7 @@ namespace zasm
 
         if (desiredBranchType != ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE)
         {
-            req.branch_type = desiredBranchType;
+            state.req.branch_type = desiredBranchType;
         }
 
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_IMMEDIATE;
@@ -207,20 +217,19 @@ namespace zasm
         return Error::None;
     }
 
-    static Error buildOperand(
-        ZydisEncoderOperand& dst, const size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Imm& op) noexcept
+    static Error buildOperand(ZydisEncoderOperand& dst, EncoderState& state, const operands::Imm& op) noexcept
     {
-        ZydisEncoderOperand res{};
+        auto* ctx = state.ctx;
 
         auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
         int64_t immValue = op.value<int64_t>();
 
         // Check if this operand is used as the control flow target.
-        const auto encodeInfo = getEncodeVariantInfo(req.mnemonic);
-        if (index == 0 && encodeInfo.isControlFlow)
+        const auto encodeInfo = getEncodeVariantInfo(state.req.mnemonic);
+        if (state.operandIndex == 0 && encodeInfo.isControlFlow)
         {
             const auto targetAddress = immValue;
-            auto [addrRel, branchType] = processRelAddress(req, encodeInfo, ctx ? ctx->va : 0, targetAddress);
+            auto [addrRel, branchType] = processRelAddress(encodeInfo, ctx ? ctx->va : 0, targetAddress);
 
             immValue = addrRel;
             desiredBranchType = branchType;
@@ -228,7 +237,7 @@ namespace zasm
 
         if (desiredBranchType != ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE)
         {
-            req.branch_type = desiredBranchType;
+            state.req.branch_type = desiredBranchType;
         }
 
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_IMMEDIATE;
@@ -237,9 +246,10 @@ namespace zasm
         return Error::None;
     }
 
-    static Error buildOperand(
-        ZydisEncoderOperand& dst, const size_t, ZydisEncoderRequest& req, EncoderContext* ctx, const operands::Mem& op) noexcept
+    static Error buildOperand(ZydisEncoderOperand& dst, EncoderState& state, const operands::Mem& op) noexcept
     {
+        auto* ctx = state.ctx;
+
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY;
         dst.mem.base = op.getBase().getId();
         dst.mem.index = op.getIndex().getId();
@@ -265,18 +275,31 @@ namespace zasm
             if (labelVA.has_value())
             {
                 displacement += *labelVA;
-                usingLabel = true;
+            }
+            else
+            {
+                displacement += kTemporaryRel32Value;
+            }
+            usingLabel = true;
+        }
+
+        // For 64 bit we default to rip rel.
+        if (state.req.machine_mode == ZYDIS_MACHINE_MODE_LONG_64)
+        {
+            if (dst.mem.base == ZYDIS_REGISTER_NONE && dst.mem.index == ZYDIS_REGISTER_NONE && usingLabel)
+            {
+                // Turn into rip-rel.
+                dst.mem.base = ZYDIS_REGISTER_RIP;
             }
         }
 
-        // NOTE: For x64 we want rip-relative by default so when rip is not specified
-        // but a label is used we just treat it as if it were rip.
-        if (usingLabel && dst.mem.base == ZYDIS_REGISTER_NONE && req.machine_mode == ZYDIS_MACHINE_MODE_LONG_64)
+        bool reloctable = false;
+        if (dst.mem.base == ZYDIS_REGISTER_NONE && dst.mem.index == ZYDIS_REGISTER_NONE)
         {
-            dst.mem.base = ZYDIS_REGISTER_RIP;
+            // Memory ABS
+            reloctable = true;
         }
 
-        // FIXME: This only works for 64 bit.
         if (dst.mem.base == ZydisRegister::ZYDIS_REGISTER_RIP)
         {
             displacement = displacement - (va + instrSize);
@@ -288,45 +311,43 @@ namespace zasm
         switch (op.getSegment().getId())
         {
             case ZYDIS_REGISTER_GS:
-                req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_GS;
+                state.req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_GS;
                 break;
             case ZYDIS_REGISTER_FS:
-                req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_FS;
+                state.req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_FS;
                 break;
         }
 
         return Error::None;
     }
 
-    static Error buildOperand(
-        ZydisEncoderOperand& dst, const size_t, ZydisEncoderRequest&, EncoderContext*, const operands::None&) noexcept
+    static Error buildOperand(ZydisEncoderOperand& dst, EncoderState&, const operands::None&) noexcept
     {
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_UNUSED;
         return Error::None;
     }
 
-    static Error buildOperand(
-        ZydisEncoderOperand& dst, const size_t index, ZydisEncoderRequest& req, EncoderContext* ctx, const Operand& op) noexcept
+    static Error buildOperand(ZydisEncoderOperand& dst, EncoderState& state, const Operand& op) noexcept
     {
         if (auto* opNone = op.tryAs<operands::None>(); opNone != nullptr)
         {
-            return buildOperand(dst, index, req, ctx, *opNone);
+            return buildOperand(dst, state, *opNone);
         }
         else if (auto* opReg = op.tryAs<operands::Reg>(); opReg != nullptr)
         {
-            return buildOperand(dst, index, req, ctx, *opReg);
+            return buildOperand(dst, state, *opReg);
         }
         else if (auto* opMem = op.tryAs<operands::Mem>(); opMem != nullptr)
         {
-            return buildOperand(dst, index, req, ctx, *opMem);
+            return buildOperand(dst, state, *opMem);
         }
         else if (auto* opImm = op.tryAs<operands::Imm>(); opImm != nullptr)
         {
-            return buildOperand(dst, index, req, ctx, *opImm);
+            return buildOperand(dst, state, *opImm);
         }
         else if (auto* opLabel = op.tryAs<operands::Label>(); opLabel != nullptr)
         {
-            return buildOperand(dst, index, req, ctx, *opLabel);
+            return buildOperand(dst, state, *opLabel);
         }
         assert(false);
         return Error::InvalidOperation;
@@ -405,7 +426,10 @@ namespace zasm
         EncoderBuffer& buf, EncoderContext* ctx, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id,
         const Instruction::Operands& operands) noexcept
     {
-        ZydisEncoderRequest req{};
+        EncoderState state{};
+        state.ctx = ctx;
+
+        ZydisEncoderRequest& req = state.req;
         req.machine_mode = mode;
         req.mnemonic = id;
         req.prefixes = getAttribs(attribs);
@@ -430,8 +454,10 @@ namespace zasm
         const auto numOperands = std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, operands.size());
         for (size_t i = 0; i < numOperands; i++)
         {
+            state.operandIndex = i;
+
             auto& dstOp = req.operands[i];
-            if (auto opStatus = buildOperand(dstOp, i, req, ctx, operands[i]); opStatus != Error::None)
+            if (auto opStatus = buildOperand(dstOp, state, operands[i]); opStatus != Error::None)
             {
                 return opStatus;
             }

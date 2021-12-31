@@ -182,6 +182,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\tests\main.cpp" />
+    <ClCompile Include="..\..\src\tests\tests\tests.assembler.cpp" />
     <ClCompile Include="..\..\src\tests\tests\tests.instructions.x64.cpp" />
     <ClCompile Include="..\..\src\tests\tests\tests.program.cpp" />
     <ClCompile Include="..\..\src\tests\tests\tests.registers.cpp" />

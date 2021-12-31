@@ -5,7 +5,6 @@
 
 namespace zasm
 {
-
     Assembler::Assembler(Program& program)
         : _program(program)
         , _generator(new InstrGenerator(program.getMode()))
@@ -34,9 +33,13 @@ namespace zasm
 
     Error Assembler::bind(const Label& label)
     {
-        auto* labelNode = _program.bindLabel(label);
+        auto labelNode = _program.bindLabel(label);
+        if (!labelNode)
+        {
+            return labelNode.error();
+        }
 
-        _cursor = _program.insertAfter(_cursor, labelNode);
+        _cursor = _program.insertAfter(_cursor, labelNode.value());
 
         return Error::None;
     }
@@ -46,8 +49,13 @@ namespace zasm
     {
         auto newSect = _program.createSection(name, attribs, align);
 
-        auto* sectNode = _program.bindSection(newSect);
-        _cursor = _program.insertAfter(_cursor, sectNode);
+        auto sectNode = _program.bindSection(newSect);
+        if (!sectNode.hasValue())
+        {
+            return sectNode.error();
+        }
+
+        _cursor = _program.insertAfter(_cursor, sectNode.value());
 
         return Error::None;
     }

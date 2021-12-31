@@ -40,7 +40,11 @@ namespace zasm
         }
         constexpr operator bool() const noexcept
         {
-            return data.index() == 0;
+            return hasValue();
+        }
+        constexpr bool hasValue() const noexcept
+        {
+            return std::holds_alternative<TSuccess>(data);
         }
         constexpr const TFailure& error() const
         {

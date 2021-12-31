@@ -17,8 +17,9 @@ namespace zasm::tests
         }
         ASSERT_EQ(program.size(), 10);
 
-        auto* labelNode = program.bindLabel(program.createLabel());
-        program.insertBefore(program.getHead(), labelNode);
+        auto labelNode = program.bindLabel(program.createLabel());
+        ASSERT_EQ(labelNode.hasValue(), true);
+        program.insertBefore(program.getHead(), labelNode.value());
 
         ASSERT_EQ(program.size(), 11);
         ASSERT_EQ(program.getHead()->is<Label>(), true);
@@ -38,8 +39,9 @@ namespace zasm::tests
         }
         ASSERT_EQ(program.size(), 10);
 
-        auto* labelNode = program.bindLabel(program.createLabel());
-        program.insertBefore(program.getTail(), labelNode);
+        auto labelNode = program.bindLabel(program.createLabel());
+        ASSERT_EQ(labelNode.hasValue(), true);
+        program.insertBefore(program.getTail(), labelNode.value());
 
         ASSERT_EQ(program.size(), 11);
         ASSERT_EQ(program.getTail()->getPrev()->is<Label>(), true);

@@ -251,17 +251,21 @@ namespace zasm
         return Label{ labelId };
     }
 
-    const Node* Program::bindLabel(const Label& label)
+    Expected<const Node*, Error> Program::bindLabel(const Label& label)
     {
         const auto entryIdx = static_cast<size_t>(label.getId());
         if (entryIdx >= _state->labels.size())
         {
-            return nullptr;
+            return makeUnexpected(Error::InvalidLabel);
+        }
+
+        auto& entry = _state->labels[entryIdx];
+        if (entry.node != nullptr)
+        {
+            return makeUnexpected(Error::LabelAlreadyBound);
         }
 
         const auto* node = createNode_(_state->nodePool, label);
-
-        auto& entry = _state->labels[entryIdx];
         entry.node = node;
 
         return node;
@@ -304,80 +308,98 @@ namespace zasm
         return Section{ sectId };
     }
 
-    static detail::SectionData* getSectionData(detail::ProgramState& prog, Section::Id id)
+    static Expected<detail::SectionData*, Error> getSectionData(detail::ProgramState& prog, Section::Id id)
     {
         const auto entryIdx = static_cast<size_t>(id);
         if (entryIdx >= prog.sections.size())
         {
-            return nullptr;
+            return makeUnexpected(Error::SectionNotFound);
         }
         return &prog.sections[entryIdx];
     }
 
-    const Node* Program::bindSection(const Section& section)
+    Expected<const Node*, Error> Program::bindSection(const Section& section)
     {
-        auto* sectEntry = getSectionData(*_state, section.getId());
-        if (sectEntry == nullptr)
+        auto sectEntry = getSectionData(*_state, section.getId());
+        if (!sectEntry.hasValue())
         {
-            return nullptr;
+            return makeUnexpected(sectEntry.error());
         }
 
-        sectEntry->node = createNode_(_state->nodePool, section);
+        auto& entry = sectEntry.value();
+        if (entry->node != nullptr)
+        {
+            return makeUnexpected(Error::SectionAlreadyBound);
+        }
 
-        return sectEntry->node;
+        const auto* node = createNode_(_state->nodePool, section);
+        entry->node = node;
+
+        return node;
     }
 
     const char* Program::getSectionName(const Section& section) const noexcept
     {
-        auto* sectEntry = getSectionData(*_state, section.getId());
-        if (sectEntry == nullptr)
+        auto sectEntry = getSectionData(*_state, section.getId());
+        if (!sectEntry.hasValue())
         {
             return nullptr;
         }
 
-        return _state->symbolNames.get(sectEntry->nameId);
+        const auto* entry = sectEntry.value();
+        return _state->symbolNames.get(entry->nameId);
     }
 
     Error Program::setSectionName(const Section& section, const char* name)
     {
-        auto* sectEntry = getSectionData(*_state, section.getId());
-        if (sectEntry == nullptr)
+        if (name == nullptr)
         {
-            return Error::SectionNotFound;
+            return Error::InvalidParameter;
         }
 
-        if (sectEntry->nameId != StringPool::Id::Invalid)
+        auto sectEntry = getSectionData(*_state, section.getId());
+        if (!sectEntry.hasValue())
         {
-            _state->symbolNames.release(sectEntry->nameId);
-            sectEntry->nameId = StringPool::Id::Invalid;
+            return sectEntry.error();
         }
 
-        sectEntry->nameId = _state->symbolNames.aquire(name);
+        auto* entry = sectEntry.value();
+
+        if (entry->nameId != StringPool::Id::Invalid)
+        {
+            _state->symbolNames.release(entry->nameId);
+            entry->nameId = StringPool::Id::Invalid;
+        }
+
+        entry->nameId = _state->symbolNames.aquire(name);
         return Error::None;
     }
 
     int32_t Program::getSectionAlign(const Section& section)
     {
-        auto* sectEntry = getSectionData(*_state, section.getId());
-        if (sectEntry == nullptr)
+        auto sectEntry = getSectionData(*_state, section.getId());
+        if (!sectEntry.hasValue())
         {
             return -1;
         }
-        return sectEntry->align;
+
+        const auto* entry = sectEntry.value();
+        return entry->align;
     }
 
     Error Program::setSectionAlign(const Section& section, int32_t align)
     {
-        auto* sectEntry = getSectionData(*_state, section.getId());
-        if (sectEntry == nullptr)
-        {
-            return Error::SectionNotFound;
-        }
-
         if (align <= 0)
             return Error::InvalidParameter;
 
-        sectEntry->align = align;
+        auto sectEntry = getSectionData(*_state, section.getId());
+        if (!sectEntry.hasValue())
+        {
+            return sectEntry.error();
+        }
+
+        auto* entry = sectEntry.value();
+        entry->align = align;
 
         return Error::None;
     }

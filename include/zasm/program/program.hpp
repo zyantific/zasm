@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <zasm/core/errors.hpp>
+#include <zasm/core/expected.hpp>
 
 namespace zasm
 {
@@ -128,7 +129,7 @@ namespace zasm
         /// </summary>
         /// <param name="label">The label to bind</param>
         /// <returns>The new node which contains the label</returns>
-        const Node* bindLabel(const Label& label);
+        Expected<const Node*, Error> bindLabel(const Label& label);
 
         /// <summary>
         /// Creates a Data object that can be stored in a Node. The data object
@@ -148,15 +149,14 @@ namespace zasm
         /// <param name="attribs">One or multiple Section::Attribs</param>
         /// <param name="align">Specifies the size the section is aligned to, this should be ideally one memory page.</param>
         /// <returns>Section</returns>
-        const Section createSection(
-            const char* name, Section::Attribs attribs, int32_t align);
+        const Section createSection(const char* name, Section::Attribs attribs, int32_t align);
 
         /// <summary>
         /// Binds the section to a new unlinked node. A section can be only bound once.
         /// </summary>
         /// <param name="label">The label to bind</param>
         /// <returns>The new node which contains the section</returns>
-        const Node* bindSection(const Section& section);
+        Expected<const Node*, Error> bindSection(const Section& section);
 
         /// <summary>
         /// Gets the section name.
@@ -199,7 +199,7 @@ namespace zasm
         Error serialize(int64_t newBase);
 
         /// <summary>
-        /// After a successful serialization this will return the total size of all encoded nodes not 
+        /// After a successful serialization this will return the total size of all encoded nodes not
         /// including section alignment. This is the size of the flat buffer used to encode every node,
         /// this may be primarily useful if no sections are used.
         /// </summary>
