@@ -19,7 +19,7 @@ namespace zasm
 
     template<typename TSuccess, typename TFailure> class Expected
     {
-        std::variant<TSuccess, detail::Unexpected<TFailure>> data;
+        std::variant<TSuccess, ::zasm::detail::Unexpected<TFailure>> data;
 
     public:
         constexpr Expected(const TSuccess& val) noexcept
@@ -30,11 +30,11 @@ namespace zasm
             : data{ std::move(val) }
         {
         }
-        constexpr Expected(const detail::Unexpected<TFailure>& val) noexcept
+        constexpr Expected(const ::zasm::detail::Unexpected<TFailure>& val) noexcept
             : data{ val }
         {
         }
-        constexpr Expected(detail::Unexpected<TFailure>&& val) noexcept
+        constexpr Expected(::zasm::detail::Unexpected<TFailure>&& val) noexcept
             : data{ std::move(val) }
         {
         }
@@ -48,7 +48,7 @@ namespace zasm
         }
         constexpr const TFailure& error() const
         {
-            return std::get<detail::Unexpected<TFailure>>(data).failure;
+            return std::get<::zasm::detail::Unexpected<TFailure>>(data).failure;
         }
         constexpr TSuccess& value()
         {
@@ -68,9 +68,9 @@ namespace zasm
         }
     };
 
-    template<typename T> constexpr detail::Unexpected<T> makeUnexpected(const T& val) noexcept
+    template<typename T> constexpr ::zasm::detail::Unexpected<T> makeUnexpected(const T& val) noexcept
     {
-        return detail::Unexpected<T>(val);
+        return ::zasm::detail::Unexpected<T>(val);
     }
 
 } // namespace xstd
