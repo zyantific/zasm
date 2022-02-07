@@ -15,7 +15,7 @@ tests = "ZASM_BUILD_TESTS"
 
 [fetch-content.Zydis]
 git = "https://github.com/zyantific/zydis"
-tag = "4756724"
+tag = "91742f4"
 
 [fetch-content.GTest]
 git = "https://github.com/google/googletest"

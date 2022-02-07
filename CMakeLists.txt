@@ -41,13 +41,13 @@ project(zasm
 
 include(FetchContent)
 
-message(STATUS "Fetching Zydis (4756724)...")
+message(STATUS "Fetching Zydis (91742f4)...")
 FetchContent_Declare(
 	Zydis
 	GIT_REPOSITORY
 		https://github.com/zyantific/zydis
 	GIT_TAG
-		4756724
+		91742f4
 )
 FetchContent_MakeAvailable(Zydis)
 
