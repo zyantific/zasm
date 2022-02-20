@@ -211,6 +211,23 @@ namespace zasm
         return _state->nodeCount;
     }
 
+    void Program::clear() noexcept
+    {
+        const Node* node = _state->head;
+        while (node != nullptr)
+        {
+            auto* next = node->getNext();
+            destroy(node);
+            node = next;
+        }
+
+        _state->sections.clear();
+        _state->sectionInfo.clear();
+        _state->labels.clear();
+        _state->codeBuffer.clear();
+        _state->symbolNames.clear();
+    }
+
     template<typename TPool, typename... TArgs> const Node* createNode_(TPool& pool, TArgs&&... args)
     {
         auto* node = detail::toInternal(pool.allocate(1));
@@ -411,6 +428,9 @@ namespace zasm
 
     const uint8_t* Program::getCode() const
     {
+        if (_state->codeBuffer.empty())
+            return nullptr;
+
         return _state->codeBuffer.data();
     }
 

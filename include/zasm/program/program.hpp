@@ -105,6 +105,12 @@ namespace zasm
         /// <returns>Node count</returns>
         size_t size() const noexcept;
 
+        /// <summary>
+        /// Clears the entire program state, pools will keep their
+        /// capacity.
+        /// </summary>
+        void clear() noexcept;
+
     public:
         /// <summary>
         /// Allocates a new unlinked node with containing the specified value.
