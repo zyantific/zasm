@@ -98,7 +98,7 @@ namespace zasm
             _freeItem = entry;
         }
 
-        pointer allocate(size_type _Count)
+        pointer allocate([[maybe_unused]] size_type _Count)
         {
             assert(_Count == 1);
 

@@ -41,22 +41,15 @@ namespace zasm
         Error embed(const void* data, size_t len);
 
     public:
-        template<typename... TArgs> Error emit(Instruction::Attribs attribs, ZydisMnemonic id, TArgs&&... args)
-        {
-            Instruction::Operands ops{ args... };
-            std::fill(std::begin(ops) + sizeof...(TArgs), std::end(ops), operands::None{});
-            return emit_(attribs, id, ops);
-        }
-
         template<typename... TArgs> Error emit(ZydisMnemonic id, TArgs&&... args)
         {
             const auto attribs = _attribState;
             _attribState = Instruction::Attribs::None;
-            return emit(attribs, id, std::forward<TArgs&&>(args)...);
+            return emit_(attribs, id, sizeof...(TArgs), { args... });
         }
 
     private:
-        Error emit_(Instruction::Attribs attribs, ZydisMnemonic id, const Instruction::Operands& ops);
+        Error emit_(Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps, Instruction::Operands&& ops);
 
         void addAttrib(Instruction::Attribs attrib) noexcept
         {

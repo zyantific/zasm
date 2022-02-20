@@ -111,6 +111,9 @@
     <ClInclude Include="..\..\include\zasm\core\math.hpp">
       <Filter>include\core</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\zasm\program\formatter.hpp">
+      <Filter>include\program</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\zasm\src\zasm.cpp">
@@ -139,6 +142,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\zasm\src\assembler\assembler.cpp">
       <Filter>src\assembler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\zasm\src\program\formatter.cpp">
+      <Filter>src\program</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -30,6 +30,7 @@
     <ClInclude Include="..\..\include\zasm\decoder\decoder.hpp" />
     <ClInclude Include="..\..\include\zasm\encoder\encoder.hpp" />
     <ClInclude Include="..\..\include\zasm\program\data.hpp" />
+    <ClInclude Include="..\..\include\zasm\program\formatter.hpp" />
     <ClInclude Include="..\..\include\zasm\program\immediate.hpp" />
     <ClInclude Include="..\..\include\zasm\program\instruction.hpp" />
     <ClInclude Include="..\..\include\zasm\program\label.hpp" />
@@ -52,6 +53,7 @@
     <ClCompile Include="..\..\src\zasm\src\encoder\encoder.cpp" />
     <ClCompile Include="..\..\src\zasm\src\encoder\generator.cpp" />
     <ClCompile Include="..\..\src\zasm\src\program\data.cpp" />
+    <ClCompile Include="..\..\src\zasm\src\program\formatter.cpp" />
     <ClCompile Include="..\..\src\zasm\src\program\program.cpp" />
     <ClCompile Include="..\..\src\zasm\src\program\program.serialization.cpp" />
     <ClCompile Include="..\..\src\zasm\src\zasm.cpp" />

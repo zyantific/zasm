@@ -26,7 +26,7 @@ namespace zasm
     // full serialization. This allows to query instruction meta data such as operand access
     // and CPU flags, this can be also used to estimate the size.
     Error encodeEstimated(
-        EncoderBuffer& buf, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id,
+        EncoderBuffer& buf, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps,
         const Instruction::Operands& operands) noexcept;
 
     // Encodes with full context. This function still allows labels to be unbound and will not error
@@ -34,7 +34,7 @@ namespace zasm
     // with multiple passes.
     Error encodeFull(
         EncoderBuffer& buf, EncoderContext& ctx, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic mnemonic,
-        const Instruction::Operands& operands) noexcept;
+        size_t numOps, const Instruction::Operands& operands) noexcept;
 
     // Helper function that unpacks the instruction and calls the explicit encodeFull variant.
     // Only explicit operands will be considered for the encoder request.

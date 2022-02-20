@@ -57,8 +57,7 @@ namespace zasm
     static Instruction::Attribs getAttribs(ZydisInstructionAttributes attribs)
     {
         Instruction::Attribs res{};
-        const auto translateAttrib = [&](ZydisInstructionAttributes a, Instruction::Attribs b)
-        {
+        const auto translateAttrib = [&](ZydisInstructionAttributes a, Instruction::Attribs b) {
             if (!hasAttrib(attribs, a))
                 return;
 
@@ -73,6 +72,16 @@ namespace zasm
         translateAttrib(ZYDIS_ATTRIB_HAS_XRELEASE, Instruction::Attribs::Xrelease);
         translateAttrib(ZYDIS_ATTRIB_HAS_OPERANDSIZE, Instruction::Attribs::OperandSize16);
         return res;
+    }
+
+    static Instruction::Encoding getEncoding(ZydisInstructionEncoding encoding)
+    {
+        return static_cast<Instruction::Encoding>(encoding);
+    }
+
+    static Instruction::Category getCategory(ZydisInstructionCategory category)
+    {
+        return static_cast<Instruction::Category>(category);
     }
 
     Decoder::Decoder(ZydisMachineMode mode) noexcept
@@ -110,10 +119,11 @@ namespace zasm
             return zasm::makeUnexpected(_status);
         }
 
-        ZydisDecodedInstruction instr{};
-        ZydisDecodedOperand instrOps[ZYDIS_MAX_OPERAND_COUNT]{};
+        ZydisDecodedInstruction instr;
+        ZydisDecodedOperand instrOps[ZYDIS_MAX_OPERAND_COUNT];
 
-        ZyanStatus status = ZydisDecoderDecodeFull(&_decoder, data, len, &instr, instrOps, static_cast<ZyanU8>(std::size(instrOps)), 0);
+        ZyanStatus status = ZydisDecoderDecodeFull(
+            &_decoder, data, len, &instr, instrOps, static_cast<ZyanU8>(std::size(instrOps)), 0);
         if (status != ZYAN_STATUS_SUCCESS)
         {
             // TODO: Translate proper error.
@@ -128,19 +138,28 @@ namespace zasm
             flags.undefined = instr.cpu_flags->undefined;
         }
 
-        Instruction::Operands ops{};
-        Instruction::Visibility vis{};
-        Instruction::Access access{};
+        Instruction::Operands ops;
+        Instruction::OperandsVisibility vis;
+        Instruction::OperandsEncoding enc;
+        Instruction::Access access;
+
         for (auto i = 0; i < instr.operand_count; ++i)
         {
             const auto& op = instrOps[i];
+
             ops[i] = getOperand(instr, op, va);
+
             access[i] = op.actions;
-            vis[i] = static_cast<OperandVisibility>(op.visibility);
+            vis[i] = static_cast<Operand::Visibility>(op.visibility);
+            enc[i] = static_cast<Operand::Encoding>(op.encoding);
         }
 
         const auto attribs = getAttribs(instr.attributes);
-        return Instruction(attribs, instr.mnemonic, ops, access, vis, flags, instr.length);
+        const auto encoding = getEncoding(instr.encoding);
+        const auto category = getCategory(instr.meta.category);
+
+        return Instruction(
+            attribs, instr.mnemonic, instr.operand_count, ops, access, vis, enc, flags, encoding, category, instr.length);
     }
 
 } // namespace zasm

@@ -17,11 +17,65 @@ namespace zasm
         };
     } // namespace operands
 
+    namespace detail
+    {
+        enum class OperandVisibility : uint8_t
+        {
+            Invalid = ZYDIS_OPERAND_VISIBILITY_INVALID,
+            Explicit = ZYDIS_OPERAND_VISIBILITY_EXPLICIT,
+            Implicit = ZYDIS_OPERAND_VISIBILITY_IMPLICIT,
+            Hidden = ZYDIS_OPERAND_VISIBILITY_HIDDEN,
+        };
+
+        enum class OperandEncoding : uint8_t
+        {
+            None = ZYDIS_OPERAND_ENCODING_NONE,
+            ModRMReg = ZYDIS_OPERAND_ENCODING_MODRM_REG,
+            ModRmRm = ZYDIS_OPERAND_ENCODING_MODRM_RM,
+            Opcode = ZYDIS_OPERAND_ENCODING_OPCODE,
+            Ndsndd = ZYDIS_OPERAND_ENCODING_NDSNDD,
+            Is4 = ZYDIS_OPERAND_ENCODING_IS4,
+            Mask = ZYDIS_OPERAND_ENCODING_MASK,
+            Disp8 = ZYDIS_OPERAND_ENCODING_DISP8,
+            Disp16 = ZYDIS_OPERAND_ENCODING_DISP16,
+            Disp32 = ZYDIS_OPERAND_ENCODING_DISP32,
+            Disp64 = ZYDIS_OPERAND_ENCODING_DISP64,
+            Disp16_32_64 = ZYDIS_OPERAND_ENCODING_DISP16_32_64,
+            Disp32_32_64 = ZYDIS_OPERAND_ENCODING_DISP32_32_64,
+            Disp16_32_32 = ZYDIS_OPERAND_ENCODING_DISP16_32_32,
+            U8 = ZYDIS_OPERAND_ENCODING_UIMM8,
+            U16 = ZYDIS_OPERAND_ENCODING_UIMM16,
+            U32 = ZYDIS_OPERAND_ENCODING_UIMM32,
+            U64 = ZYDIS_OPERAND_ENCODING_UIMM64,
+            U16_32_64 = ZYDIS_OPERAND_ENCODING_UIMM16_32_64,
+            U32_32_64 = ZYDIS_OPERAND_ENCODING_UIMM32_32_64,
+            U16_32_32 = ZYDIS_OPERAND_ENCODING_UIMM16_32_32,
+            I8 = ZYDIS_OPERAND_ENCODING_SIMM8,
+            I16 = ZYDIS_OPERAND_ENCODING_SIMM16,
+            I32 = ZYDIS_OPERAND_ENCODING_SIMM32,
+            I64 = ZYDIS_OPERAND_ENCODING_SIMM64,
+            I16_32_64 = ZYDIS_OPERAND_ENCODING_SIMM16_32_64,
+            I32_32_64 = ZYDIS_OPERAND_ENCODING_SIMM32_32_64,
+            I16_32_32 = ZYDIS_OPERAND_ENCODING_SIMM16_32_32,
+            JI8 = ZYDIS_OPERAND_ENCODING_JIMM8,
+            JI16 = ZYDIS_OPERAND_ENCODING_JIMM16,
+            JI32 = ZYDIS_OPERAND_ENCODING_JIMM32,
+            JI64 = ZYDIS_OPERAND_ENCODING_JIMM64,
+            JI16_32_64 = ZYDIS_OPERAND_ENCODING_JIMM16_32_64,
+            JI32_32_64 = ZYDIS_OPERAND_ENCODING_JIMM32_32_64,
+            JI16_32_32 = ZYDIS_OPERAND_ENCODING_JIMM16_32_32,
+        };
+    }
+
     class Operand
     {
         using Variant = std::variant<operands::None, operands::Reg, operands::Mem, operands::Imm, operands::Label>;
 
         Variant _data;
+
+    public:
+        using Visibility = detail::OperandVisibility;
+        using Encoding = detail::OperandEncoding;
 
     public:
         constexpr Operand() noexcept
@@ -105,13 +159,5 @@ namespace zasm
     };
 
     static constexpr auto SizeOfOperand = sizeof(Operand);
-
-    enum class OperandVisibility : uint8_t
-    {
-        Invalid = ZYDIS_OPERAND_VISIBILITY_INVALID,
-        Explicit = ZYDIS_OPERAND_VISIBILITY_EXPLICIT,
-        Implicit = ZYDIS_OPERAND_VISIBILITY_IMPLICIT,
-        Hidden = ZYDIS_OPERAND_VISIBILITY_HIDDEN,
-    };
 
 } // namespace zasm
