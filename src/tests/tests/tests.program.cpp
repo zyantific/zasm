@@ -161,4 +161,53 @@ namespace zasm::tests
         ASSERT_EQ(lastNode, program.getTail());
     }
 
+    TEST(ProgramTests, TestClear)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+
+#ifdef _DEBUG
+        for (int i = 0; i < 100'000; i++)
+#else
+        for (int i = 0; i < 1'000'000; i++)
+#endif
+        {
+            Assembler assembler(program);
+
+            ASSERT_EQ(assembler.mov(eax, ebx), zasm::Error::None);
+            ASSERT_EQ(assembler.xor_(ebx, edx), zasm::Error::None);
+            ASSERT_EQ(assembler.add(eax, Imm(1)), zasm::Error::None);
+            ASSERT_EQ(assembler.not_(eax), zasm::Error::None);
+            ASSERT_EQ(assembler.xor_(eax, Imm(1)), zasm::Error::None);
+
+            auto labelFoo = assembler.createLabel("foo");
+            ASSERT_EQ(labelFoo.getId(), zasm::Label::Id{ 0 });
+            ASSERT_EQ(labelFoo.isValid(), true);
+            ASSERT_EQ(assembler.bind(labelFoo), zasm::Error::None);
+            ASSERT_EQ(assembler.mov(dword_ptr(labelFoo), eax), zasm::Error::None);
+
+            ASSERT_EQ(program.size(), 7);
+
+            ASSERT_EQ(program.serialize(0x400000), zasm::Error::None);
+
+            const std::array<uint8_t, 18> expected = {
+                0x89, 0xd8, 0x31, 0xd3, 0x83, 0xc0, 0x01, 0xf7, 0xd0, 0x83, 0xf0, 0x01, 0x89, 0x05, 0xfa, 0xff, 0xff, 0xff,
+            };
+            ASSERT_EQ(program.getCodeSize(), expected.size());
+
+            const auto* data = program.getCode();
+            ASSERT_NE(data, nullptr);
+            for (size_t i = 0; i < expected.size(); i++)
+            {
+                ASSERT_EQ(data[i], expected[i]);
+            }
+
+            program.clear();
+
+            ASSERT_EQ(program.size(), 0);
+            ASSERT_EQ(program.getCodeSize(), 0);
+        }
+    }
+
 } // namespace zasm::tests
