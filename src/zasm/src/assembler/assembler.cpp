@@ -90,7 +90,8 @@ namespace zasm
         return Error::None;
     }
 
-    Error Assembler::emit_(Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps, Instruction::Operands&& ops)
+    Error Assembler::emit_(
+        Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops)
     {
         auto genResult = _generator->generate(attribs, id, numOps, std::move(ops));
         if (!genResult)

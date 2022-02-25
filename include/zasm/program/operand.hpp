@@ -99,7 +99,7 @@ namespace zasm
 
         template<typename T>
         constexpr Operand(T&& val) noexcept
-            : _data{ val }
+            : _data{ std::move(val) }
         {
         }
 
@@ -157,7 +157,5 @@ namespace zasm
             return std::visit([f = std::move(f)](auto&& op) { return f(op); }, _data);
         }
     };
-
-    static constexpr auto SizeOfOperand = sizeof(Operand);
 
 } // namespace zasm

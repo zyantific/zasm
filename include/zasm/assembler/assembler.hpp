@@ -49,7 +49,9 @@ namespace zasm
         }
 
     private:
-        Error emit_(Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps, Instruction::Operands&& ops);
+        Error emit_(
+            Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps,
+            std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops);
 
         void addAttrib(Instruction::Attribs attrib) noexcept
         {

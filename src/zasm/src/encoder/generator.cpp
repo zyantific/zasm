@@ -47,7 +47,7 @@ namespace zasm
     }
 
     InstrGenerator::Result InstrGenerator::generate(
-        Instruction::Attribs attribs, ZydisMnemonic mnemonic, size_t numOps, Instruction::Operands&& operands) noexcept
+        Instruction::Attribs attribs, ZydisMnemonic mnemonic, size_t numOps, EncoderOperands&& operands) noexcept
     {
         EncoderBuffer buf{};
 

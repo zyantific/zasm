@@ -162,5 +162,6 @@ namespace zasm
         {
             return ((size_t)(-1) / sizeof(_Ty));
         }
+
     };
 } // namespace zasm
