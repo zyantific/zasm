@@ -219,6 +219,7 @@ namespace zasm
         const auto serializePass = [&]() {
             state.buffer.clear();
 
+            encoderCtx.needsExtraPass = false;
             encoderCtx.pass++;
             encoderCtx.offset = 0;
             encoderCtx.va = newBase;
@@ -252,19 +253,6 @@ namespace zasm
             return status;
         }
 
-        // Second or more passes.
-        do
-        {
-            if (auto status = serializePass(); status != Error::None)
-            {
-                return status;
-            }
-
-        } while (encoderCtx.drift > 0);
-
-        // Finalize last section.
-        finalizeCurSection(state);
-
         // Check if all labels were bound, a link entry is added when it encounters a label.
         const bool hasUnresolvedLinks = std::any_of(
             std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks),
@@ -273,6 +261,18 @@ namespace zasm
         {
             return Error::UnresolvedLabel;
         }
+
+        // Second or more passes.
+        while (encoderCtx.needsExtraPass || encoderCtx.drift != 0)
+        {
+            if (auto status = serializePass(); status != Error::None)
+            {
+                return status;
+            }
+        }
+
+        // Finalize last section.
+        finalizeCurSection(state);
 
         // Update all label information.
         for (auto& labelLink : encoderCtx.labelLinks)

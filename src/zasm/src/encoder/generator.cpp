@@ -40,7 +40,6 @@ namespace zasm
         return false;
     }
 
-
     InstrGenerator::InstrGenerator(ZydisMachineMode mode) noexcept
         : _decoder(mode)
         , _mode(mode)
@@ -48,11 +47,11 @@ namespace zasm
     }
 
     InstrGenerator::Result InstrGenerator::generate(
-        Instruction::Attribs attribs, ZydisMnemonic mnemonic, const Instruction::Operands& operands) noexcept
+        Instruction::Attribs attribs, ZydisMnemonic mnemonic, size_t numOps, EncoderOperands&& operands) noexcept
     {
         EncoderBuffer buf{};
 
-        auto encodeResult = encodeEstimated(buf, _mode, attribs, mnemonic, operands);
+        auto encodeResult = encodeEstimated(buf, _mode, attribs, mnemonic, numOps, operands);
         if (encodeResult != Error::None)
         {
             return zasm::makeUnexpected(encodeResult);
@@ -68,10 +67,11 @@ namespace zasm
         const auto& decodedInstr = *decodeResult;
 
         auto newOps = decodedInstr.getOperands();
-        const auto& vis = decodedInstr.getVisibility();
-        for (size_t i = 0; i < operands.size(); i++)
+        const auto opCount = decodedInstr.getOperandCount();
+        const auto& vis = decodedInstr.getOperandsVisibility();
+        for (size_t i = 0; i < opCount; i++)
         {
-            if (vis[i] != OperandVisibility::Explicit)
+            if (vis[i] == Operand::Visibility::Hidden)
                 continue;
 
             const auto& opSrc = operands[i];
@@ -82,9 +82,13 @@ namespace zasm
             else if (const auto* opMem = opSrc.tryAs<operands::Mem>(); opMem != nullptr)
             {
                 // FIXME: Handle labels in memory operands.
+                auto& decodedMemOp = newOps[i].as<operands::Mem>();
+
                 if (opMem->hasLabel())
                 {
-                    newOps[i] = opSrc;
+                    newOps[i] = operands::Mem(
+                        opMem->getBitSize(), decodedMemOp.getSegment(), opMem->getLabel(), opMem->getBase(), opMem->getIndex(),
+                        opMem->getScale(), opMem->getDisplacement());
                 }
             }
             if (opSrc.is<operands::Imm>())
@@ -97,7 +101,8 @@ namespace zasm
         }
 
         return Instruction(
-            decodedInstr.getAttribs(), decodedInstr.getId(), newOps, decodedInstr.getAccess(), vis, decodedInstr.getFlags(),
+            decodedInstr.getAttribs(), decodedInstr.getId(), opCount, newOps, decodedInstr.getAccess(), vis,
+            decodedInstr.getOperandsEncoding(), decodedInstr.getFlags(), decodedInstr.getEncoding(), decodedInstr.getCategory(),
             decodedInstr.getLength());
     }
 

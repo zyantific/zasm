@@ -167,11 +167,7 @@ namespace zasm::tests
 
         Program program(ZYDIS_MACHINE_MODE_LONG_64);
 
-#ifdef _DEBUG
         for (int i = 0; i < 100'000; i++)
-#else
-        for (int i = 0; i < 1'000'000; i++)
-#endif
         {
             Assembler assembler(program);
 
@@ -207,6 +203,63 @@ namespace zasm::tests
 
             ASSERT_EQ(program.size(), 0);
             ASSERT_EQ(program.getCodeSize(), 0);
+        }
+    }
+
+    TEST(ProgramTests, TestClear2)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+
+        int64_t address = 0x00400000;
+        for (int i = 0; i < 100'000; i++)
+        {
+            Assembler assembler(program);
+
+            ASSERT_EQ(assembler.push(rax), zasm::Error::None);
+            ASSERT_EQ(assembler.push(rcx), zasm::Error::None);
+            ASSERT_EQ(assembler.push(rdx), zasm::Error::None);
+            ASSERT_EQ(assembler.push(rbx), zasm::Error::None);
+            ASSERT_EQ(assembler.push(rbp), zasm::Error::None);
+            ASSERT_EQ(assembler.push(rsi), zasm::Error::None);
+            ASSERT_EQ(assembler.push(rdi), zasm::Error::None);
+            ASSERT_EQ(assembler.push(r8), zasm::Error::None);
+            ASSERT_EQ(assembler.push(r9), zasm::Error::None);
+            ASSERT_EQ(assembler.push(r10), zasm::Error::None);
+            ASSERT_EQ(assembler.push(r11), zasm::Error::None);
+            ASSERT_EQ(assembler.push(r12), zasm::Error::None);
+            ASSERT_EQ(assembler.push(r13), zasm::Error::None);
+            ASSERT_EQ(assembler.push(r14), zasm::Error::None);
+            ASSERT_EQ(assembler.push(r15), zasm::Error::None);
+            ASSERT_EQ(assembler.pushfq(), zasm::Error::None);
+
+            ASSERT_EQ(assembler.popfq(), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(r15), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(r14), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(r13), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(r12), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(r11), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(r10), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(r9), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(r8), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(rdi), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(rsi), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(rbp), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(rbx), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(rdx), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(rcx), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(rax), zasm::Error::None);
+
+            ASSERT_EQ(program.serialize(address), zasm::Error::None);
+            address += 0x10;
+
+            ASSERT_NE(program.getCodeSize(), 0);
+
+            const auto* data = program.getCode();
+            ASSERT_NE(data, nullptr);
+
+            program.clear();
         }
     }
 

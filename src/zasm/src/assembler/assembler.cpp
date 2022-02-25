@@ -90,15 +90,16 @@ namespace zasm
         return Error::None;
     }
 
-    Error Assembler::emit_(Instruction::Attribs attribs, ZydisMnemonic id, const Instruction::Operands& ops)
+    Error Assembler::emit_(
+        Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops)
     {
-        auto genResult = _generator->generate(attribs, id, ops);
+        auto genResult = _generator->generate(attribs, id, numOps, std::move(ops));
         if (!genResult)
         {
             return genResult.error();
         }
 
-        auto* instrNode = _program.createNode(*genResult);
+        auto* instrNode = _program.createNode(std::move(*genResult));
         _cursor = _program.insertAfter(_cursor, instrNode);
 
         return Error::None;

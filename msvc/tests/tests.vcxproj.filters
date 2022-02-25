@@ -29,6 +29,9 @@
     <ClCompile Include="..\..\src\tests\tests\tests.assembler.cpp">
       <Filter>tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\tests\tests\tests.formatter.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\tests\testutils.hpp" />

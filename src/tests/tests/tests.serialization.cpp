@@ -313,4 +313,20 @@ namespace zasm::tests
         }
     }
 
+    TEST(SerializationTests, UnboundLabel)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Assembler assembler(program);
+
+        auto label01 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.lea(rax, qword_ptr(label01)), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+
+        ASSERT_EQ(program.serialize(0x0000000000401000), Error::UnresolvedLabel);
+    }
+
 } // namespace zasm::tests

@@ -65,7 +65,7 @@ namespace zasm
         }
     };
 
-    static EncodeVariantsInfo getEncodeVariantInfo(ZydisMnemonic mnemonic)
+    static EncodeVariantsInfo getEncodeVariantInfo(ZydisMnemonic mnemonic) noexcept
     {
         switch (mnemonic)
         {
@@ -99,6 +99,8 @@ namespace zasm
                 return EncodeVariantsInfo{ true, 2, -1 };
             case ZYDIS_MNEMONIC_CALL:
                 return EncodeVariantsInfo{ true, -1, 5 };
+            default:
+                break;
         }
         return EncodeVariantsInfo{ false, -1, -1 };
     }
@@ -184,6 +186,10 @@ namespace zasm
         int64_t immValue = ctx != nullptr ? ctx->va + kTemporaryRel32Value : kTemporaryRel32Value;
 
         auto labelVA = getLabelAddress(ctx, op.getId());
+        if (!labelVA.has_value() && ctx != nullptr)
+        {
+            ctx->needsExtraPass = true;
+        }
 
         // Check if this operand is used as the control flow target.
         const auto encodeInfo = getEncodeVariantInfo(state.req.mnemonic);
@@ -279,6 +285,10 @@ namespace zasm
             else
             {
                 displacement += kTemporaryRel32Value;
+                if (ctx)
+                {
+                    ctx->needsExtraPass = true;
+                }
             }
             usingLabel = true;
         }
@@ -424,8 +434,10 @@ namespace zasm
 
     static Error encode_(
         EncoderBuffer& buf, EncoderContext* ctx, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id,
-        const Instruction::Operands& operands) noexcept
+        size_t numOps, const EncoderOperands& operands) noexcept
     {
+        buf.length = 0;
+
         EncoderState state{};
         state.ctx = ctx;
 
@@ -451,13 +463,12 @@ namespace zasm
             req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_64;
         }
 
-        const auto numOperands = std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, operands.size());
-        for (size_t i = 0; i < numOperands; i++)
+        const auto numOperands = std::min<size_t>(std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, numOps), operands.size());
+        for (state.operandIndex = 0; state.operandIndex < numOperands; ++state.operandIndex)
         {
-            state.operandIndex = i;
-
-            auto& dstOp = req.operands[i];
-            if (auto opStatus = buildOperand(dstOp, state, operands[i]); opStatus != Error::None)
+            auto& dstOp = req.operands[state.operandIndex];
+            const auto& srcOp = operands[state.operandIndex];
+            if (auto opStatus = buildOperand(dstOp, state, srcOp); opStatus != Error::None)
             {
                 return opStatus;
             }
@@ -471,7 +482,6 @@ namespace zasm
             return status;
         }
 
-        buf.length = 0;
         size_t bufLen = buf.data.size();
         if (auto status = ZydisEncoderEncodeInstruction(&req, buf.data.data(), &bufLen); status != ZYAN_STATUS_SUCCESS)
         {
@@ -489,19 +499,19 @@ namespace zasm
     }
 
     Error encodeEstimated(
-        EncoderBuffer& buf, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id,
-        const Instruction::Operands& operands) noexcept
+        EncoderBuffer& buf, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps,
+        const EncoderOperands& operands) noexcept
     {
-        return encode_(buf, nullptr, mode, attribs, id, operands);
+        return encode_(buf, nullptr, mode, attribs, id, numOps, operands);
     }
 
     static Error encodeFull_(
         EncoderBuffer& buf, EncoderContext& ctx, ZydisMachineMode mode, Instruction::Attribs prefixes, ZydisMnemonic id,
-        const Instruction::Operands& operands) noexcept
+        size_t numOps, const EncoderOperands& operands) noexcept
     {
         // For correct support on instructions with relative encoding we require the instruction size.
         ctx.instrSize = 0;
-        auto res = encode_(buf, &ctx, mode, prefixes, id, operands);
+        auto res = encode_(buf, &ctx, mode, prefixes, id, numOps, operands);
         if (res != Error::None)
         {
             return res;
@@ -513,7 +523,7 @@ namespace zasm
         {
             // Encode with now known size.
             ctx.instrSize = buf.length;
-            res = encode_(buf, &ctx, mode, prefixes, id, operands);
+            res = encode_(buf, &ctx, mode, prefixes, id, numOps, operands);
             if (res != Error::None)
             {
                 return res;
@@ -525,14 +535,15 @@ namespace zasm
 
     Error encodeFull(EncoderBuffer& buf, EncoderContext& ctx, ZydisMachineMode mode, const Instruction& instr) noexcept
     {
-        Instruction::Operands ops{};
+        EncoderOperands ops{};
 
         const auto& operands = instr.getOperands();
-        const auto& vis = instr.getVisibility();
+        const auto& vis = instr.getOperandsVisibility();
 
-        for (size_t i = 0; i < operands.size(); i++)
+        size_t numOps = 0;
+        for (size_t i = 0; i < std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getOperandCount()); i++)
         {
-            if (vis[i] == OperandVisibility::Hidden)
+            if (vis[i] == Operand::Visibility::Hidden)
                 continue;
 
             auto& op = operands[i];
@@ -540,9 +551,10 @@ namespace zasm
                 break;
 
             ops[i] = operands[i];
+            numOps++;
         }
 
-        return encodeFull_(buf, ctx, mode, instr.getAttribs(), instr.getId(), ops);
+        return encodeFull_(buf, ctx, mode, instr.getAttribs(), instr.getId(), numOps, ops);
     }
 
 } // namespace zasm

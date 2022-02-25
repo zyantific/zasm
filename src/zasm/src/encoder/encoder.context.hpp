@@ -23,6 +23,7 @@ namespace zasm
 
     struct EncoderContext
     {
+        bool needsExtraPass{};
         size_t nodeIndex{};
         size_t sectionIndex{};
         int32_t pass{};

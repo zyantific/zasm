@@ -9,7 +9,7 @@ namespace zasm
 {
     class Decoder
     {
-        ZydisDecoder _decoder;
+        ZydisDecoder _decoder{};
         Error _status{};
 
     public:

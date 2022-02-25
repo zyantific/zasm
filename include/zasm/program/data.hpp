@@ -64,6 +64,58 @@ namespace zasm
 
         Data& operator=(const Data& other);
         Data& operator=(Data&& other) noexcept;
+
+        constexpr bool isU8() const noexcept
+        {
+            if ((_size & kInlineDataFlag) == 0)
+                return false;
+
+            return getSize() == 1;
+        }
+
+        constexpr uint8_t valueAsU8() const noexcept
+        {
+            return _storage.u8;
+        }
+
+        constexpr bool isU16() const noexcept
+        {
+            if ((_size & kInlineDataFlag) == 0)
+                return false;
+
+            return getSize() == 2;
+        }
+
+        constexpr uint16_t valueAsU16() const noexcept
+        {
+            return _storage.u16;
+        }
+
+        constexpr bool isU32() const noexcept
+        {
+            if ((_size & kInlineDataFlag) == 0)
+                return false;
+
+            return getSize() == 4;
+        }
+
+        constexpr uint32_t valueAsU32() const noexcept
+        {
+            return _storage.u32;
+        }
+
+        constexpr bool isU64() const noexcept
+        {
+            if ((_size & kInlineDataFlag) == 0)
+                return false;
+
+            return getSize() == 8;
+        }
+
+        constexpr uint64_t valueAsU64() const noexcept
+        {
+            return _storage.u64;
+        }
     };
 
 } // namespace zasm
