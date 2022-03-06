@@ -28,11 +28,11 @@ if(CMKR_ROOT_PROJECT)
 endif()
 
 # Options
-option(ZASM_BUILD_TESTS OFF)
-option(ZYDIS_BUILD_EXAMPLES OFF)
-option(ZYDIS_BUILD_TOOLS OFF)
-option(INSTALL_GTEST OFF)
-option(BUILD_GMOCK OFF)
+option(ZASM_BUILD_TESTS "" OFF)
+option(ZYDIS_BUILD_EXAMPLES "" OFF)
+option(ZYDIS_BUILD_TOOLS "" OFF)
+option(INSTALL_GTEST "" OFF)
+option(BUILD_GMOCK "" OFF)
 
 project(zasm
 	LANGUAGES
@@ -42,25 +42,25 @@ project(zasm
 include(FetchContent)
 
 message(STATUS "Fetching Zydis (91742f4)...")
-FetchContent_Declare(
-	Zydis
+FetchContent_Declare(Zydis
 	GIT_REPOSITORY
-		https://github.com/zyantific/zydis
+		"https://github.com/zyantific/zydis"
 	GIT_TAG
 		91742f4
 )
 FetchContent_MakeAvailable(Zydis)
 
-message(STATUS "Fetching GTest (release-1.11.0)...")
-FetchContent_Declare(
-	GTest
-	GIT_REPOSITORY
-		https://github.com/google/googletest
-	GIT_TAG
-		release-1.11.0
-)
-FetchContent_MakeAvailable(GTest)
+if(ZASM_BUILD_TESTS) # tests
+	message(STATUS "Fetching GTest (release-1.11.0)...")
+	FetchContent_Declare(GTest
+		GIT_REPOSITORY
+			"https://github.com/google/googletest"
+		GIT_TAG
+			release-1.11.0
+	)
+	FetchContent_MakeAvailable(GTest)
 
+endif()
 # Target zasm
 set(CMKR_TARGET zasm)
 set(zasm_SOURCES "")
@@ -72,6 +72,7 @@ list(APPEND zasm_SOURCES
 	"src/zasm/src/encoder/encoder.cpp"
 	"src/zasm/src/encoder/generator.cpp"
 	"src/zasm/src/program/data.cpp"
+	"src/zasm/src/program/formatter.cpp"
 	"src/zasm/src/program/program.cpp"
 	"src/zasm/src/program/program.serialization.cpp"
 	"src/zasm/src/zasm.cpp"
@@ -86,6 +87,7 @@ list(APPEND zasm_SOURCES
 	"include/zasm/decoder/decoder.hpp"
 	"include/zasm/encoder/encoder.hpp"
 	"include/zasm/program/data.hpp"
+	"include/zasm/program/formatter.hpp"
 	"include/zasm/program/immediate.hpp"
 	"include/zasm/program/instruction.hpp"
 	"include/zasm/program/label.hpp"
@@ -135,6 +137,7 @@ if(ZASM_BUILD_TESTS) # tests
 	list(APPEND tests_SOURCES
 		"src/tests/main.cpp"
 		"src/tests/tests/tests.assembler.cpp"
+		"src/tests/tests/tests.formatter.cpp"
 		"src/tests/tests/tests.instructions.x64.cpp"
 		"src/tests/tests/tests.program.cpp"
 		"src/tests/tests/tests.registers.cpp"

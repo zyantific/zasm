@@ -18,6 +18,7 @@ git = "https://github.com/zyantific/zydis"
 tag = "91742f4"
 
 [fetch-content.GTest]
+condition = "tests"
 git = "https://github.com/google/googletest"
 tag = "release-1.11.0"
 
