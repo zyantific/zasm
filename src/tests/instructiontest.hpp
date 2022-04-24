@@ -3,6 +3,7 @@
 #include "testutils.hpp"
 
 #include <gtest/gtest.h>
+#include <string_view>
 #include <zasm/zasm.hpp>
 
 namespace zasm::tests
@@ -12,8 +13,8 @@ namespace zasm::tests
 
     struct InstrTest
     {
-        const char* instrBytes;
-        const char* operation;
+        std::string_view instrBytes;
+        std::string_view operation;
         CodeGenFn gen;
     };
 

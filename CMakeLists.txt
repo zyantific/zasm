@@ -28,39 +28,23 @@ if(CMKR_ROOT_PROJECT)
 endif()
 
 # Options
-option(ZASM_BUILD_TESTS "" OFF)
-option(ZYDIS_BUILD_EXAMPLES "" OFF)
-option(ZYDIS_BUILD_TOOLS "" OFF)
-option(INSTALL_GTEST "" OFF)
-option(BUILD_GMOCK "" OFF)
+option(ZASM_BUILD_TESTS ON)
 
 project(zasm
 	LANGUAGES
 		CXX
 )
 
-include(FetchContent)
-
-message(STATUS "Fetching Zydis (91742f4)...")
-FetchContent_Declare(Zydis
-	GIT_REPOSITORY
-		"https://github.com/zyantific/zydis"
-	GIT_TAG
-		91742f4
-)
-FetchContent_MakeAvailable(Zydis)
-
-if(ZASM_BUILD_TESTS) # tests
-	message(STATUS "Fetching GTest (release-1.11.0)...")
-	FetchContent_Declare(GTest
-		GIT_REPOSITORY
-			"https://github.com/google/googletest"
-		GIT_TAG
-			release-1.11.0
-	)
-	FetchContent_MakeAvailable(GTest)
-
+# thirdparty
+set(CMKR_CMAKE_FOLDER ${CMAKE_FOLDER})
+if(CMAKE_FOLDER)
+	set(CMAKE_FOLDER "${CMAKE_FOLDER}/thirdparty")
+else()
+	set(CMAKE_FOLDER thirdparty)
 endif()
+add_subdirectory(thirdparty)
+set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
+
 # Target zasm
 set(CMKR_TARGET zasm)
 set(zasm_SOURCES "")
@@ -226,7 +210,7 @@ if(ZASM_BUILD_TESTS) # tests
 		WORKING_DIRECTORY
 			"${CMAKE_CURRENT_LIST_DIR}/"
 		COMMAND
-			$<TARGET_FILE:tests>
+			"$<TARGET_FILE:tests>"
 	)
 
 endif()

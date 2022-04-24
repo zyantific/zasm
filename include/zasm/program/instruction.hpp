@@ -317,7 +317,7 @@ namespace zasm
             return _opsEncoding;
         }
 
-        constexpr const Operand::Encoding& getOperandEncoding(size_t index) const noexcept
+        constexpr const Operand::Encoding getOperandEncoding(size_t index) const noexcept
         {
             if (index >= _opCount)
                 return Operand::Encoding::None;

@@ -4,23 +4,12 @@ name = "zasm"
 languages = ["CXX"]
 
 [options]
-ZASM_BUILD_TESTS = false
-ZYDIS_BUILD_EXAMPLES = false
-ZYDIS_BUILD_TOOLS = false
-INSTALL_GTEST = false
-BUILD_GMOCK = false
+ZASM_BUILD_TESTS = true
 
 [conditions]
 tests = "ZASM_BUILD_TESTS"
 
-[fetch-content.Zydis]
-git = "https://github.com/zyantific/zydis"
-tag = "91742f4"
-
-[fetch-content.GTest]
-condition = "tests"
-git = "https://github.com/google/googletest"
-tag = "release-1.11.0"
+[subdir.thirdparty]
 
 [target.zasm]
 type = "static"
