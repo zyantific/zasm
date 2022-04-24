@@ -28,7 +28,8 @@ if(CMKR_ROOT_PROJECT)
 endif()
 
 # Options
-option(ZASM_BUILD_TESTS ON)
+option(ZASM_BUILD_TESTS "" ON)
+option(ZASM_BUILD_BENCHMARKS "" ON)
 
 project(zasm
 	LANGUAGES
@@ -113,59 +114,6 @@ target_link_libraries(zasm PUBLIC
 unset(CMKR_TARGET)
 unset(CMKR_SOURCES)
 
-# Target tests
-if(ZASM_BUILD_TESTS) # tests
-	set(CMKR_TARGET tests)
-	set(tests_SOURCES "")
-
-	list(APPEND tests_SOURCES
-		"src/tests/main.cpp"
-		"src/tests/tests/tests.assembler.cpp"
-		"src/tests/tests/tests.formatter.cpp"
-		"src/tests/tests/tests.instructions.x64.cpp"
-		"src/tests/tests/tests.program.cpp"
-		"src/tests/tests/tests.registers.cpp"
-		"src/tests/tests/tests.sections.cpp"
-		"src/tests/tests/tests.serialization.cpp"
-		"src/tests/tests/tests.stringpool.cpp"
-		"src/tests/testutils.cpp"
-		"src/tests/instructiontest.hpp"
-		"src/tests/testutils.hpp"
-	)
-
-	list(APPEND tests_SOURCES
-		cmake.toml
-	)
-
-	set(CMKR_SOURCES ${tests_SOURCES})
-	add_executable(tests)
-
-	if(tests_SOURCES)
-		target_sources(tests PRIVATE ${tests_SOURCES})
-	endif()
-
-	get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
-	if(NOT CMKR_VS_STARTUP_PROJECT)
-		set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT tests)
-	endif()
-
-	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${tests_SOURCES})
-
-	if(MSVC) # msvc
-		target_compile_options(tests PRIVATE
-			"/bigobj"
-		)
-	endif()
-
-	target_link_libraries(tests PRIVATE
-		zasm::zasm
-		GTest::gtest
-	)
-
-	unset(CMKR_TARGET)
-	unset(CMKR_SOURCES)
-endif()
-
 # Target testing
 if(ZASM_BUILD_TESTS) # tests
 	set(CMKR_TARGET testing)
@@ -201,6 +149,125 @@ if(ZASM_BUILD_TESTS) # tests
 	unset(CMKR_SOURCES)
 endif()
 
+# Target testdata
+if(ZASM_BUILD_TESTS) # tests
+	set(CMKR_TARGET testdata)
+	set(testdata_SOURCES "")
+
+	set(CMKR_SOURCES ${testdata_SOURCES})
+	add_library(testdata INTERFACE)
+
+	if(testdata_SOURCES)
+		target_sources(testdata INTERFACE ${testdata_SOURCES})
+	endif()
+
+	add_library(zasm::testdata ALIAS testdata)
+	target_include_directories(testdata INTERFACE
+		"src/testdata"
+	)
+
+	unset(CMKR_TARGET)
+	unset(CMKR_SOURCES)
+endif()
+
+# Target tests
+if(ZASM_BUILD_TESTS) # tests
+	set(CMKR_TARGET tests)
+	set(tests_SOURCES "")
+
+	list(APPEND tests_SOURCES
+		"src/tests/main.cpp"
+		"src/tests/tests/tests.assembler.cpp"
+		"src/tests/tests/tests.formatter.cpp"
+		"src/tests/tests/tests.instructions.x64.cpp"
+		"src/tests/tests/tests.program.cpp"
+		"src/tests/tests/tests.registers.cpp"
+		"src/tests/tests/tests.sections.cpp"
+		"src/tests/tests/tests.serialization.cpp"
+		"src/tests/tests/tests.stringpool.cpp"
+		"src/tests/testutils.cpp"
+		"src/tests/testutils.hpp"
+	)
+
+	list(APPEND tests_SOURCES
+		cmake.toml
+	)
+
+	set(CMKR_SOURCES ${tests_SOURCES})
+	add_executable(tests)
+
+	if(tests_SOURCES)
+		target_sources(tests PRIVATE ${tests_SOURCES})
+	endif()
+
+	get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+	if(NOT CMKR_VS_STARTUP_PROJECT)
+		set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT tests)
+	endif()
+
+	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${tests_SOURCES})
+
+	if(MSVC) # msvc
+		target_compile_options(tests PRIVATE
+			"/bigobj"
+		)
+	endif()
+
+	target_link_libraries(tests PRIVATE
+		zasm::zasm
+		zasm::testdata
+		GTest::gtest
+	)
+
+	unset(CMKR_TARGET)
+	unset(CMKR_SOURCES)
+endif()
+
+# Target benchmarks
+if(ZASM_BUILD_TESTS) # tests
+	set(CMKR_TARGET benchmarks)
+	set(benchmarks_SOURCES "")
+
+	list(APPEND benchmarks_SOURCES
+		"src/benchmark/benchmarks/benchmark.assembler.cpp"
+		"src/benchmark/benchmarks/benchmark.serialization.cpp"
+		"src/benchmark/main.cpp"
+	)
+
+	list(APPEND benchmarks_SOURCES
+		cmake.toml
+	)
+
+	set(CMKR_SOURCES ${benchmarks_SOURCES})
+	add_executable(benchmarks)
+
+	if(benchmarks_SOURCES)
+		target_sources(benchmarks PRIVATE ${benchmarks_SOURCES})
+	endif()
+
+	get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+	if(NOT CMKR_VS_STARTUP_PROJECT)
+		set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT benchmarks)
+	endif()
+
+	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${benchmarks_SOURCES})
+
+	if(MSVC) # msvc
+		target_compile_options(benchmarks PRIVATE
+			"/bigobj"
+		)
+	endif()
+
+	target_link_libraries(benchmarks PRIVATE
+		zasm::zasm
+		zasm::testdata
+		benchmark::benchmark
+	)
+
+	unset(CMKR_TARGET)
+	unset(CMKR_SOURCES)
+endif()
+
 enable_testing()
 
 if(ZASM_BUILD_TESTS) # tests
@@ -210,7 +277,7 @@ if(ZASM_BUILD_TESTS) # tests
 		WORKING_DIRECTORY
 			"${CMAKE_CURRENT_LIST_DIR}/"
 		COMMAND
-			"$<TARGET_FILE:tests>"
+			$<TARGET_FILE:tests>
 	)
 
 endif()
