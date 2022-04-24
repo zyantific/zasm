@@ -85,6 +85,78 @@ namespace zasm::tests
         ASSERT_EQ(lastNode, program.getTail());
     }
 
+    TEST(ProgramTests, NodeDestroyTail)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+
+        Assembler assembler(program);
+
+        for (int i = 0; i < 10; i++)
+        {
+            ASSERT_EQ(assembler.mov(eax, Imm(i)), Error::None);
+        }
+        ASSERT_EQ(program.size(), 10);
+
+        auto* nodeBeforeTail = program.getTail()->getPrev();
+        ASSERT_NE(nodeBeforeTail, nullptr);
+
+        program.destroy(program.getTail());
+        ASSERT_EQ(program.size(), 9);
+        ASSERT_EQ(program.getTail(), nodeBeforeTail);
+
+        auto* node = program.getHead();
+        auto* lastNode = node;
+        for (int i = 0; i < 9; i++)
+        {
+            ASSERT_NE(node, nullptr);
+
+            const auto& instr = node->as<Instruction>();
+
+            const auto& imm = instr.getOperand<1, Imm>();
+            ASSERT_EQ(imm.value<int>(), i);
+
+            lastNode = node;
+            node = node->getNext();
+        }
+        ASSERT_EQ(lastNode, program.getTail());
+    }
+
+    TEST(ProgramTests, NodeDestroySingleHead)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+
+        Assembler assembler(program);
+
+        ASSERT_EQ(assembler.mov(eax, Imm(0)), Error::None);
+        ASSERT_EQ(program.size(), 1);
+
+        ASSERT_EQ(program.getHead(), program.getTail());
+        program.destroy(program.getHead());
+        ASSERT_EQ(program.size(), 0);
+        ASSERT_EQ(program.getHead(), nullptr);
+    }
+
+    TEST(ProgramTests, NodeDestroySingleTail)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+
+        Assembler assembler(program);
+
+        ASSERT_EQ(assembler.mov(eax, Imm(0)), Error::None);
+        ASSERT_EQ(program.size(), 1);
+
+        ASSERT_EQ(program.getHead(), program.getTail());
+        program.destroy(program.getTail());
+        ASSERT_EQ(program.size(), 0);
+        ASSERT_EQ(program.getTail(), nullptr);
+    }
+
     TEST(ProgramTests, NodeReorderMoveAfter)
     {
         using namespace zasm::operands;
@@ -166,44 +238,40 @@ namespace zasm::tests
         using namespace zasm::operands;
 
         Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Assembler assembler(program);
 
-        for (int i = 0; i < 100'000; i++)
+        ASSERT_EQ(assembler.mov(eax, ebx), zasm::Error::None);
+        ASSERT_EQ(assembler.xor_(ebx, edx), zasm::Error::None);
+        ASSERT_EQ(assembler.add(eax, Imm(1)), zasm::Error::None);
+        ASSERT_EQ(assembler.not_(eax), zasm::Error::None);
+        ASSERT_EQ(assembler.xor_(eax, Imm(1)), zasm::Error::None);
+
+        auto labelFoo = assembler.createLabel("foo");
+        ASSERT_EQ(labelFoo.getId(), zasm::Label::Id{ 0 });
+        ASSERT_EQ(labelFoo.isValid(), true);
+        ASSERT_EQ(assembler.bind(labelFoo), zasm::Error::None);
+        ASSERT_EQ(assembler.mov(dword_ptr(labelFoo), eax), zasm::Error::None);
+
+        ASSERT_EQ(program.size(), 7);
+
+        ASSERT_EQ(program.serialize(0x400000), zasm::Error::None);
+
+        const std::array<uint8_t, 18> expected = {
+            0x89, 0xd8, 0x31, 0xd3, 0x83, 0xc0, 0x01, 0xf7, 0xd0, 0x83, 0xf0, 0x01, 0x89, 0x05, 0xfa, 0xff, 0xff, 0xff,
+        };
+        ASSERT_EQ(program.getCodeSize(), expected.size());
+
+        const auto* data = program.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
         {
-            Assembler assembler(program);
-
-            ASSERT_EQ(assembler.mov(eax, ebx), zasm::Error::None);
-            ASSERT_EQ(assembler.xor_(ebx, edx), zasm::Error::None);
-            ASSERT_EQ(assembler.add(eax, Imm(1)), zasm::Error::None);
-            ASSERT_EQ(assembler.not_(eax), zasm::Error::None);
-            ASSERT_EQ(assembler.xor_(eax, Imm(1)), zasm::Error::None);
-
-            auto labelFoo = assembler.createLabel("foo");
-            ASSERT_EQ(labelFoo.getId(), zasm::Label::Id{ 0 });
-            ASSERT_EQ(labelFoo.isValid(), true);
-            ASSERT_EQ(assembler.bind(labelFoo), zasm::Error::None);
-            ASSERT_EQ(assembler.mov(dword_ptr(labelFoo), eax), zasm::Error::None);
-
-            ASSERT_EQ(program.size(), 7);
-
-            ASSERT_EQ(program.serialize(0x400000), zasm::Error::None);
-
-            const std::array<uint8_t, 18> expected = {
-                0x89, 0xd8, 0x31, 0xd3, 0x83, 0xc0, 0x01, 0xf7, 0xd0, 0x83, 0xf0, 0x01, 0x89, 0x05, 0xfa, 0xff, 0xff, 0xff,
-            };
-            ASSERT_EQ(program.getCodeSize(), expected.size());
-
-            const auto* data = program.getCode();
-            ASSERT_NE(data, nullptr);
-            for (size_t i = 0; i < expected.size(); i++)
-            {
-                ASSERT_EQ(data[i], expected[i]);
-            }
-
-            program.clear();
-
-            ASSERT_EQ(program.size(), 0);
-            ASSERT_EQ(program.getCodeSize(), 0);
+            ASSERT_EQ(data[i], expected[i]);
         }
+
+        program.clear();
+
+        ASSERT_EQ(program.size(), 0);
+        ASSERT_EQ(program.getCodeSize(), 0);
     }
 
     TEST(ProgramTests, TestClear2)
@@ -213,7 +281,7 @@ namespace zasm::tests
         Program program(ZYDIS_MACHINE_MODE_LONG_64);
 
         int64_t address = 0x00400000;
-        for (int i = 0; i < 100'000; i++)
+        for (int i = 0; i < 1'000; i++)
         {
             Assembler assembler(program);
 
