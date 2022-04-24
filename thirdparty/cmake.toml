@@ -5,6 +5,9 @@ ZYDIS_BUILD_EXAMPLES = false
 ZYDIS_BUILD_TOOLS = false
 INSTALL_GTEST = false
 BUILD_GMOCK = false
+BENCHMARK_ENABLE_TESTING = false
+BENCHMARK_ENABLE_INSTALL = false
+BENCHMARK_USE_BUNDLED_GTEST = false
 
 [fetch-content.Zydis]
 git = "https://github.com/zyantific/zydis"
@@ -14,3 +17,8 @@ tag = "91742f4"
 condition = "tests"
 git = "https://github.com/google/googletest"
 tag = "release-1.11.0"
+
+[fetch-content.GBenchmark]
+condition = "tests"
+git = "https://github.com/google/benchmark"
+tag = "v1.6.1"
