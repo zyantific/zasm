@@ -7,7 +7,7 @@
 namespace zasm::tests
 {
     // clang-format off
-	static const InstrTest InstrTests[] = {
+	static constexpr InstrTest InstrTests[] = {
 		INSTRUCTION_TEST(10BC1180000000              , adc(byte_ptr(rcx, rdx, 1, 128), bh)),
 		INSTRUCTION_TEST(668394118000000001          , adc(word_ptr(rcx, rdx, 1, 128), Imm(1))),
 		INSTRUCTION_TEST(66119C1180000000            , adc(word_ptr(rcx, rdx, 1, 128), bx)),
@@ -10137,7 +10137,7 @@ namespace zasm::tests
 		::testing::ValuesIn(std::begin(InstrTests), std::end(InstrTests)),
 		[](const ::testing::TestParamInfo<InstrTest>& info) 
 		{
-			return info.param.instrBytes;
+			return std::string{ info.param.instrBytes };
 		}
 	);
 
@@ -10150,7 +10150,7 @@ namespace zasm::tests
 
 		for (const auto& instrEntry : InstrTests)
 		{
-			ASSERT_EQ(instrEntry.gen(assembler), Error::None);
+			ASSERT_EQ(instrEntry.gen(assembler), Error::None) << instrEntry.instrBytes << ", " << instrEntry.operation;
 		}
 
 		ASSERT_EQ(program.serialize(0x0000000000401000), Error::None);
@@ -10159,7 +10159,7 @@ namespace zasm::tests
 		size_t offset = 0;
 		for (const auto& instrEntry : InstrTests)
 		{
-			const auto numBytes = strlen(instrEntry.instrBytes) / 2;
+			const auto numBytes = instrEntry.instrBytes.size() / 2;
 			ASSERT_LE(offset + numBytes, program.getCodeSize());
 
 			const auto hexEncoded = hexEncode(codeBuf + offset, numBytes);
