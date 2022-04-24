@@ -135,44 +135,17 @@ namespace zasm
         auto* pre = detail::toInternal(n->getPrev());
         auto* post = detail::toInternal(n->getNext());
 
-        if (pre == nullptr && post == nullptr)
-            return nullptr;
+        if (pre != nullptr)
+            pre->setNext(post);
+
+        if (post != nullptr)
+            post->setPrev(pre);
 
         if (n == _state->head)
-        {
             _state->head = post;
 
-            if (pre != nullptr)
-            {
-                pre->setPrev(nullptr);
-            }
-
-            if (_state->head == nullptr)
-            {
-                _state->tail = nullptr;
-            }
-        }
-        else if (node == _state->tail)
-        {
-            _state->tail = post;
-
-            if (post != nullptr)
-            {
-                post->setNext(nullptr);
-            }
-
-            if (_state->tail == nullptr)
-            {
-                _state->head = nullptr;
-            }
-        }
-        else
-        {
-            if (pre)
-                pre->setNext(post);
-            if (post)
-                post->setPrev(pre);
-        }
+        if (n == _state->tail)
+            _state->tail = pre;
 
         n->setPrev(nullptr);
         n->setNext(nullptr);
