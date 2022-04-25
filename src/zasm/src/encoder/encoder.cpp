@@ -18,6 +18,7 @@ namespace zasm
     };
 
     static constexpr int32_t kTemporaryRel32Value = 0x123456;
+    static constexpr int32_t kHintRequiresSize = -1;
 
     static EncoderContext::LabelLink& getOrCreateLabelLink(EncoderContext* ctx, Label::Id id)
     {
@@ -264,15 +265,7 @@ namespace zasm
 
         int64_t displacement = op.getDisplacement();
 
-        const auto instrSize = ctx ? ctx->instrSize : 0;
         const auto va = ctx ? ctx->va : 0;
-
-        // We require the exact instruction size to encode this correctly.
-        if (ctx && instrSize == 0)
-        {
-            // Causes to re-encode again with instruction size available.
-            ctx->instrSize = -1;
-        }
 
         bool usingLabel = false;
         if (auto labelId = op.getLabelId(); labelId != Label::Id::Invalid && ctx != nullptr)
@@ -312,21 +305,25 @@ namespace zasm
 
         if (dst.mem.base == ZydisRegister::ZYDIS_REGISTER_RIP)
         {
+            // We require the exact instruction size to encode this correctly.
+            const auto instrSize = ctx ? ctx->instrSize : 0;
+            if (ctx && instrSize == 0)
+            {
+                // Causes to re-encode again with instruction size available.
+                ctx->instrSize = kHintRequiresSize;
+            }
+
             displacement = displacement - (va + instrSize);
         }
 
         dst.mem.displacement = displacement;
 
         // Handling segment
-        switch (op.getSegment().getId())
-        {
-            case ZYDIS_REGISTER_GS:
-                state.req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_GS;
-                break;
-            case ZYDIS_REGISTER_FS:
-                state.req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_FS;
-                break;
-        }
+        const auto segmentId = op.getSegment().getId();
+        if (segmentId == ZYDIS_REGISTER_GS)
+            state.req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_GS;
+        else if (segmentId == ZYDIS_REGISTER_FS)
+            state.req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_FS;
 
         return Error::None;
     }
@@ -363,7 +360,7 @@ namespace zasm
         return Error::InvalidOperation;
     }
 
-    static Error fixupIs4Operands(ZydisEncoderRequest& req) noexcept
+    static void fixupIs4Operands(ZydisEncoderRequest& req) noexcept
     {
         switch (req.mnemonic)
         {
@@ -408,7 +405,7 @@ namespace zasm
             case ZYDIS_MNEMONIC_VPPERM:
                 break;
             default:
-                return Error::None;
+                return;
         }
 
         if (req.operands[2].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER
@@ -428,8 +425,6 @@ namespace zasm
         {
             req.operands[3].reg.is4 = true;
         }
-
-        return Error::None;
     }
 
     static Error encode_(
@@ -477,20 +472,16 @@ namespace zasm
             req.operand_count++;
         }
 
-        if (auto status = fixupIs4Operands(req); status != Error::None)
-        {
-            return status;
-        }
+        fixupIs4Operands(req);
 
         size_t bufLen = buf.data.size();
-        if (auto status = ZydisEncoderEncodeInstruction(&req, buf.data.data(), &bufLen); status != ZYAN_STATUS_SUCCESS)
+        switch (auto status = ZydisEncoderEncodeInstruction(&req, buf.data.data(), &bufLen); status)
         {
-            switch (status)
-            {
-                case ZYDIS_STATUS_IMPOSSIBLE_INSTRUCTION:
-                default:
-                    return Error::ImpossibleInstruction;
-            }
+            case ZYAN_STATUS_SUCCESS:
+                break;
+            case ZYDIS_STATUS_IMPOSSIBLE_INSTRUCTION:
+            default:
+                return Error::ImpossibleInstruction;
         }
 
         buf.length = static_cast<uint8_t>(bufLen);
@@ -509,24 +500,31 @@ namespace zasm
         EncoderBuffer& buf, EncoderContext& ctx, ZydisMachineMode mode, Instruction::Attribs prefixes, ZydisMnemonic id,
         size_t numOps, const EncoderOperands& operands) noexcept
     {
-        // For correct support on instructions with relative encoding we require the instruction size.
+        // encode_ will set this to kHintRequiresSize in case a length is required for correct encoding.
         ctx.instrSize = 0;
+
         auto res = encode_(buf, &ctx, mode, prefixes, id, numOps, operands);
         if (res != Error::None)
         {
             return res;
         }
 
-        // If this is set to -1 it hints that it wants the size, this means
-        // it encoded temporary values to get the correct size first.
-        if (ctx.instrSize == -1)
+        while (ctx.instrSize == kHintRequiresSize)
         {
-            // Encode with now known size.
+            // Encode with now known size, instruction size can change again in this call.
             ctx.instrSize = buf.length;
             res = encode_(buf, &ctx, mode, prefixes, id, numOps, operands);
             if (res != Error::None)
             {
                 return res;
+            }
+
+            // If the instruction size does not match what we previously specified
+            // we need to re-encode it with the now known size, this can happen near
+            // the limits of rel8/32 but is unlikely.
+            if (buf.length != ctx.instrSize)
+            {
+                ctx.instrSize = kHintRequiresSize;
             }
         }
 
@@ -539,22 +537,23 @@ namespace zasm
 
         const auto& operands = instr.getOperands();
         const auto& vis = instr.getOperandsVisibility();
+        const auto countOpInputs = std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getOperandCount());
 
-        size_t numOps = 0;
-        for (size_t i = 0; i < std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getOperandCount()); i++)
+        size_t explicitOps = 0;
+        for (size_t i = 0; i < countOpInputs; ++i)
         {
             if (vis[i] == Operand::Visibility::Hidden)
-                continue;
+                break;
 
             auto& op = operands[i];
             if (op.is<operands::None>())
                 break;
 
-            ops[i] = operands[i];
-            numOps++;
+            ops[explicitOps] = operands[i];
+            explicitOps++;
         }
 
-        return encodeFull_(buf, ctx, mode, instr.getAttribs(), instr.getId(), numOps, ops);
+        return encodeFull_(buf, ctx, mode, instr.getAttribs(), instr.getId(), explicitOps, ops);
     }
 
 } // namespace zasm
