@@ -72,9 +72,6 @@ namespace zasm::detail
         std::vector<LabelData> labels;
         std::vector<SectionData> sections;
 
-        std::vector<SectionInfo> sectionInfo;
-        std::vector<uint8_t> codeBuffer;
-
         ProgramState(ZydisMachineMode m)
             : mode(m)
         {

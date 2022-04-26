@@ -60,6 +60,7 @@ list(APPEND zasm_SOURCES
 	"src/zasm/src/program/formatter.cpp"
 	"src/zasm/src/program/program.cpp"
 	"src/zasm/src/program/program.serialization.cpp"
+	"src/zasm/src/serialization/serializer.cpp"
 	"src/zasm/src/zasm.cpp"
 	"include/zasm/assembler/assembler.hpp"
 	"include/zasm/core/bitsize.hpp"
@@ -82,6 +83,7 @@ list(APPEND zasm_SOURCES
 	"include/zasm/program/program.hpp"
 	"include/zasm/program/register.hpp"
 	"include/zasm/program/section.hpp"
+	"include/zasm/serialization/serializer.hpp"
 	"include/zasm/zasm.hpp"
 )
 

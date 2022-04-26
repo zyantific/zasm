@@ -26,6 +26,11 @@ namespace zasm
 
         ZydisMachineMode getMode() const noexcept;
 
+        /// <summary>
+        /// This is primarily used by other components, this should not be directly used.
+        /// </summary>
+        detail::ProgramState& getState() const noexcept;
+
     public:
         /// <summary>
         /// Returns the first node in the Program, if none exists it will return null.
@@ -194,44 +199,6 @@ namespace zasm
         /// <param name="align">The new alignment</param>
         /// <returns>Error::None on success otherwise see Error</returns>
         Error setSectionAlign(const Section& section, int32_t align);
-
-    public:
-        /// <summary>
-        /// Serializes the all the nodes in the Program to the encoder and
-        /// resolves the address of each label.
-        /// </summary>
-        /// <param name="newBase">The starting address of the program</param>
-        /// <returns>If successful returns Error::None otherwise check Error value.</returns>
-        Error serialize(int64_t newBase);
-
-        /// <summary>
-        /// After a successful serialization this will return the total size of all encoded nodes not
-        /// including section alignment. This is the size of the flat buffer used to encode every node,
-        /// this may be primarily useful if no sections are used.
-        /// </summary>
-        /// <returns>Size of code in bytes</returns>
-        size_t getCodeSize() const;
-
-        /// <summary>
-        /// After a successful serialization this returns pointer to the current code buffer, this is a
-        /// flat buffer containing all sections if multiple sections are used without any padding. If you
-        /// require the per section basis data use the section functions.
-        /// </summary>
-        /// <returns>Pointer to code buffer</returns>
-        const uint8_t* getCode() const;
-
-        /// <summary>
-        /// Returns the amount of encoded sections. By default there is always at least 1 section even if
-        /// no section was explicitly created.
-        /// </summary>
-        /// <returns>Section count</returns>
-        size_t getSectionCount() const;
-
-        /// <summary>
-        /// Returns the information about the section after serialization.
-        /// </summary>
-        /// <returns>Pointer to the section info, nullptr if the index is invalid</returns>
-        const SectionInfo* getSectionInfo(size_t sectionIndex) const;
     };
 
 } // namespace zasm

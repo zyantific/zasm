@@ -12,6 +12,7 @@ namespace zasm::tests
 
         Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
         Assembler a(program);
+        Serializer serializer;
 
         auto labelA = a.createLabel();
         ASSERT_EQ(labelA.isValid(), true);
@@ -24,11 +25,11 @@ namespace zasm::tests
             ASSERT_EQ(a.nop(), Error::None);
         }
 
-        ASSERT_EQ(program.serialize(0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
 
-        ASSERT_EQ(program.getSectionCount(), 1);
+        ASSERT_EQ(serializer.getSectionCount(), 1);
 
-        const auto* sectInfo01 = program.getSectionInfo(0);
+        const auto* sectInfo01 = serializer.getSectionInfo(0);
         ASSERT_NE(sectInfo01, nullptr);
         ASSERT_EQ(sectInfo01->va, 0x00400000);
         ASSERT_EQ(sectInfo01->attribs, Section::Attribs::Code);
@@ -45,6 +46,7 @@ namespace zasm::tests
 
         Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
         Assembler a(program);
+        Serializer serializer;
 
         auto labelA = a.createLabel();
         ASSERT_EQ(labelA.isValid(), true);
@@ -70,11 +72,11 @@ namespace zasm::tests
             ASSERT_EQ(a.dq(0xABCDEF123), Error::None);
         }
 
-        ASSERT_EQ(program.serialize(0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
 
-        ASSERT_EQ(program.getSectionCount(), 2);
+        ASSERT_EQ(serializer.getSectionCount(), 2);
 
-        const auto* sectInfo01 = program.getSectionInfo(0);
+        const auto* sectInfo01 = serializer.getSectionInfo(0);
         ASSERT_NE(sectInfo01, nullptr);
         ASSERT_EQ(sectInfo01->va, 0x00400000);
         ASSERT_EQ(sectInfo01->attribs, Section::Attribs::Code);
@@ -83,7 +85,7 @@ namespace zasm::tests
         ASSERT_EQ(
             hexEncode(sectInfo01->buffer, sectInfo01->physicalSize), std::string("488D05F90F0000488D1DFA0F0000488D15FB0F0000"));
 
-        const auto* sectInfo02 = program.getSectionInfo(1);
+        const auto* sectInfo02 = serializer.getSectionInfo(1);
         ASSERT_NE(sectInfo02, nullptr);
         ASSERT_EQ(sectInfo02->va, 0x00401000);
         ASSERT_EQ(sectInfo02->attribs, Section::Attribs::Data);
@@ -101,6 +103,7 @@ namespace zasm::tests
 
         Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
         Assembler a(program);
+        Serializer serializer;
 
         auto labelA = a.createLabel();
         ASSERT_EQ(labelA.isValid(), true);
@@ -134,11 +137,11 @@ namespace zasm::tests
             ASSERT_EQ(a.dq(0xABCDEF123), Error::None);
         }
 
-        ASSERT_EQ(program.serialize(0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
 
-        ASSERT_EQ(program.getSectionCount(), 2);
+        ASSERT_EQ(serializer.getSectionCount(), 2);
 
-        const auto* sectInfo01 = program.getSectionInfo(0);
+        const auto* sectInfo01 = serializer.getSectionInfo(0);
         ASSERT_NE(sectInfo01, nullptr);
         ASSERT_EQ(sectInfo01->va, 0x00400000);
         ASSERT_EQ(sectInfo01->attribs, Section::Attribs::Code);
@@ -148,7 +151,7 @@ namespace zasm::tests
             hexEncode(sectInfo01->buffer, sectInfo01->physicalSize),
             std::string("488D05F90F0000488D1DFA0F0000488D15FB0F0000488D05E40F0000488D1DE50F0000488D15E60F0000"));
 
-        const auto* sectInfo02 = program.getSectionInfo(1);
+        const auto* sectInfo02 = serializer.getSectionInfo(1);
         ASSERT_NE(sectInfo02, nullptr);
         ASSERT_EQ(sectInfo02->va, 0x00401000);
         ASSERT_EQ(sectInfo02->attribs, Section::Attribs::Data);
@@ -166,6 +169,7 @@ namespace zasm::tests
 
         Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
         Assembler a(program);
+        Serializer serializer;
 
         auto labelA = a.createLabel();
         ASSERT_EQ(labelA.isValid(), true);
@@ -198,11 +202,11 @@ namespace zasm::tests
             ASSERT_EQ(a.dq(0xABCDEF123), Error::None);
         }
 
-        ASSERT_EQ(program.serialize(0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
 
-        ASSERT_EQ(program.getSectionCount(), 3);
+        ASSERT_EQ(serializer.getSectionCount(), 3);
 
-        const auto* sectInfo01 = program.getSectionInfo(0);
+        const auto* sectInfo01 = serializer.getSectionInfo(0);
         ASSERT_NE(sectInfo01, nullptr);
         ASSERT_EQ(sectInfo01->va, 0x00400000);
         ASSERT_EQ(sectInfo01->attribs, Section::Attribs::Code);
@@ -211,7 +215,7 @@ namespace zasm::tests
         ASSERT_EQ(
             hexEncode(sectInfo01->buffer, sectInfo01->physicalSize), std::string("488D05F91F0000488D1DFA1F0000488D15FB1F0000"));
 
-        const auto* sectInfo02 = program.getSectionInfo(1);
+        const auto* sectInfo02 = serializer.getSectionInfo(1);
         ASSERT_NE(sectInfo02, nullptr);
         ASSERT_EQ(sectInfo02->va, 0x00401000);
         ASSERT_EQ(sectInfo02->attribs, Section::Attribs::Exec);
@@ -220,7 +224,7 @@ namespace zasm::tests
         ASSERT_EQ(
             hexEncode(sectInfo02->buffer, sectInfo02->physicalSize), std::string("488D05F90F0000488D1DFA0F0000488D15FB0F0000"));
 
-        const auto* sectInfo03 = program.getSectionInfo(2);
+        const auto* sectInfo03 = serializer.getSectionInfo(2);
         ASSERT_NE(sectInfo03, nullptr);
         ASSERT_EQ(sectInfo03->va, 0x00402000);
         ASSERT_EQ(sectInfo03->attribs, Section::Attribs::Data);
@@ -238,6 +242,7 @@ namespace zasm::tests
 
         Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
         Assembler a(program);
+        Serializer serializer;
 
         auto labelA = a.createLabel();
         ASSERT_EQ(labelA.isValid(), true);
@@ -258,11 +263,11 @@ namespace zasm::tests
             ASSERT_EQ(a.jmp(labelA), Error::None);
         }
 
-        ASSERT_EQ(program.serialize(0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
 
-        ASSERT_EQ(program.getSectionCount(), 2);
+        ASSERT_EQ(serializer.getSectionCount(), 2);
 
-        const auto* sectInfo01 = program.getSectionInfo(0);
+        const auto* sectInfo01 = serializer.getSectionInfo(0);
         ASSERT_NE(sectInfo01, nullptr);
         ASSERT_EQ(sectInfo01->va, 0x00400000);
         ASSERT_EQ(sectInfo01->attribs, Section::Attribs::Code);
@@ -270,7 +275,7 @@ namespace zasm::tests
         ASSERT_EQ(sectInfo01->physicalSize, 0x5);
         ASSERT_EQ(hexEncode(sectInfo01->buffer, sectInfo01->physicalSize), std::string("E9FB0F0000"));
 
-        const auto* sectInfo02 = program.getSectionInfo(1);
+        const auto* sectInfo02 = serializer.getSectionInfo(1);
         ASSERT_NE(sectInfo02, nullptr);
         ASSERT_EQ(sectInfo02->va, 0x00401000);
         ASSERT_EQ(sectInfo02->attribs, Section::Attribs::Code);
@@ -286,6 +291,7 @@ namespace zasm::tests
 
         Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
         Assembler a(program);
+        Serializer serializer;
 
         auto labelA = a.createLabel();
         ASSERT_EQ(labelA.isValid(), true);
@@ -306,11 +312,11 @@ namespace zasm::tests
             ASSERT_EQ(a.jz(labelA), Error::None);
         }
 
-        ASSERT_EQ(program.serialize(0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
 
-        ASSERT_EQ(program.getSectionCount(), 2);
+        ASSERT_EQ(serializer.getSectionCount(), 2);
 
-        const auto* sectInfo01 = program.getSectionInfo(0);
+        const auto* sectInfo01 = serializer.getSectionInfo(0);
         ASSERT_NE(sectInfo01, nullptr);
         ASSERT_EQ(sectInfo01->va, 0x00400000);
         ASSERT_EQ(sectInfo01->attribs, Section::Attribs::Code);
@@ -318,7 +324,7 @@ namespace zasm::tests
         ASSERT_EQ(sectInfo01->physicalSize, 0x6);
         ASSERT_EQ(hexEncode(sectInfo01->buffer, sectInfo01->physicalSize), std::string("0F84FA0F0000"));
 
-        const auto* sectInfo02 = program.getSectionInfo(1);
+        const auto* sectInfo02 = serializer.getSectionInfo(1);
         ASSERT_NE(sectInfo02, nullptr);
         ASSERT_EQ(sectInfo02->va, 0x00401000);
         ASSERT_EQ(sectInfo02->attribs, Section::Attribs::Code);
