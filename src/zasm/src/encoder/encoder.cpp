@@ -14,7 +14,7 @@ namespace zasm
         EncoderContext* ctx{};
         ZydisEncoderRequest req{};
         size_t operandIndex{};
-        size_t relocatableOperand{};
+        RelocKind relocKind{};
     };
 
     static constexpr int32_t kTemporaryRel32Value = 0x123456;
@@ -221,6 +221,9 @@ namespace zasm
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_IMMEDIATE;
         dst.imm.s = immValue;
 
+        // Mark relocatable.
+        state.relocKind = RelocKind::Immediate;
+
         return Error::None;
     }
 
@@ -299,8 +302,8 @@ namespace zasm
         bool reloctable = false;
         if (dst.mem.base == ZYDIS_REGISTER_NONE && dst.mem.index == ZYDIS_REGISTER_NONE)
         {
-            // Memory ABS
-            reloctable = true;
+            // Memory ABS, mark relocatable.
+            state.relocKind = RelocKind::Displacement;
         }
 
         if (dst.mem.base == ZydisRegister::ZYDIS_REGISTER_RIP)
@@ -428,10 +431,10 @@ namespace zasm
     }
 
     static Error encode_(
-        EncoderBuffer& buf, EncoderContext* ctx, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id,
+        EncoderResult& res, EncoderContext* ctx, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id,
         size_t numOps, const EncoderOperands& operands) noexcept
     {
-        buf.length = 0;
+        res.length = 0;
 
         EncoderState state{};
         state.ctx = ctx;
@@ -474,8 +477,8 @@ namespace zasm
 
         fixupIs4Operands(req);
 
-        size_t bufLen = buf.data.size();
-        switch (auto status = ZydisEncoderEncodeInstruction(&req, buf.data.data(), &bufLen); status)
+        size_t bufLen = res.data.size();
+        switch (auto status = ZydisEncoderEncodeInstruction(&req, res.data.data(), &bufLen); status)
         {
             case ZYAN_STATUS_SUCCESS:
                 break;
@@ -484,54 +487,53 @@ namespace zasm
                 return Error::ImpossibleInstruction;
         }
 
-        buf.length = static_cast<uint8_t>(bufLen);
+        res.length = static_cast<uint8_t>(bufLen);
+        res.relocKind = state.relocKind;
 
         return Error::None;
     }
 
     Error encodeEstimated(
-        EncoderBuffer& buf, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps,
+        EncoderResult& res, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps,
         const EncoderOperands& operands) noexcept
     {
-        return encode_(buf, nullptr, mode, attribs, id, numOps, operands);
+        return encode_(res, nullptr, mode, attribs, id, numOps, operands);
     }
 
     static Error encodeFull_(
-        EncoderBuffer& buf, EncoderContext& ctx, ZydisMachineMode mode, Instruction::Attribs prefixes, ZydisMnemonic id,
+        EncoderResult& res, EncoderContext& ctx, ZydisMachineMode mode, Instruction::Attribs prefixes, ZydisMnemonic id,
         size_t numOps, const EncoderOperands& operands) noexcept
     {
         // encode_ will set this to kHintRequiresSize in case a length is required for correct encoding.
         ctx.instrSize = 0;
 
-        auto res = encode_(buf, &ctx, mode, prefixes, id, numOps, operands);
-        if (res != Error::None)
+        if (auto encodeError = encode_(res, &ctx, mode, prefixes, id, numOps, operands); encodeError != Error::None)
         {
-            return res;
+            return encodeError;
         }
 
         while (ctx.instrSize == kHintRequiresSize)
         {
             // Encode with now known size, instruction size can change again in this call.
-            ctx.instrSize = buf.length;
-            res = encode_(buf, &ctx, mode, prefixes, id, numOps, operands);
-            if (res != Error::None)
+            ctx.instrSize = res.length;
+            if (auto encodeError = encode_(res, &ctx, mode, prefixes, id, numOps, operands); encodeError != Error::None)
             {
-                return res;
+                return encodeError;
             }
 
             // If the instruction size does not match what we previously specified
             // we need to re-encode it with the now known size, this can happen near
             // the limits of rel8/32 but is unlikely.
-            if (buf.length != ctx.instrSize)
+            if (res.length != ctx.instrSize)
             {
                 ctx.instrSize = kHintRequiresSize;
             }
         }
 
-        return res;
+        return Error::None;
     }
 
-    Error encodeFull(EncoderBuffer& buf, EncoderContext& ctx, ZydisMachineMode mode, const Instruction& instr) noexcept
+    Error encodeFull(EncoderResult& buf, EncoderContext& ctx, ZydisMachineMode mode, const Instruction& instr) noexcept
     {
         EncoderOperands ops{};
 

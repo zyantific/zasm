@@ -58,15 +58,4 @@ namespace zasm
         }
     };
 
-    struct SectionInfo
-    {
-        size_t index{};
-        const char* name{};
-        Section::Attribs attribs{};
-        int64_t va{};
-        const uint8_t* buffer{};
-        size_t physicalSize{};
-        size_t virtualSize{};
-    };
-
 } // namespace zasm

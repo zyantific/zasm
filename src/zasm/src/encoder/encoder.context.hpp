@@ -8,6 +8,8 @@
 
 namespace zasm
 {
+    enum class RelocKind : uint8_t;
+
     // Encoder context used for serialization by the Program.
     struct EncoderSection
     {
@@ -52,6 +54,7 @@ namespace zasm
             int64_t va;
             int32_t offset;
             int32_t length;
+            RelocKind relocKind;
         };
 
         std::vector<EncoderSection> sections;

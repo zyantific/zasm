@@ -3,14 +3,34 @@
 #include <cstdint>
 #include <zasm/core/errors.hpp>
 #include <zasm/core/expected.hpp>
+#include <zasm/encoder/encoder.hpp>
 #include <zasm/program/program.hpp>
 
 namespace zasm
 {
 
-    namespace detail {
+    namespace detail
+    {
         struct SerializerState;
     }
+
+    struct SectionInfo
+    {
+        size_t index{};
+        const char* name{};
+        Section::Attribs attribs{};
+        int64_t va{};
+        const uint8_t* buffer{};
+        size_t physicalSize{};
+        size_t virtualSize{};
+    };
+
+    struct RelocationInfo
+    {
+        uint32_t offset{};
+        uint32_t size{};
+        RelocKind kind{};
+    };
 
     class Serializer
     {
@@ -19,7 +39,6 @@ namespace zasm
     public:
         Serializer();
         ~Serializer();
-
 
         void clear();
 

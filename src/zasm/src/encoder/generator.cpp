@@ -49,7 +49,7 @@ namespace zasm
     InstrGenerator::Result InstrGenerator::generate(
         Instruction::Attribs attribs, ZydisMnemonic mnemonic, size_t numOps, EncoderOperands&& operands) noexcept
     {
-        EncoderBuffer buf{};
+        EncoderResult buf{};
 
         auto encodeResult = encodeEstimated(buf, _mode, attribs, mnemonic, numOps, operands);
         if (encodeResult != Error::None)

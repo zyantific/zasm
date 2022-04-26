@@ -3,6 +3,9 @@
 #include "../encoder/encoder.context.hpp"
 #include "../program/program.state.hpp"
 #include "zasm/core/math.hpp"
+#include "zasm/encoder/encoder.hpp"
+
+#include <Zydis/Decoder.h>
 
 namespace zasm
 {
@@ -12,15 +15,17 @@ namespace zasm
         std::vector<uint8_t> buffer;
     };
 
-    namespace detail {
+    namespace detail
+    {
 
         struct SerializerState
         {
             std::vector<SectionInfo> sections;
             std::vector<uint8_t> code;
+            std::vector<RelocationInfo> relocations;
         };
 
-    }
+    } // namespace detail
 
     static Error serializeNode(detail::ProgramState&, SerializeContext& state, const NodePoint&)
     {
@@ -45,9 +50,9 @@ namespace zasm
     {
         auto& ctx = state.ctx;
 
-        EncoderBuffer buf{};
+        EncoderResult res{};
 
-        auto status = encodeFull(buf, state.ctx, prog.mode, instr);
+        auto status = encodeFull(res, state.ctx, prog.mode, instr);
         if (status != Error::None)
         {
             return status;
@@ -57,30 +62,31 @@ namespace zasm
             auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
             if (nodeEntry.length != 0)
             {
-                if (buf.length < nodeEntry.length)
+                if (res.length < nodeEntry.length)
                 {
-                    ctx.drift += nodeEntry.length - buf.length;
+                    ctx.drift += nodeEntry.length - res.length;
                 }
-                else if (buf.length > nodeEntry.length)
+                else if (res.length > nodeEntry.length)
                 {
-                    ctx.drift -= buf.length - nodeEntry.length;
+                    ctx.drift -= res.length - nodeEntry.length;
                 }
             }
-            nodeEntry.length = buf.length;
+            nodeEntry.length = res.length;
             nodeEntry.offset = ctx.offset;
             nodeEntry.va = ctx.va;
+            nodeEntry.relocKind = res.relocKind;
 
             ctx.nodeIndex++;
         }
 
         auto& sect = ctx.sections[ctx.sectionIndex];
-        sect.rawSize += buf.length;
+        sect.rawSize += res.length;
 
-        ctx.va += buf.length;
-        ctx.offset += buf.length;
+        ctx.va += res.length;
+        ctx.offset += res.length;
 
         auto& buffer = state.buffer;
-        buffer.insert(buffer.end(), std::begin(buf.data), std::begin(buf.data) + buf.length);
+        buffer.insert(buffer.end(), std::begin(res.data), std::begin(res.data) + res.length);
 
         return Error::None;
     }
@@ -206,6 +212,10 @@ namespace zasm
         return Error::None;
     }
 
+    static Error getRelocInfo(ZydisDecoder& decoder, RelocationInfo& res)
+    {
+    }
+
     Serializer::Serializer()
         : _state(new detail::SerializerState())
     {
@@ -316,8 +326,63 @@ namespace zasm
             labelEntry.boundVA = newBase + labelLink.boundOffset;
         }
 
+        // Generate relocation data.
+        ZydisDecoder decoder;
+        ZyanStatus decoderStatus{};
+        switch (program.getMode())
+        {
+            case ZYDIS_MACHINE_MODE_LONG_64:
+                decoderStatus = ZydisDecoderInit(&decoder, program.getMode(), ZydisStackWidth::ZYDIS_STACK_WIDTH_64);
+                break;
+            case ZYDIS_MACHINE_MODE_LONG_COMPAT_32:
+            case ZYDIS_MACHINE_MODE_LEGACY_32:
+                decoderStatus = ZydisDecoderInit(&decoder, program.getMode(), ZydisStackWidth::ZYDIS_STACK_WIDTH_32);
+                break;
+            case ZYDIS_MACHINE_MODE_LONG_COMPAT_16:
+            case ZYDIS_MACHINE_MODE_LEGACY_16:
+            case ZYDIS_MACHINE_MODE_REAL_16:
+                decoderStatus = ZydisDecoderInit(&decoder, program.getMode(), ZydisStackWidth::ZYDIS_STACK_WIDTH_16);
+                break;
+            default:
+                break;
+        }
+
+        ZydisDecodedOperand instrOps[ZYDIS_MAX_OPERAND_COUNT];
+        ZydisDecodedInstruction instr;
+
+        _state->relocations.clear();
+        for (auto& node : encoderCtx.nodes)
+        {
+            if (node.relocKind == RelocKind::None)
+                continue;
+
+            const uint8_t* data = state.buffer.data() + node.offset;
+
+            decoderStatus = ZydisDecoderDecodeFull(
+                &decoder, data, node.length, &instr, instrOps, static_cast<ZyanU8>(std::size(instrOps)), 0);
+
+            RelocationInfo reloc;
+            reloc.kind = node.relocKind;
+            if(node.relocKind == RelocKind::Immediate)
+            {
+                if (instr.raw.imm[0].is_relative)
+                    continue;
+
+                reloc.offset = node.offset + instr.raw.imm[0].offset;
+                reloc.size = instr.raw.imm[0].size;
+            }
+            else if (node.relocKind == RelocKind::Displacement)
+            {
+                reloc.offset = node.offset + instr.raw.disp.offset;
+                reloc.size = instr.raw.disp.size;
+            }
+
+            _state->relocations.push_back(reloc);
+        }
+
         _state->code = std::move(state.buffer);
 
+        _state->sections.clear();
         for (auto& sectionLink : encoderCtx.sections)
         {
             const size_t idx = _state->sections.size();
