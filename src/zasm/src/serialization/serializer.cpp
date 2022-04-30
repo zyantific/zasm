@@ -6,6 +6,7 @@
 #include "zasm/encoder/encoder.hpp"
 
 #include <Zydis/Decoder.h>
+#include <cassert>
 
 namespace zasm
 {
@@ -220,10 +221,6 @@ namespace zasm
         return Error::None;
     }
 
-    static Error getRelocInfo(ZydisDecoder& decoder, RelocationInfo& res)
-    {
-    }
-
     Serializer::Serializer()
         : _state(new detail::SerializerState())
     {
@@ -374,12 +371,12 @@ namespace zasm
                     continue;
 
                 reloc.offset = node.offset + instr.raw.imm[0].offset;
-                reloc.size = instr.raw.imm[0].size;
+                reloc.size = toBitSize(instr.raw.imm[0].size);
             }
             else if (node.relocKind == RelocKind::Displacement)
             {
                 reloc.offset = node.offset + instr.raw.disp.offset;
-                reloc.size = instr.raw.disp.size;
+                reloc.size = toBitSize(instr.raw.disp.size);
             }
 
             _state->relocations.push_back(reloc);
@@ -412,12 +409,12 @@ namespace zasm
         return _state->base;
     }
 
-    size_t Serializer::getCodeSize() const
+    size_t Serializer::getCodeSize() const noexcept
     {
         return _state->code.size();
     }
 
-    const uint8_t* Serializer::getCode() const
+    const uint8_t* Serializer::getCode() const noexcept
     {
         if (_state->code.empty())
             return nullptr;
@@ -425,12 +422,12 @@ namespace zasm
         return _state->code.data();
     }
 
-    size_t Serializer::getSectionCount() const
+    size_t Serializer::getSectionCount() const noexcept
     {
         return _state->sections.size();
     }
-
-    const SectionInfo* Serializer::getSectionInfo(size_t sectionIndex) const
+     
+    const SectionInfo* Serializer::getSectionInfo(size_t sectionIndex) const noexcept
     {
         if (sectionIndex >= _state->sections.size())
             return nullptr;
@@ -438,8 +435,44 @@ namespace zasm
         return &_state->sections[sectionIndex];
     }
 
+    int64_t Serializer::getLabelOffset(const Label::Id labelId) const noexcept
+    {
+        const auto idx = static_cast<size_t>(labelId);
+        if (idx >= _state->labels.size())
+            return -1;
+
+        assert(_state->labels[idx].labelId == labelId);
+
+        return _state->labels[idx].boundOffset;
+    }
+
+    int64_t Serializer::getLabelAddress(const Label::Id labelId) const noexcept
+    {
+        const auto idx = static_cast<size_t>(labelId);
+        if (idx >= _state->labels.size())
+            return -1;
+
+        assert(_state->labels[idx].labelId == labelId);
+
+        return _state->labels[idx].boundAddress;
+    }
+
+    size_t Serializer::getRelocationCount() const noexcept
+    {
+        return _state->relocations.size();
+    }
+
+    const RelocationInfo* Serializer::getRelocation(const size_t index) const noexcept
+    {
+        if (index >= _state->relocations.size())
+            return nullptr;
+
+        return &_state->relocations[index];
+    }
+
     void Serializer::clear()
     {
+        _state->base = 0;
         _state->code.clear();
         _state->sections.clear();
         _state->labels.clear();

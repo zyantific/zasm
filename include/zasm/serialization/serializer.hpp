@@ -27,8 +27,8 @@ namespace zasm
 
     struct RelocationInfo
     {
-        uint32_t offset{};
-        uint32_t size{};
+        int64_t offset{};
+        BitSize size{};
         RelocKind kind{};
     };
 
@@ -60,7 +60,7 @@ namespace zasm
         /// this may be primarily useful if no sections are used.
         /// </summary>
         /// <returns>Size of code in bytes</returns>
-        size_t getCodeSize() const;
+        size_t getCodeSize() const noexcept;
 
         /// <summary>
         /// After a successful serialization this returns pointer to the current code buffer, this is a
@@ -68,21 +68,50 @@ namespace zasm
         /// require the per section basis data use the section functions.
         /// </summary>
         /// <returns>Pointer to code buffer</returns>
-        const uint8_t* getCode() const;
+        const uint8_t* getCode() const noexcept;
 
         /// <summary>
         /// Returns the amount of encoded sections. By default there is always at least 1 section even if
         /// no section was explicitly created.
         /// </summary>
         /// <returns>Section count</returns>
-        size_t getSectionCount() const;
+        size_t getSectionCount() const noexcept;
 
         /// <summary>
         /// Returns the information about the section after serialization.
         /// </summary>
         /// <returns>Pointer to the section info, nullptr if the index is invalid</returns>
-        const SectionInfo* getSectionInfo(size_t sectionIndex) const;
+        const SectionInfo* getSectionInfo(size_t sectionIndex) const noexcept;
 
+        /// <summary>
+        /// Returns the offset of the label, the offset is the position in the code buffer.
+        /// </summary>
+        /// <param name="labelId"></param>
+        /// <returns>Offset of label or -1 if the label is not bound or found</returns>
+        int64_t getLabelOffset(const Label::Id labelId) const noexcept;
+
+        /// <summary>
+        /// Returns the address of the label, the address is the virtual address specified by base.
+        /// </summary>
+        /// <param name="labelId"></param>
+        /// <returns>Address of label or -1 if the label is not bound or found.</returns>
+        int64_t getLabelAddress(const Label::Id labelId) const noexcept;
+
+        /// <summary>
+        /// Returns the amount of relocation items.
+        /// </summary>
+        size_t getRelocationCount() const noexcept;
+
+        /// <summary>
+        /// Returns the relocation info of the specified index.
+        /// </summary>
+        /// <param name="index">Index of the relocation item</param>
+        /// <returns>Pointer to relocation info or null in case the index does not exist</returns>
+        const RelocationInfo* getRelocation(const size_t index) const noexcept;
+
+        /// <summary>
+        /// Clears the current serialized state.
+        /// </summary>
         void clear();
     };
 
