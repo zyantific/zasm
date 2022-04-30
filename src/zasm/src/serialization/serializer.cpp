@@ -15,14 +15,22 @@ namespace zasm
         std::vector<uint8_t> buffer;
     };
 
+    struct LabelInfo
+    {
+        Label::Id labelId{ Label::Id::Invalid };
+        size_t boundOffset{};
+        size_t boundAddress{};
+    };
+
     namespace detail
     {
-
         struct SerializerState
         {
+            int64_t base{};
             std::vector<SectionInfo> sections;
             std::vector<uint8_t> code;
             std::vector<RelocationInfo> relocations;
+            std::vector<LabelInfo> labels;
         };
 
     } // namespace detail
@@ -226,12 +234,6 @@ namespace zasm
         delete _state;
     }
 
-    void Serializer::clear()
-    {
-        _state->code.clear();
-        _state->sections.clear();
-    }
-
     Error Serializer::serialize(const Program& program, int64_t newBase)
     {
         detail::ProgramState& programState = program.getState();
@@ -311,6 +313,7 @@ namespace zasm
         finalizeCurSection(state);
 
         // Update all label information.
+        _state->labels.clear();
         for (auto& labelLink : encoderCtx.labelLinks)
         {
             if (labelLink.id == Label::Id::Invalid)
@@ -321,9 +324,11 @@ namespace zasm
             {
                 return Error::InvalidLabel;
             }
-            auto& labelEntry = programState.labels[labelIdx];
+
+            auto& labelEntry = _state->labels.emplace_back();
+            labelEntry.labelId = labelLink.id;
             labelEntry.boundOffset = labelLink.boundOffset;
-            labelEntry.boundVA = newBase + labelLink.boundOffset;
+            labelEntry.boundAddress = newBase + labelLink.boundOffset;
         }
 
         // Generate relocation data.
@@ -363,7 +368,7 @@ namespace zasm
 
             RelocationInfo reloc;
             reloc.kind = node.relocKind;
-            if(node.relocKind == RelocKind::Immediate)
+            if (node.relocKind == RelocKind::Immediate)
             {
                 if (instr.raw.imm[0].is_relative)
                     continue;
@@ -397,7 +402,14 @@ namespace zasm
             sect.index = idx;
         }
 
+        _state->base = newBase;
+
         return Error::None;
+    }
+
+    int64_t Serializer::getBase() const noexcept
+    {
+        return _state->base;
     }
 
     size_t Serializer::getCodeSize() const
@@ -424,6 +436,13 @@ namespace zasm
             return nullptr;
 
         return &_state->sections[sectionIndex];
+    }
+
+    void Serializer::clear()
+    {
+        _state->code.clear();
+        _state->sections.clear();
+        _state->labels.clear();
     }
 
 } // namespace zasm

@@ -40,8 +40,6 @@ namespace zasm
         Serializer();
         ~Serializer();
 
-        void clear();
-
         /// <summary>
         /// Serializes the all the nodes in the Program to the encoder and
         /// resolves the address of each label.
@@ -49,6 +47,12 @@ namespace zasm
         /// <param name="newBase">The starting address of the program</param>
         /// <returns>If successful returns Error::None otherwise check Error value.</returns>
         Error serialize(const Program& program, int64_t newBase);
+
+        /// <summary>
+        /// Returns the last base address used in a successful serialize call.
+        /// </summary>
+        /// <returns>Current base address</returns>
+        int64_t getBase() const noexcept;
 
         /// <summary>
         /// After a successful serialization this will return the total size of all encoded nodes not
@@ -78,6 +82,8 @@ namespace zasm
         /// </summary>
         /// <returns>Pointer to the section info, nullptr if the index is invalid</returns>
         const SectionInfo* getSectionInfo(size_t sectionIndex) const;
+
+        void clear();
     };
 
 } // namespace zasm

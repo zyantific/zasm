@@ -20,12 +20,6 @@ namespace zasm::detail
 
         StringPool::Id nameId{ StringPool::Id::Invalid };
 
-        // The physical offset of the label in the buffer.
-        int64_t boundOffset{ -1 };
-
-        // Virtual address of label, the base address passed in serialize is used here.
-        int64_t boundVA{ -1 };
-
         // The node that holds/binds the label in the list.
         const zasm::Node* node{};
     };
@@ -37,19 +31,9 @@ namespace zasm::detail
         Section::Attribs attribs{};
         int32_t physicalIndex{ -1 };
         int32_t align{};
+
         // The node that holds/binds the label in the list.
         const zasm::Node* node{};
-    };
-
-    struct PhysicalSection
-    {
-        StringPool::Id nameId{ StringPool::Id::Invalid };
-        Section::Attribs attribs;
-        int64_t va;
-        size_t index;
-        size_t bufferOffset;
-        size_t rawSize;
-        size_t virtualSize;
     };
 
     struct NodeList
