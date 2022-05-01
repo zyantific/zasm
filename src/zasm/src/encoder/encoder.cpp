@@ -14,7 +14,7 @@ namespace zasm
         EncoderContext* ctx{};
         ZydisEncoderRequest req{};
         size_t operandIndex{};
-        RelocKind relocKind{};
+        RelocationKind relocKind{};
     };
 
     static constexpr int32_t kTemporaryRel32Value = 0x123456;
@@ -222,7 +222,7 @@ namespace zasm
         dst.imm.s = immValue;
 
         // Mark relocatable.
-        state.relocKind = RelocKind::Immediate;
+        state.relocKind = RelocationKind::Immediate;
 
         return Error::None;
     }
@@ -303,7 +303,7 @@ namespace zasm
         if (dst.mem.base == ZYDIS_REGISTER_NONE && dst.mem.index == ZYDIS_REGISTER_NONE)
         {
             // Memory ABS, mark relocatable.
-            state.relocKind = RelocKind::Displacement;
+            state.relocKind = RelocationKind::Displacement;
         }
 
         if (dst.mem.base == ZydisRegister::ZYDIS_REGISTER_RIP)

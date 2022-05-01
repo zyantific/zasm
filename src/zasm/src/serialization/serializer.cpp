@@ -355,7 +355,7 @@ namespace zasm
         _state->relocations.clear();
         for (auto& node : encoderCtx.nodes)
         {
-            if (node.relocKind == RelocKind::None)
+            if (node.relocKind == RelocationKind::None)
                 continue;
 
             const uint8_t* data = state.buffer.data() + node.offset;
@@ -365,7 +365,7 @@ namespace zasm
 
             RelocationInfo reloc;
             reloc.kind = node.relocKind;
-            if (node.relocKind == RelocKind::Immediate)
+            if (node.relocKind == RelocationKind::Immediate)
             {
                 if (instr.raw.imm[0].is_relative)
                     continue;
@@ -373,7 +373,7 @@ namespace zasm
                 reloc.offset = node.offset + instr.raw.imm[0].offset;
                 reloc.size = toBitSize(instr.raw.imm[0].size);
             }
-            else if (node.relocKind == RelocKind::Displacement)
+            else if (node.relocKind == RelocationKind::Displacement)
             {
                 reloc.offset = node.offset + instr.raw.disp.offset;
                 reloc.size = toBitSize(instr.raw.disp.size);

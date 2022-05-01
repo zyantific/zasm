@@ -29,7 +29,7 @@ namespace zasm
     {
         int64_t offset{};
         BitSize size{};
-        RelocKind kind{};
+        RelocationKind kind{};
     };
 
     class Serializer
