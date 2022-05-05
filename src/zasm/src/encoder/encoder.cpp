@@ -20,35 +20,6 @@ namespace zasm
     static constexpr int32_t kTemporaryRel32Value = 0x123456;
     static constexpr int32_t kHintRequiresSize = -1;
 
-    static EncoderContext::LabelLink& getOrCreateLabelLink(EncoderContext* ctx, Label::Id id)
-    {
-        const auto labelIdx = static_cast<size_t>(id);
-        if (labelIdx >= ctx->labelLinks.size())
-        {
-            ctx->labelLinks.resize(labelIdx + 1);
-
-            auto& entry = ctx->labelLinks[labelIdx];
-            entry.id = id;
-
-            return entry;
-        }
-        return ctx->labelLinks[labelIdx];
-    }
-
-    static std::optional<int64_t> getLabelAddress(EncoderContext* ctx, Label::Id id)
-    {
-        if (ctx == nullptr)
-            return std::nullopt;
-
-        const auto& entry = getOrCreateLabelLink(ctx, id);
-        if (entry.boundVA == -1)
-        {
-            return std::nullopt;
-        }
-
-        return entry.boundVA;
-    }
-
     struct EncodeVariantsInfo
     {
         bool isControlFlow{};
@@ -186,7 +157,7 @@ namespace zasm
         // context is provided.
         int64_t immValue = ctx != nullptr ? ctx->va + kTemporaryRel32Value : kTemporaryRel32Value;
 
-        auto labelVA = getLabelAddress(ctx, op.getId());
+        auto labelVA = ctx != nullptr ? ctx->getLabelAddress(op.getId()) : std::nullopt;
         if (!labelVA.has_value() && ctx != nullptr)
         {
             ctx->needsExtraPass = true;
@@ -273,7 +244,7 @@ namespace zasm
         bool usingLabel = false;
         if (auto labelId = op.getLabelId(); labelId != Label::Id::Invalid && ctx != nullptr)
         {
-            auto labelVA = getLabelAddress(ctx, labelId);
+            auto labelVA = ctx ? ctx->getLabelAddress(labelId) : std::nullopt;
             if (labelVA.has_value())
             {
                 displacement += *labelVA;

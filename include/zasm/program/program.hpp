@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data.hpp"
+#include "embeddedlabel.hpp"
 #include "label.hpp"
 #include "node.hpp"
 #include "section.hpp"
@@ -125,6 +126,7 @@ namespace zasm
         const Node* createNode(const Instruction& value);
         const Node* createNode(const Data& value);
         const Node* createNode(Data&& value);
+        const Node* createNode(EmbeddedLabel& value);
 
     public:
         /// <summary>

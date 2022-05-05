@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <vector>
 #include <zasm/core/stringpool.hpp>
 #include <zasm/program/label.hpp>
@@ -60,5 +61,31 @@ namespace zasm
         std::vector<EncoderSection> sections;
         std::vector<LabelLink> labelLinks;
         std::vector<Node> nodes;
+
+        LabelLink& getOrCreateLabelLink(Label::Id id)
+        {
+            const auto labelIdx = static_cast<size_t>(id);
+            if (labelIdx >= labelLinks.size())
+            {
+                labelLinks.resize(labelIdx + 1);
+
+                auto& entry = labelLinks[labelIdx];
+                entry.id = id;
+
+                return entry;
+            }
+            return labelLinks[labelIdx];
+        }
+
+        std::optional<int64_t> getLabelAddress(Label::Id id)
+        {
+            const auto& entry = getOrCreateLabelLink(id);
+            if (entry.boundVA == -1)
+            {
+                return std::nullopt;
+            }
+
+            return entry.boundVA;
+        }
     };
 } // namespace zasm

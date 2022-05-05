@@ -340,4 +340,60 @@ namespace zasm::tests
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::UnresolvedLabel);
     }
 
+    TEST(SerializationTests, EmbeddedLabelX64)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Assembler assembler(program);
+        Serializer serializer;
+
+        auto label01 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.embedLabel(label01), Error::None);
+
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<uint8_t, 10> expected = { 0x90, 0x90, 0x00, 0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
+    TEST(SerializationTests, EmbeddedLabelX86)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LEGACY_32);
+        Assembler assembler(program);
+        Serializer serializer;
+
+        auto label01 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.embedLabel(label01), Error::None);
+
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<uint8_t, 6> expected = { 0x90, 0x90, 0x00, 0x10, 0x40, 0x00 };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
 } // namespace zasm::tests

@@ -231,6 +231,11 @@ namespace zasm
         return createNode_(_state->nodePool, std::move(data));
     }
 
+    const zasm::Node* Program::createNode(EmbeddedLabel& value)
+    {
+        return createNode_(_state->nodePool, value);
+    }
+
     const Label Program::createLabel(const char* name /*= nullptr*/)
     {
         const auto labelId = static_cast<Label::Id>(_state->labels.size());

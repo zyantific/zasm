@@ -40,6 +40,9 @@ namespace zasm
         Error dq(uint64_t val);
         Error embed(const void* data, size_t len);
 
+        Error embedLabel(Label label);
+        Error embedLabelRel(Label label, Label relativeTo, BitSize size);
+
     public:
         template<typename... TArgs> Error emit(ZydisMnemonic id, TArgs&&... args)
         {

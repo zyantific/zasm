@@ -72,6 +72,7 @@ list(APPEND zasm_SOURCES
 	"include/zasm/decoder/decoder.hpp"
 	"include/zasm/encoder/encoder.hpp"
 	"include/zasm/program/data.hpp"
+	"include/zasm/program/embeddedlabel.hpp"
 	"include/zasm/program/formatter.hpp"
 	"include/zasm/program/immediate.hpp"
 	"include/zasm/program/instruction.hpp"

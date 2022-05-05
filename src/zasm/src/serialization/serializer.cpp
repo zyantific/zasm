@@ -221,6 +221,97 @@ namespace zasm
         return Error::None;
     }
 
+    static Error serializeNode(detail::ProgramState&, SerializeContext& state, const EmbeddedLabel& data)
+    {
+        auto& ctx = state.ctx;
+
+        int32_t byteSize = 0;
+        int64_t labelAddr = 0;
+
+        const auto label = data.getLabel();
+        if (auto addr = state.ctx.getLabelAddress(label.getId()); addr.has_value())
+        {
+            labelAddr = *addr;
+        }
+        else
+        {
+            ctx.needsExtraPass = true;
+        }
+
+        if (data.isRelative())
+        {
+            const auto relLabel = data.getRelativeLabel();
+            if (auto addr = ctx.getLabelAddress(label.getId()); addr.has_value())
+            {
+                labelAddr -= *addr;
+            }
+            else
+            {
+                ctx.needsExtraPass = true;
+            }
+        }
+
+        uint8_t tempBuf[8]{};
+
+        const auto absValue = static_cast<uint64_t>(labelAddr);
+        if (data.getSize() == BitSize::_8)
+        {
+            if (absValue >= std::numeric_limits<uint8_t>::max())
+                return Error::InvalidLabel;
+
+            const auto rawValue = static_cast<uint8_t>(absValue);
+            std::memcpy(tempBuf, &rawValue, sizeof(rawValue));
+            byteSize = 1;
+        }
+        else if (data.getSize() == BitSize::_16)
+        {
+            if (absValue >= std::numeric_limits<uint16_t>::max())
+                return Error::InvalidLabel;
+
+            const auto rawValue = static_cast<uint16_t>(absValue);
+            std::memcpy(tempBuf, &rawValue, sizeof(rawValue));
+            byteSize = 2;
+        }
+        else if (data.getSize() == BitSize::_32)
+        {
+            if (absValue >= std::numeric_limits<uint32_t>::max())
+                return Error::InvalidLabel;
+
+            const auto rawValue = static_cast<uint32_t>(absValue);
+            std::memcpy(tempBuf, &rawValue, sizeof(rawValue));
+            byteSize = 4;
+        }
+        else if (data.getSize() == BitSize::_64)
+        {
+            const auto rawValue = static_cast<uint64_t>(absValue);
+            std::memcpy(tempBuf, &rawValue, sizeof(rawValue));
+            byteSize = 8;
+        }
+        else
+        {
+            return Error::InvalidOperation;
+        }
+
+        {
+            auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
+            nodeEntry.offset = ctx.offset;
+            nodeEntry.va = ctx.va;
+            nodeEntry.length = byteSize;
+            ctx.nodeIndex++;
+        }
+
+        ctx.va += byteSize;
+        ctx.offset += byteSize;
+
+        auto& sect = ctx.sections[ctx.sectionIndex];
+        sect.rawSize += byteSize;
+
+        auto& buffer = state.buffer;
+        buffer.insert(buffer.end(), tempBuf, tempBuf + byteSize);
+
+        return Error::None;
+    }
+
     Serializer::Serializer()
         : _state(new detail::SerializerState())
     {
