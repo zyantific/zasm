@@ -299,7 +299,6 @@ namespace zasm
             }
         }
 
-        bool reloctable = false;
         if (dst.mem.base == ZYDIS_REGISTER_NONE && dst.mem.index == ZYDIS_REGISTER_NONE)
         {
             // Memory ABS, mark relocatable.

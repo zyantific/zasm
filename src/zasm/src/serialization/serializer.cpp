@@ -404,6 +404,55 @@ namespace zasm
         return Error::None;
     }
 
+    Error Serializer::relocate(int64_t newBase)
+    {
+        if (_state->code.empty())
+            return Error::EmptyState;
+
+        // Make a copy of the code buffer to avoid corrupting the
+        // state in case one of the relocations fail.
+        auto code = _state->code;
+
+        for (auto& reloc : _state->relocations)
+        {
+            if (reloc.size == BitSize::_32)
+            {
+                uint32_t value{};
+                std::memcpy(&value, code.data() + reloc.offset, sizeof(value));
+
+                uint64_t newValue = value;
+                newValue -= _state->base;
+                newValue += newBase;
+
+                if (newValue > std::numeric_limits<uint32_t>::max())
+                {
+                    return Error::ImpossibleRelocation;
+                }
+
+                value = static_cast<uint32_t>(newValue);
+                std::memcpy(code.data() + reloc.offset, &value, sizeof(value));
+            }
+            else if (reloc.size == BitSize::_64)
+            {
+                uint64_t value{};
+                std::memcpy(&value, code.data() + reloc.offset, sizeof(value));
+
+                uint64_t newValue = value;
+                newValue -= _state->base;
+                newValue += newBase;
+
+                value = static_cast<uint64_t>(newValue);
+                std::memcpy(code.data() + reloc.offset, &value, sizeof(value));
+            }
+        }
+
+        // After relocating assign updated state.
+        _state->code = std::move(code);
+        _state->base = newBase;
+
+        return Error::None;
+    }
+
     int64_t Serializer::getBase() const noexcept
     {
         return _state->base;

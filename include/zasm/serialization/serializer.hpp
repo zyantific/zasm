@@ -44,9 +44,16 @@ namespace zasm
         /// Serializes the all the nodes in the Program to the encoder and
         /// resolves the address of each label.
         /// </summary>
-        /// <param name="newBase">The starting address of the program</param>
+        /// <param name="newBase">Virtual base address at where the code starts</param>
         /// <returns>If successful returns Error::None otherwise check Error value.</returns>
         Error serialize(const Program& program, int64_t newBase);
+
+        /// <summary>
+        /// Attempts to relocate the current serialized code to the new specified base address.
+        /// </summary>
+        /// <param name="newBase">Virtual base address at where the code starts</param>
+        /// <returns>If successful returns Error::None otherwise check Error value.</returns>
+        Error relocate(int64_t newBase);
 
         /// <summary>
         /// Returns the last base address used in a successful serialize call.
