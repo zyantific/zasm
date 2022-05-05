@@ -231,7 +231,7 @@ namespace zasm
         return createNode_(_state->nodePool, std::move(data));
     }
 
-    const zasm::Node* Program::createNode(EmbeddedLabel& value)
+    const zasm::Node* Program::createNode(const EmbeddedLabel& value)
     {
         return createNode_(_state->nodePool, value);
     }

@@ -126,7 +126,7 @@ namespace zasm
         const Node* createNode(const Instruction& value);
         const Node* createNode(const Data& value);
         const Node* createNode(Data&& value);
-        const Node* createNode(EmbeddedLabel& value);
+        const Node* createNode(const EmbeddedLabel& value);
 
     public:
         /// <summary>
