@@ -170,11 +170,12 @@ namespace zasm::tests
         auto label = assembler.createLabel();
         ASSERT_EQ(assembler.bind(label), Error::None);
         ASSERT_EQ(assembler.mov(eax, dword_ptr(label)), Error::None);
+        ASSERT_EQ(assembler.embedLabel(label), Error::None);
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
         {
-            const std::array<uint8_t, 5> expected = {
-                0xA1, 0x00, 0x10, 0x40, 0x00,
+            const std::array<uint8_t, 9> expected = {
+                0xA1, 0x00, 0x10, 0x40, 0x00, 0x00, 0x10, 0x40, 0x00,
             };
             ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
@@ -185,18 +186,23 @@ namespace zasm::tests
                 ASSERT_EQ(data[i], expected[i]);
             }
 
-            ASSERT_EQ(serializer.getRelocationCount(), 1);
-            const auto* relocInfo = serializer.getRelocation(0);
-            ASSERT_EQ(relocInfo->kind, RelocationKind::Displacement);
-            ASSERT_EQ(relocInfo->size, BitSize::_32);
-            ASSERT_EQ(relocInfo->offset, 1);
+            ASSERT_EQ(serializer.getRelocationCount(), 2);
+            const auto* relocInfo01 = serializer.getRelocation(0);
+            ASSERT_EQ(relocInfo01->kind, RelocationKind::Displacement);
+            ASSERT_EQ(relocInfo01->size, BitSize::_32);
+            ASSERT_EQ(relocInfo01->offset, 1);
+
+            const auto* relocInfo02 = serializer.getRelocation(1);
+            ASSERT_EQ(relocInfo02->kind, RelocationKind::Data);
+            ASSERT_EQ(relocInfo02->size, BitSize::_32);
+            ASSERT_EQ(relocInfo02->offset, 5);
         }
 
         ASSERT_EQ(serializer.relocate(0x0000000000501000), Error::None);
 
         {
-            const std::array<uint8_t, 5> expected = {
-                0xA1, 0x00, 0x10, 0x50, 0x00,
+            const std::array<uint8_t, 9> expected = {
+                0xA1, 0x00, 0x10, 0x50, 0x00, 0x00, 0x10, 0x50, 0x00,
             };
             ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
@@ -207,11 +213,16 @@ namespace zasm::tests
                 ASSERT_EQ(data[i], expected[i]);
             }
 
-            ASSERT_EQ(serializer.getRelocationCount(), 1);
-            const auto* relocInfo = serializer.getRelocation(0);
-            ASSERT_EQ(relocInfo->kind, RelocationKind::Displacement);
-            ASSERT_EQ(relocInfo->size, BitSize::_32);
-            ASSERT_EQ(relocInfo->offset, 1);
+            ASSERT_EQ(serializer.getRelocationCount(), 2);
+            const auto* relocInfo01 = serializer.getRelocation(0);
+            ASSERT_EQ(relocInfo01->kind, RelocationKind::Displacement);
+            ASSERT_EQ(relocInfo01->size, BitSize::_32);
+            ASSERT_EQ(relocInfo01->offset, 1);
+
+            const auto* relocInfo02 = serializer.getRelocation(1);
+            ASSERT_EQ(relocInfo02->kind, RelocationKind::Data);
+            ASSERT_EQ(relocInfo02->size, BitSize::_32);
+            ASSERT_EQ(relocInfo02->offset, 5);
         }
     }
 
@@ -226,11 +237,12 @@ namespace zasm::tests
         auto label = assembler.createLabel();
         ASSERT_EQ(assembler.bind(label), Error::None);
         ASSERT_EQ(assembler.mov(rax, label), Error::None);
+        ASSERT_EQ(assembler.embedLabel(label), Error::None);
         ASSERT_EQ(serializer.serialize(program, 0x0000000401000000), Error::None);
 
         {
-            const std::array<uint8_t, 10> expected = {
-                0x48, 0xB8, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00,
+            const std::array<uint8_t, 18> expected = {
+                0x48, 0xB8, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00,
             };
             ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
@@ -241,18 +253,24 @@ namespace zasm::tests
                 ASSERT_EQ(data[i], expected[i]);
             }
 
-            ASSERT_EQ(serializer.getRelocationCount(), 1);
-            const auto* relocInfo = serializer.getRelocation(0);
-            ASSERT_EQ(relocInfo->kind, RelocationKind::Immediate);
-            ASSERT_EQ(relocInfo->size, BitSize::_64);
-            ASSERT_EQ(relocInfo->offset, 2);
+            ASSERT_EQ(serializer.getRelocationCount(), 2);
+
+            const auto* relocInfo01 = serializer.getRelocation(0);
+            ASSERT_EQ(relocInfo01->kind, RelocationKind::Immediate);
+            ASSERT_EQ(relocInfo01->size, BitSize::_64);
+            ASSERT_EQ(relocInfo01->offset, 2);
+
+            const auto* relocInfo02 = serializer.getRelocation(1);
+            ASSERT_EQ(relocInfo02->kind, RelocationKind::Data);
+            ASSERT_EQ(relocInfo02->size, BitSize::_64);
+            ASSERT_EQ(relocInfo02->offset, 10);
         }
 
         ASSERT_EQ(serializer.relocate(0x0000000501000000), Error::None);
 
         {
-            const std::array<uint8_t, 10> expected = {
-                0x48, 0xB8, 0x00, 0x00, 0x00, 0x01, 0x05, 0x00, 0x00, 0x00,
+            const std::array<uint8_t, 18> expected = {
+                0x48, 0xB8, 0x00, 0x00, 0x00, 0x01, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x05, 0x00, 0x00, 0x00,
             };
             ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
@@ -263,11 +281,17 @@ namespace zasm::tests
                 ASSERT_EQ(data[i], expected[i]);
             }
 
-            ASSERT_EQ(serializer.getRelocationCount(), 1);
-            const auto* relocInfo = serializer.getRelocation(0);
-            ASSERT_EQ(relocInfo->kind, RelocationKind::Immediate);
-            ASSERT_EQ(relocInfo->size, BitSize::_64);
-            ASSERT_EQ(relocInfo->offset, 2);
+            ASSERT_EQ(serializer.getRelocationCount(), 2);
+
+            const auto* relocInfo01 = serializer.getRelocation(0);
+            ASSERT_EQ(relocInfo01->kind, RelocationKind::Immediate);
+            ASSERT_EQ(relocInfo01->size, BitSize::_64);
+            ASSERT_EQ(relocInfo01->offset, 2);
+
+            const auto* relocInfo02 = serializer.getRelocation(1);
+            ASSERT_EQ(relocInfo02->kind, RelocationKind::Data);
+            ASSERT_EQ(relocInfo02->size, BitSize::_64);
+            ASSERT_EQ(relocInfo02->offset, 10);
         }
     }
 

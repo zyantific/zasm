@@ -297,6 +297,13 @@ namespace zasm
             nodeEntry.offset = ctx.offset;
             nodeEntry.va = ctx.va;
             nodeEntry.length = byteSize;
+
+            if (!data.isRelative())
+            {
+                // Needs to be relocatable if this is an absolute label.
+                nodeEntry.relocKind = RelocationKind::Data;
+            }
+
             ctx.nodeIndex++;
         }
 
@@ -449,25 +456,34 @@ namespace zasm
             if (node.relocKind == RelocationKind::None)
                 continue;
 
-            const uint8_t* data = state.buffer.data() + node.offset;
-
-            decoderStatus = ZydisDecoderDecodeFull(
-                &decoder, data, node.length, &instr, instrOps, static_cast<ZyanU8>(std::size(instrOps)), 0);
-
             RelocationInfo reloc;
             reloc.kind = node.relocKind;
-            if (node.relocKind == RelocationKind::Immediate)
-            {
-                if (instr.raw.imm[0].is_relative)
-                    continue;
 
-                reloc.offset = node.offset + instr.raw.imm[0].offset;
-                reloc.size = toBitSize(instr.raw.imm[0].size);
-            }
-            else if (node.relocKind == RelocationKind::Displacement)
+            if (node.relocKind == RelocationKind::Data)
             {
-                reloc.offset = node.offset + instr.raw.disp.offset;
-                reloc.size = toBitSize(instr.raw.disp.size);
+                reloc.offset = node.offset;
+                reloc.size = toBitSize(node.length * 8);
+            }
+            else
+            {
+                const uint8_t* data = state.buffer.data() + node.offset;
+
+                decoderStatus = ZydisDecoderDecodeFull(
+                    &decoder, data, node.length, &instr, instrOps, static_cast<ZyanU8>(std::size(instrOps)), 0);
+
+                if (node.relocKind == RelocationKind::Immediate)
+                {
+                    if (instr.raw.imm[0].is_relative)
+                        continue;
+
+                    reloc.offset = node.offset + instr.raw.imm[0].offset;
+                    reloc.size = toBitSize(instr.raw.imm[0].size);
+                }
+                else if (node.relocKind == RelocationKind::Displacement)
+                {
+                    reloc.offset = node.offset + instr.raw.disp.offset;
+                    reloc.size = toBitSize(instr.raw.disp.size);
+                }
             }
 
             _state->relocations.push_back(reloc);
@@ -566,7 +582,7 @@ namespace zasm
     {
         return _state->sections.size();
     }
-     
+
     const SectionInfo* Serializer::getSectionInfo(size_t sectionIndex) const noexcept
     {
         if (sectionIndex >= _state->sections.size())

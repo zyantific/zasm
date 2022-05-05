@@ -18,6 +18,7 @@ namespace zasm
         None = 0,
         Immediate,
         Displacement,
+        Data,
     };
 
     // A small buffer which holds the bytes of a single encoded instruction and the length.
