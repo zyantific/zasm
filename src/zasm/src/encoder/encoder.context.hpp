@@ -17,7 +17,7 @@ namespace zasm
         StringPool::Id nameId{};
         int32_t index{};
         int32_t offset{};
-        int64_t va{};
+        int64_t address{};
         int32_t rawSize{};
         int32_t virtualSize{};
         int32_t align{};
@@ -43,16 +43,9 @@ namespace zasm
             int64_t boundVA{ -1 };
         };
 
-        struct SectionLink
-        {
-            Section::Id id{ Section::Id::Invalid };
-            int32_t sectionIndex{ -1 };
-            int64_t boundVA{ -1 };
-        };
-
         struct Node
         {
-            int64_t va;
+            int64_t address;
             int32_t offset;
             int32_t length;
             RelocationKind relocKind;

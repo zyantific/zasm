@@ -48,7 +48,7 @@ namespace zasm
         {
             auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
             nodeEntry.offset = ctx.offset;
-            nodeEntry.va = ctx.va;
+            nodeEntry.address = ctx.va;
         }
         ctx.nodeIndex++;
 
@@ -82,7 +82,7 @@ namespace zasm
             }
             nodeEntry.length = res.length;
             nodeEntry.offset = ctx.offset;
-            nodeEntry.va = ctx.va;
+            nodeEntry.address = ctx.va;
             nodeEntry.relocKind = res.relocKind;
 
             ctx.nodeIndex++;
@@ -108,7 +108,7 @@ namespace zasm
             auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
             nodeEntry.length = 0;
             nodeEntry.offset = ctx.offset;
-            nodeEntry.va = ctx.va;
+            nodeEntry.address = ctx.va;
             ctx.nodeIndex++;
         }
 
@@ -177,7 +177,7 @@ namespace zasm
             // Add new section.
             newSect.index = static_cast<int32_t>(ctx.sections.size());
             newSect.offset = ctx.offset;
-            newSect.va = ctx.va;
+            newSect.address = ctx.va;
 
             ctx.sections.push_back(newSect);
             ctx.sectionIndex++;
@@ -187,7 +187,7 @@ namespace zasm
             auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
             nodeEntry.length = 0;
             nodeEntry.offset = ctx.offset;
-            nodeEntry.va = ctx.va;
+            nodeEntry.address = ctx.va;
             ctx.nodeIndex++;
         }
 
@@ -204,7 +204,7 @@ namespace zasm
         {
             auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
             nodeEntry.offset = ctx.offset;
-            nodeEntry.va = ctx.va;
+            nodeEntry.address = ctx.va;
             nodeEntry.length = static_cast<int32_t>(len);
             ctx.nodeIndex++;
         }
@@ -295,7 +295,7 @@ namespace zasm
         {
             auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
             nodeEntry.offset = ctx.offset;
-            nodeEntry.va = ctx.va;
+            nodeEntry.address = ctx.va;
             nodeEntry.length = byteSize;
 
             if (!data.isRelative())
@@ -345,7 +345,7 @@ namespace zasm
         EncoderSection defaultSect{};
         defaultSect.index = 0;
         defaultSect.attribs = Section::Attribs::Code;
-        defaultSect.va = newBase;
+        defaultSect.address = newBase;
         defaultSect.nameId = programState.symbolNames.aquire(".text");
         defaultSect.align = 0x1000;
 
@@ -462,6 +462,7 @@ namespace zasm
             if (node.relocKind == RelocationKind::Data)
             {
                 reloc.offset = node.offset;
+                reloc.address = node.address;
                 reloc.size = toBitSize(node.length * 8);
             }
             else
@@ -477,11 +478,13 @@ namespace zasm
                         continue;
 
                     reloc.offset = node.offset + instr.raw.imm[0].offset;
+                    reloc.address = node.address + instr.raw.imm[0].offset;
                     reloc.size = toBitSize(instr.raw.imm[0].size);
                 }
                 else if (node.relocKind == RelocationKind::Displacement)
                 {
                     reloc.offset = node.offset + instr.raw.disp.offset;
+                    reloc.address = node.address + instr.raw.disp.offset;
                     reloc.size = toBitSize(instr.raw.disp.size);
                 }
             }
@@ -499,10 +502,10 @@ namespace zasm
             auto& sect = _state->sections.emplace_back();
             sect.name = programState.symbolNames.get(sectionLink.nameId);
             sect.attribs = sectionLink.attribs;
-            sect.buffer = _state->code.data() + sectionLink.offset;
+            sect.offset = sectionLink.offset;
             sect.physicalSize = sectionLink.rawSize;
             sect.virtualSize = sectionLink.virtualSize;
-            sect.va = sectionLink.va;
+            sect.address = sectionLink.address;
             sect.index = idx;
         }
 
@@ -516,11 +519,14 @@ namespace zasm
         if (_state->code.empty())
             return Error::EmptyState;
 
+        const auto oldBase = _state->base;
+
         // Make a copy of the code buffer to avoid corrupting the
         // state in case one of the relocations fail.
         auto code = _state->code;
 
-        for (auto& reloc : _state->relocations)
+        auto relocs = _state->relocations;
+        for (auto& reloc : relocs)
         {
             if (reloc.size == BitSize::_32)
             {
@@ -528,7 +534,7 @@ namespace zasm
                 std::memcpy(&value, code.data() + reloc.offset, sizeof(value));
 
                 uint64_t newValue = value;
-                newValue -= _state->base;
+                newValue -= oldBase;
                 newValue += newBase;
 
                 if (newValue > std::numeric_limits<uint32_t>::max())
@@ -545,16 +551,38 @@ namespace zasm
                 std::memcpy(&value, code.data() + reloc.offset, sizeof(value));
 
                 uint64_t newValue = value;
-                newValue -= _state->base;
+                newValue -= oldBase;
                 newValue += newBase;
 
                 value = static_cast<uint64_t>(newValue);
                 std::memcpy(code.data() + reloc.offset, &value, sizeof(value));
             }
+
+            reloc.address -= oldBase;
+            reloc.address += newBase;
         }
 
-        // After relocating assign updated state.
+        // Adjust label addresses.
+        auto labels = _state->labels;
+        for (auto& label : labels)
+        {
+            label.boundAddress -= oldBase;
+            label.boundAddress += newBase;
+        }
+
+        // Adjust sections
+        auto sections = _state->sections;
+        for (auto& sect : sections)
+        {
+            sect.address -= oldBase;
+            sect.address += newBase;
+        }
+
+        // Update state.
         _state->code = std::move(code);
+        _state->labels = std::move(labels);
+        _state->sections = std::move(sections);
+        _state->relocations = std::move(relocs);
         _state->base = newBase;
 
         return Error::None;

@@ -232,10 +232,10 @@ static void sectionTest()
     {
         const auto* sect = serializer.getSectionInfo(i);
 
-        std::cout << ".section " << sect->name << ", VA: 0x" << std::hex << sect->va << ", VSize: 0x" << sect->virtualSize
+        std::cout << ".section " << sect->name << ", VA: 0x" << std::hex << sect->address << ", VSize: 0x" << sect->virtualSize
                   << ", Raw: 0x" << sect->physicalSize << "\n";
 
-        const auto byteDump = getHexDump(sect->buffer, sect->physicalSize);
+        const auto byteDump = getHexDump(serializer.getCode() + sect->offset, sect->physicalSize);
         std::cout << byteDump << "\n";
     }
 }

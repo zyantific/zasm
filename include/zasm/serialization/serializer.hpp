@@ -19,15 +19,16 @@ namespace zasm
         size_t index{};
         const char* name{};
         Section::Attribs attribs{};
-        int64_t va{};
-        const uint8_t* buffer{};
-        size_t physicalSize{};
-        size_t virtualSize{};
+        int32_t offset{};
+        int64_t address{};
+        int32_t physicalSize{};
+        int32_t virtualSize{};
     };
 
     struct RelocationInfo
     {
-        int64_t offset{};
+        int32_t offset{};
+        int64_t address{};
         BitSize size{};
         RelocationKind kind{};
     };
