@@ -238,10 +238,10 @@ namespace zasm
             ctx.needsExtraPass = true;
         }
 
-        if (data.isRelative())
+        if (data.isRelative() && !ctx.needsExtraPass)
         {
             const auto relLabel = data.getRelativeLabel();
-            if (auto addr = ctx.getLabelAddress(label.getId()); addr.has_value())
+            if (auto addr = ctx.getLabelAddress(relLabel.getId()); addr.has_value())
             {
                 labelAddr -= *addr;
             }
@@ -253,37 +253,37 @@ namespace zasm
 
         uint8_t tempBuf[8]{};
 
-        const auto absValue = static_cast<uint64_t>(labelAddr);
+        const auto absValue = std::abs(labelAddr);
         if (data.getSize() == BitSize::_8)
         {
-            if (absValue >= std::numeric_limits<uint8_t>::max())
+            if (!ctx.needsExtraPass && absValue >= std::numeric_limits<uint8_t>::max())
                 return Error::InvalidLabel;
 
-            const auto rawValue = static_cast<uint8_t>(absValue);
+            const auto rawValue = static_cast<int8_t>(labelAddr);
             std::memcpy(tempBuf, &rawValue, sizeof(rawValue));
             byteSize = 1;
         }
         else if (data.getSize() == BitSize::_16)
         {
-            if (absValue >= std::numeric_limits<uint16_t>::max())
+            if (!ctx.needsExtraPass && absValue >= std::numeric_limits<uint16_t>::max())
                 return Error::InvalidLabel;
 
-            const auto rawValue = static_cast<uint16_t>(absValue);
+            const auto rawValue = static_cast<int16_t>(labelAddr);
             std::memcpy(tempBuf, &rawValue, sizeof(rawValue));
             byteSize = 2;
         }
         else if (data.getSize() == BitSize::_32)
         {
-            if (absValue >= std::numeric_limits<uint32_t>::max())
+            if (!ctx.needsExtraPass && absValue >= std::numeric_limits<uint32_t>::max())
                 return Error::InvalidLabel;
 
-            const auto rawValue = static_cast<uint32_t>(absValue);
+            const auto rawValue = static_cast<int32_t>(labelAddr);
             std::memcpy(tempBuf, &rawValue, sizeof(rawValue));
             byteSize = 4;
         }
         else if (data.getSize() == BitSize::_64)
         {
-            const auto rawValue = static_cast<uint64_t>(absValue);
+            const auto rawValue = static_cast<int64_t>(labelAddr);
             std::memcpy(tempBuf, &rawValue, sizeof(rawValue));
             byteSize = 8;
         }

@@ -396,4 +396,214 @@ namespace zasm::tests
         }
     }
 
+    TEST(SerializationTests, EmbeddedLabelRel8X64)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Assembler assembler(program);
+        Serializer serializer;
+
+        auto label01 = assembler.createLabel();
+        auto label02 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.bind(label02), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.embedLabelRel(label02, label01, BitSize::_8), Error::None);
+
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<uint8_t, 3> expected = { 0x90, 0x90, 0x01 };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
+    TEST(SerializationTests, EmbeddedLabelRel8BeforeEmbedX64)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Assembler assembler(program);
+        Serializer serializer;
+
+        auto label01 = assembler.createLabel();
+        auto label02 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.embedLabelRel(label02, label01, BitSize::_8), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.bind(label02), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<uint8_t, 3> expected = { 0x02, 0x90, 0x90 };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
+    TEST(SerializationTests, EmbeddedLabelRel8BeforeEmbedNegativeX64)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Assembler assembler(program);
+        Serializer serializer;
+
+        auto label01 = assembler.createLabel();
+        auto label02 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.embedLabelRel(label01, label02, BitSize::_8), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.bind(label02), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<uint8_t, 3> expected = { 0xFE, 0x90, 0x90 };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
+    TEST(SerializationTests, EmbeddedLabelRel16BeforeEmbedX64)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Assembler assembler(program);
+        Serializer serializer;
+
+        auto label01 = assembler.createLabel();
+        auto label02 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.embedLabelRel(label02, label01, BitSize::_16), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.bind(label02), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<uint8_t, 4> expected = { 0x03, 0x00, 0x90, 0x90 };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
+    TEST(SerializationTests, EmbeddedLabelRel16BeforeEmbedNegativeX64)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Assembler assembler(program);
+        Serializer serializer;
+
+        auto label01 = assembler.createLabel();
+        auto label02 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.embedLabelRel(label01, label02, BitSize::_16), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.bind(label02), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<uint8_t, 4> expected = { 0xFD, 0xFF, 0x90, 0x90 };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
+    TEST(SerializationTests, EmbeddedLabelRel32BeforeEmbedX64)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Assembler assembler(program);
+        Serializer serializer;
+
+        auto label01 = assembler.createLabel();
+        auto label02 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.embedLabelRel(label02, label01, BitSize::_32), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.bind(label02), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<uint8_t, 6> expected = { 0x05, 0x00, 0x00, 0x00, 0x90, 0x90 };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
+    TEST(SerializationTests, EmbeddedLabelRel32BeforeEmbedNegativeX64)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Assembler assembler(program);
+        Serializer serializer;
+
+        auto label01 = assembler.createLabel();
+        auto label02 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.embedLabelRel(label01, label02, BitSize::_32), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.bind(label02), Error::None);
+        ASSERT_EQ(assembler.nop(), Error::None);
+
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<uint8_t, 6> expected = { 0xFB, 0xFF, 0xFF, 0xFF, 0x90, 0x90 };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
 } // namespace zasm::tests
