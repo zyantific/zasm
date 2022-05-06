@@ -16,11 +16,12 @@ namespace zasm::tests
 
 		Program program(ZYDIS_MACHINE_MODE_LONG_64);                                                                           
 		Assembler assembler(program);
+		Serializer serializer;
 
 		ASSERT_EQ(instrTest.emitter(assembler), Error::None) << instrTest.operation;
-		ASSERT_EQ(program.serialize(0x0000000000401000), Error::None) << instrTest.operation;
+		ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None) << instrTest.operation;
 
-		auto hexEncoded = hexEncode(program.getCode(), program.getCodeSize());
+		auto hexEncoded = hexEncode(serializer.getCode(), serializer.getCodeSize());
 		ASSERT_EQ(std::string(instrTest.instrBytes), hexEncoded) << instrTest.operation;
     }
 
@@ -41,20 +42,21 @@ namespace zasm::tests
 
         Program program(ZYDIS_MACHINE_MODE_LONG_64);
         Assembler assembler(program);
+		Serializer serializer;
 
 		for (const auto& instrEntry : data::Instructions)
 		{
 			ASSERT_EQ(instrEntry.emitter(assembler), Error::None) << instrEntry.instrBytes << ", " << instrEntry.operation;
 		}
 
-		ASSERT_EQ(program.serialize(0x0000000000401000), Error::None);
+		ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-		const uint8_t* codeBuf = program.getCode();
+		const uint8_t* codeBuf = serializer.getCode();
 		size_t offset = 0;
 		for (const auto& instrEntry : data::Instructions)
 		{
 			const auto numBytes = instrEntry.instrBytes.size() / 2;
-			ASSERT_LE(offset + numBytes, program.getCodeSize());
+			ASSERT_LE(offset + numBytes, serializer.getCodeSize());
 
 			const auto hexEncoded = hexEncode(codeBuf + offset, numBytes);
 			ASSERT_EQ(std::string(instrEntry.instrBytes), hexEncoded);

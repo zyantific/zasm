@@ -9,6 +9,7 @@ namespace zasm::benchmarks
     {
         Program program(ZYDIS_MACHINE_MODE_LONG_64);
         Assembler assembler(program);
+        Serializer serializer;
 
         for (auto _ : state)
         {
@@ -39,9 +40,9 @@ namespace zasm::benchmarks
 
             state.ResumeTiming();
 
-            program.serialize(0x00400000);
+            serializer.serialize(program, 0x00400000);
 
-            state.counters["BytesEncoded"] = benchmark::Counter(program.getCodeSize(), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1024);
+            state.counters["BytesEncoded"] = benchmark::Counter(serializer.getCodeSize(), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1024);
             state.counters["Instructions"] = benchmark::Counter(state.range(0), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
         }
     }

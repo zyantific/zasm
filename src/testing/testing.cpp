@@ -77,16 +77,17 @@ static void measureSerializePerformance()
     size_t numIterations = 1;
 
     auto tsBegin = std::chrono::high_resolution_clock::now();
+    zasm::Serializer serializer;
     for (size_t i = 0; i < kSerializationIterations; i++)
     {
-        auto serializeStatus = program.serialize(0x00007FF7B7D84DB0);
+        auto serializeStatus = serializer.serialize(program, 0x00007FF7B7D84DB0);
         if (serializeStatus != Error::None)
         {
             std::cout << "Encoder failure: " << zasm::getErrorName(serializeStatus) << "\n";
             return;
         }
 
-        bytesWritten += program.getCodeSize();
+        bytesWritten += serializer.getCodeSize();
     }
     auto tsEnd = std::chrono::high_resolution_clock::now();
 
@@ -115,9 +116,10 @@ static void quickTest()
 
     a.push(Imm(0xC11));
 
-    program.serialize(0x00007FF7B7D84DB0);
+    Serializer serializer;
+    serializer.serialize(program, 0x00007FF7B7D84DB0);
 
-    const auto codeDump = getHexDump(program.getCode(), program.getCodeSize());
+    const auto codeDump = getHexDump(serializer.getCode(), serializer.getCodeSize());
     std::cout << codeDump << "\n";
 }
 
@@ -139,7 +141,8 @@ static void quickLeakTest()
         a.push(Imm(0xC11));
         a.embed(ConstData, sizeof(ConstData));
 
-        program.serialize(0x00007FF7B7D84DB0);
+        Serializer serializer;
+        serializer.serialize(program, 0x00007FF7B7D84DB0);
     }
 }
 
@@ -184,9 +187,10 @@ static void decodeToAssembler()
         bytesDecoded += instr.getLength();
     }
 
-    program.serialize(baseAddr);
+    Serializer serializer;
+    serializer.serialize(program, baseAddr);
 
-    const auto codeDump = getHexDump(program.getCode(), program.getCodeSize());
+    const auto codeDump = getHexDump(serializer.getCode(), serializer.getCodeSize());
     std::cout << codeDump << "\n";
 }
 
@@ -219,17 +223,19 @@ static void sectionTest()
         a.dq(0xABCDEF123);
     }
 
-    auto res = program.serialize(0x00400000);
+    Serializer serializer;
+
+    auto res = serializer.serialize(program, 0x00400000);
     assert(res == Error::None);
 
-    for (size_t i = 0; i < program.getSectionCount(); ++i)
+    for (size_t i = 0; i < serializer.getSectionCount(); ++i)
     {
-        const auto* sect = program.getSectionInfo(i);
+        const auto* sect = serializer.getSectionInfo(i);
 
-        std::cout << ".section " << sect->name << ", VA: 0x" << std::hex << sect->va << ", VSize: 0x" << sect->virtualSize
+        std::cout << ".section " << sect->name << ", VA: 0x" << std::hex << sect->address << ", VSize: 0x" << sect->virtualSize
                   << ", Raw: 0x" << sect->physicalSize << "\n";
 
-        const auto byteDump = getHexDump(sect->buffer, sect->physicalSize);
+        const auto byteDump = getHexDump(serializer.getCode() + sect->offset, sect->physicalSize);
         std::cout << byteDump << "\n";
     }
 }

@@ -239,6 +239,7 @@ namespace zasm::tests
 
         Program program(ZYDIS_MACHINE_MODE_LONG_64);
         Assembler assembler(program);
+        Serializer serializer;
 
         ASSERT_EQ(assembler.mov(eax, ebx), zasm::Error::None);
         ASSERT_EQ(assembler.xor_(ebx, edx), zasm::Error::None);
@@ -254,14 +255,14 @@ namespace zasm::tests
 
         ASSERT_EQ(program.size(), 7);
 
-        ASSERT_EQ(program.serialize(0x400000), zasm::Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x400000), zasm::Error::None);
 
         const std::array<uint8_t, 18> expected = {
             0x89, 0xd8, 0x31, 0xd3, 0x83, 0xc0, 0x01, 0xf7, 0xd0, 0x83, 0xf0, 0x01, 0x89, 0x05, 0xfa, 0xff, 0xff, 0xff,
         };
-        ASSERT_EQ(program.getCodeSize(), expected.size());
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
-        const auto* data = program.getCode();
+        const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
         for (size_t i = 0; i < expected.size(); i++)
         {
@@ -269,9 +270,10 @@ namespace zasm::tests
         }
 
         program.clear();
-
         ASSERT_EQ(program.size(), 0);
-        ASSERT_EQ(program.getCodeSize(), 0);
+
+        serializer.clear();
+        ASSERT_EQ(serializer.getCodeSize(), 0);
     }
 
     TEST(ProgramTests, TestClear2)
@@ -279,6 +281,7 @@ namespace zasm::tests
         using namespace zasm::operands;
 
         Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Serializer serializer;
 
         int64_t address = 0x00400000;
         for (int i = 0; i < 1'000; i++)
@@ -319,15 +322,16 @@ namespace zasm::tests
             ASSERT_EQ(assembler.pop(rcx), zasm::Error::None);
             ASSERT_EQ(assembler.pop(rax), zasm::Error::None);
 
-            ASSERT_EQ(program.serialize(address), zasm::Error::None);
+            ASSERT_EQ(serializer.serialize(program, address), zasm::Error::None);
             address += 0x10;
 
-            ASSERT_NE(program.getCodeSize(), 0);
+            ASSERT_NE(serializer.getCodeSize(), 0);
 
-            const auto* data = program.getCode();
+            const auto* data = serializer.getCode();
             ASSERT_NE(data, nullptr);
 
             program.clear();
+            serializer.clear();
         }
     }
 

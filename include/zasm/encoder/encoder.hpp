@@ -13,13 +13,21 @@ namespace zasm
     // Encoder context used for serialization by the Program.
     struct EncoderContext;
 
+    enum class RelocationKind : uint8_t
+    {
+        None = 0,
+        Immediate,
+        Displacement,
+        Data,
+    };
+
     // A small buffer which holds the bytes of a single encoded instruction and the length.
-    struct EncoderBuffer
+    struct EncoderResult
     {
         std::array<uint8_t, 15> data{};
         uint8_t length{};
+        RelocationKind relocKind{};
     };
-    static_assert(sizeof(EncoderBuffer) == 16);
 
     using EncoderOperands = std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>;
 
@@ -28,18 +36,18 @@ namespace zasm
     // full serialization. This allows to query instruction meta data such as operand access
     // and CPU flags, this can be also used to estimate the size.
     Error encodeEstimated(
-        EncoderBuffer& buf, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps,
+        EncoderResult& buf, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps,
         const EncoderOperands& operands) noexcept;
 
     // Encodes with full context. This function still allows labels to be unbound and will not error
     // instead a temporary value be usually encoded. It is expected for the serialization to handle this
     // with multiple passes.
     Error encodeFull(
-        EncoderBuffer& buf, EncoderContext& ctx, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic mnemonic,
+        EncoderResult& buf, EncoderContext& ctx, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic mnemonic,
         size_t numOps, const EncoderOperands& operands) noexcept;
 
     // Helper function that unpacks the instruction and calls the explicit encodeFull variant.
     // Only explicit operands will be considered for the encoder request.
-    Error encodeFull(EncoderBuffer& buf, EncoderContext& ctx, ZydisMachineMode mode, const Instruction& instr) noexcept;
+    Error encodeFull(EncoderResult& buf, EncoderContext& ctx, ZydisMachineMode mode, const Instruction& instr) noexcept;
 
 } // namespace zasm

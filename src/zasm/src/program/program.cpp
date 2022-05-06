@@ -32,6 +32,12 @@ namespace zasm
         return _state->mode;
     }
 
+
+    detail::ProgramState& Program::getState() const noexcept
+    {
+        return *_state;
+    }
+
     const Node* Program::getHead() const noexcept
     {
         return _state->head;
@@ -195,9 +201,7 @@ namespace zasm
         }
 
         _state->sections.clear();
-        _state->sectionInfo.clear();
         _state->labels.clear();
-        _state->codeBuffer.clear();
         _state->symbolNames.clear();
     }
 
@@ -225,6 +229,11 @@ namespace zasm
     const Node* Program::createNode(Data&& data)
     {
         return createNode_(_state->nodePool, std::move(data));
+    }
+
+    const zasm::Node* Program::createNode(const EmbeddedLabel& value)
+    {
+        return createNode_(_state->nodePool, value);
     }
 
     const Label Program::createLabel(const char* name /*= nullptr*/)
@@ -394,30 +403,5 @@ namespace zasm
         return Error::None;
     }
 
-    size_t Program::getCodeSize() const
-    {
-        return _state->codeBuffer.size();
-    }
-
-    const uint8_t* Program::getCode() const
-    {
-        if (_state->codeBuffer.empty())
-            return nullptr;
-
-        return _state->codeBuffer.data();
-    }
-
-    size_t Program::getSectionCount() const
-    {
-        return _state->sectionInfo.size();
-    }
-
-    const SectionInfo* Program::getSectionInfo(size_t sectionIndex) const
-    {
-        if (sectionIndex >= _state->sectionInfo.size())
-            return nullptr;
-
-        return &_state->sectionInfo[sectionIndex];
-    }
 
 } // namespace zasm

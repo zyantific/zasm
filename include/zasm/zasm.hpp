@@ -5,3 +5,4 @@
 #include <zasm/decoder/decoder.hpp>
 #include <zasm/encoder/encoder.hpp>
 #include <zasm/program/program.hpp>
+#include <zasm/serialization/serializer.hpp>

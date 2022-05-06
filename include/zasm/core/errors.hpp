@@ -25,6 +25,9 @@ namespace zasm
         OutOfBounds,
         // Encoder.
         ImpossibleInstruction,
+        // Serialization.
+        EmptyState,
+        ImpossibleRelocation,
     };
 
     inline constexpr const char* getErrorName(Error err) noexcept
@@ -49,6 +52,8 @@ namespace zasm
             ERROR_STRING(Error::InvalidInstruction);
             ERROR_STRING(Error::OutOfBounds);
             ERROR_STRING(Error::ImpossibleInstruction);
+            ERROR_STRING(Error::EmptyState);
+            ERROR_STRING(Error::ImpossibleRelocation);
             default:
                 assert(false);
                 break;

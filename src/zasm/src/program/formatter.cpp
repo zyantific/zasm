@@ -74,9 +74,14 @@ namespace zasm::formatter
             }
         }
 
+        static void labelToString(Context& ctx, const Label& label)
+        {
+            ctx.format("L%u", label.getId());
+        }
+
         static void opToString(Context& ctx, const operands::Label& op)
         {
-            ctx.format("L%u", op.getId());
+            return labelToString(ctx, op);
         }
 
         static void opToString(Context& ctx, const operands::Mem& op)
@@ -169,6 +174,25 @@ namespace zasm::formatter
         {
         }
 
+        static void dataPrefix(Context& ctx, BitSize size)
+        {
+            switch (size)
+            {
+            case BitSize::_8:
+                ctx.append("db ");
+                break;
+            case BitSize::_16:
+                ctx.append("dw ");
+                break;
+            case BitSize::_32:
+                ctx.append("dd ");
+                break;
+            case BitSize::_64:
+                ctx.append("dq ");
+                break;
+            }
+        }
+
         static void nodeToString(Context& ctx, const Data& node)
         {
             if (node.getSize() == 0)
@@ -176,19 +200,23 @@ namespace zasm::formatter
 
             if (node.isU8())
             {
-                ctx.format("db 0x%02" PRIx8, node.valueAsU8());
+                dataPrefix(ctx, BitSize::_8);
+                ctx.format("0x%02" PRIx8, node.valueAsU8());
             }
             else if (node.isU16())
             {
-                ctx.format("dw 0x%04" PRIx16, node.valueAsU16());
+                dataPrefix(ctx, BitSize::_16);
+                ctx.format("0x%04" PRIx16, node.valueAsU16());
             }
             else if (node.isU32())
             {
-                ctx.format("dd 0x%08" PRIx32, node.valueAsU32());
+                dataPrefix(ctx, BitSize::_32);
+                ctx.format("0x%08" PRIx32, node.valueAsU32());
             }
             else if (node.isU64())
             {
-                ctx.format("dq 0x%016" PRIx64, node.valueAsU64());
+                dataPrefix(ctx, BitSize::_64);
+                ctx.format("0x%016" PRIx64, node.valueAsU64());
             }
             else
             {
@@ -199,7 +227,7 @@ namespace zasm::formatter
                 for (size_t i = 0; i < node.getSize(); ++i)
                 {
                     if (bytesOnLine == 0)
-                        ctx.append("db ");
+                        dataPrefix(ctx, BitSize::_8);
                     
                     if (bytesOnLine > 0)
                         ctx.append(", ");
@@ -226,6 +254,17 @@ namespace zasm::formatter
         {
             const char* str = ctx.program.getSectionName(node);
             ctx.format(".section %s", str);
+        }
+
+        static void nodeToString(Context& ctx, const EmbeddedLabel& node)
+        {
+            dataPrefix(ctx, node.getSize());
+            labelToString(ctx, node.getLabel());
+            if (node.isRelative())
+            {
+                ctx.append(" - ");
+                labelToString(ctx, node.getRelativeLabel());
+            }
         }
 
         static void nodeToString(Context& ctx, const Instruction& node)

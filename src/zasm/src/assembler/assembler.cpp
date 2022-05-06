@@ -113,4 +113,36 @@ namespace zasm
         return Error::None;
     }
 
+    Error Assembler::embedLabel(Label label)
+    {
+        BitSize size = BitSize::_0;
+        if (_program.getMode() == ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64)
+        {
+            size = BitSize::_64;
+        }
+        else if (
+            _program.getMode() == ZydisMachineMode::ZYDIS_MACHINE_MODE_LEGACY_32
+            || _program.getMode() == ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_COMPAT_32)
+        {
+            size = BitSize::_32;
+        }
+        else
+        {
+            return Error::InvalidMode;
+        }
+
+        auto* node = _program.createNode(EmbeddedLabel(label, size));
+        _cursor = _program.insertAfter(_cursor, node);
+
+        return Error::None;
+    }
+
+    Error Assembler::embedLabelRel(Label label, Label relativeTo, BitSize size)
+    {
+        auto* node = _program.createNode(EmbeddedLabel(label, relativeTo, size));
+        _cursor = _program.insertAfter(_cursor, node);
+
+        return Error::None;
+    }
+
 } // namespace zasm
