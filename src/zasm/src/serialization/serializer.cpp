@@ -423,7 +423,7 @@ namespace zasm
             auto& labelEntry = _state->labels.emplace_back();
             labelEntry.labelId = labelLink.id;
             labelEntry.boundOffset = labelLink.boundOffset;
-            labelEntry.boundAddress = newBase + labelLink.boundOffset;
+            labelEntry.boundAddress = labelLink.boundVA;
         }
 
         // Generate relocation data.
