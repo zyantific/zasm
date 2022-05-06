@@ -24,7 +24,7 @@
 
 Some of my projects were using Zydis and AsmJit where instructions where were first decoded with Zydis and then put into AsmJit's Builder to allow processing/analysing of the instructions/branches before re-encoding/relocating the modified code, there are a couple of downsides to this approach which will be explained further down. Zydis recently introduced a way to use the same structures/data it already has to encode instructions which lead to Zasm. This library aims to be a higher level assembler/decoder which can be used for various things like the previously mentioned example.
 
-A strong difference between Zasm and AsmJit is the focus on accurate instruction data such as operand access, hidden register use, correct cpu flags all of which can be either missing or wrong in AsmJit with some exceptions of course, AsmJit aims to a friendly way to generate code on the fly for lets say scripting or high performance computing. Zasm is not trying to replace AsmJit in any way, it has different goals.
+A strong difference between Zasm and AsmJit is the focus on accurate instruction data such as operand access, hidden register use, correct CPU flags all of which can be either missing or wrong in AsmJit with some exceptions of course, AsmJit aims to a friendly way to generate code on the fly for lets say scripting or high performance computing. Zasm is not trying to replace AsmJit in any way, it has different goals.
 
 The second reason for Zasm is that Zydis Encoder being extremely low level which means you don't have things like labels, Zasm provides a high level class for assembling instructions and provides labels like an ordinary assembler would.
 
@@ -51,7 +51,7 @@ Program is the container that holds all the data and also serves as a doubly lin
 The Assembler class provides generated member functions to generate instructions/data/labels into the Program at the specified cursor position. To emit ```mov rax, -1``` the equivalent would be ```asssembler.mov(operands::rax, operands::Imm(-1));```
 
 #### Serializer[![](./docs/img/pin.svg)](#serializer)
-The Serialzier class serializes the Program nodes into binary and stores the resulting state. After a successful serialization the user can query the resulting binary code and data such as the address of labels, relocation info, section data, etc.
+The Serializer class serializes the Program nodes into binary and stores the resulting state. After a successful serialization the user can query the resulting binary code and data such as the address of labels, relocation info, section data, etc.
 
 #### Decoder[![](./docs/img/pin.svg)](#decoder)
 Decodes binary data into the Instruction object which can be either directly used or stored in the Program.
