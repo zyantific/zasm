@@ -31,7 +31,7 @@ The second reason for Zasm is that Zydis Encoder being extremely low level which
 ---
 
 ## Building[![](./docs/img/pin.svg)](#building)
-Zasm uses CMake in combination with [cmkr](https://github.com/build-cpp/cmkr) to simplify the the maintenance of the CMakeLists.txt. Building should be as easy as using following commands from a terminal in the root directory:
+Zasm uses CMake in combination with [cmkr](https://github.com/build-cpp/cmkr) to simplify the maintenance of the CMakeLists.txt. Building should be as easy as using following commands from a terminal in the root directory:
 ```
 cmake . -B build
 cmake --build build --config Release
