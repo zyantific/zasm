@@ -140,7 +140,7 @@ namespace zasm
         }
 
         template<typename T>
-        constexpr bool is() const
+        constexpr bool is() const noexcept
         {
             if constexpr (std::is_same_v<T, Operand>)
             {
@@ -154,7 +154,7 @@ namespace zasm
 
         template<typename F> auto visit(F&& f) const
         {
-            return std::visit([f = std::move(f)](auto&& op) { return f(op); }, _data);
+            return std::visit(std::forward<F>(f), _data);
         }
     };
 
