@@ -1,6 +1,6 @@
 ## Project Status[![](./docs/img/pin.svg)](#project-status)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/ZehMatt/zasm/blob/master/LICENSE)
-[![CMake](https://github.com/ZehMatt/zasm/actions/workflows/build.yml/badge.svg)](https://github.com/ZehMatt/zasm/actions/workflows/build.yml)
+[![CMake](https://github.com/zyantific/zasm/actions/workflows/build.yml/badge.svg)](https://github.com/ZehMatt/zasm/actions/workflows/build.yml)
 [![Gitter](https://badges.gitter.im/zyantific/zyan-disassembler-engine.svg)](https://gitter.im/zyantific/zydis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=body_badge)
 [![Discord](https://img.shields.io/discord/390136917779415060.svg?logo=discord&label=Discord)](https://discord.zyantific.com/)
 
