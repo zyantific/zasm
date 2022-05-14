@@ -30,7 +30,8 @@ namespace zasm::operands
         }
 
         constexpr Mem(
-            BitSize bitSize, const Seg& seg, const Label& label, const Reg& base, const Reg& index, int32_t scale, int64_t disp) noexcept
+            BitSize bitSize, const Seg& seg, const Label& label, const Reg& base, const Reg& index, int32_t scale,
+            int64_t disp) noexcept
             : _bitSize{ bitSize }
             , _seg{ static_cast<Seg::Id>(seg.getId()) }
             , _base{ static_cast<Reg::Id>(base.getId()) }
@@ -97,8 +98,7 @@ namespace zasm::operands
     };
 #pragma pack(pop)
 
-    static constexpr auto SizeOfMem = sizeof(Mem);
-
+    // Default Segment.
     static constexpr Mem ptr(BitSize bitSize, const Reg& base, int32_t offset = 0) noexcept
     {
         return Mem(bitSize, Seg{}, base, {}, 0, offset);
@@ -129,6 +129,39 @@ namespace zasm::operands
         return Mem(bitSize, Seg{}, Reg{}, index, scale, base);
     }
 
+    // Explicit Segment
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Reg& base, int32_t offset = 0) noexcept
+    {
+        return Mem(bitSize, seg, base, {}, 0, offset);
+    }
+
+    static constexpr Mem ptr(
+        BitSize bitSize, const Seg& seg, const Reg& base, const Reg& index, int32_t scale, int32_t offset) noexcept
+    {
+        return Mem(bitSize, seg, base, index, scale, offset);
+    }
+
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Label& base, int32_t offset = 0) noexcept
+    {
+        return Mem(bitSize, seg, base, Reg{}, Reg{}, 0, offset);
+    }
+
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Rip& rip_, const Label& base, int32_t offset = 0) noexcept
+    {
+        return Mem(bitSize, seg, base, rip_, Reg{}, 0, offset);
+    }
+
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, int64_t base) noexcept
+    {
+        return Mem(bitSize, seg, Reg{}, Reg{}, 0, base);
+    }
+
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, int64_t base, const Reg& index, int32_t scale) noexcept
+    {
+        return Mem(bitSize, seg, Reg{}, index, scale, base);
+    }
+
+    // Generic.
     template<typename... TArgs> static Mem byte_ptr(TArgs&&... args) noexcept
     {
         return ptr(BitSize::_8, args...);
