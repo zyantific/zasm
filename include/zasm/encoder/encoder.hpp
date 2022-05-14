@@ -42,12 +42,6 @@ namespace zasm
     // Encodes with full context. This function still allows labels to be unbound and will not error
     // instead a temporary value be usually encoded. It is expected for the serialization to handle this
     // with multiple passes.
-    Error encodeFull(
-        EncoderResult& buf, EncoderContext& ctx, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic mnemonic,
-        size_t numOps, const EncoderOperands& operands) noexcept;
-
-    // Helper function that unpacks the instruction and calls the explicit encodeFull variant.
-    // Only explicit operands will be considered for the encoder request.
     Error encodeFull(EncoderResult& buf, EncoderContext& ctx, ZydisMachineMode mode, const Instruction& instr) noexcept;
 
 } // namespace zasm
