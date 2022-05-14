@@ -13,6 +13,11 @@ benchmarks = "ZASM_BUILD_BENCHMARKS"
 
 [subdir.thirdparty]
 
+[target.zasm_common]
+type = "interface"
+msvc.compile-options = ["/bigobj", "/MP"]
+alias = "zasm::common"
+
 [target.zasm]
 type = "static"
 alias = "zasm::zasm"
@@ -28,7 +33,10 @@ link-libraries = ["Zydis"]
 condition = "tests"
 type = "executable"
 sources = ["src/testing/testing.cpp"]
-link-libraries = ["zasm::zasm"]
+link-libraries = [
+    "zasm::common",
+	"zasm::zasm"
+]
 
 [target.testdata]
 condition = "tests"
@@ -39,28 +47,28 @@ include-directories = ["src/testdata"]
 [target.tests]
 condition = "tests"
 type = "executable"
-msvc.compile-options = ["/bigobj"]
 sources = [
     "src/tests/**.cpp",
     "src/tests/**.hpp",
 ]
 link-libraries = [
+    "zasm::common",
     "zasm::zasm",
-	"zasm::testdata",
+    "zasm::testdata",
     "GTest::gtest",
 ]
 
 [target.benchmarks]
 condition = "tests"
 type = "executable"
-msvc.compile-options = ["/bigobj"]
 sources = [
     "src/benchmark/**.cpp",
     "src/benchmark/**.hpp",
 ]
 link-libraries = [
+    "zasm::common",
     "zasm::zasm",
-	"zasm::testdata",
+    "zasm::testdata",
     "benchmark::benchmark",
 ]
 
