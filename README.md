@@ -1,6 +1,7 @@
-<!-- markdownlint-disable -->
 ## Project Status[![](./docs/img/pin.svg)](#project-status)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/ZehMatt/zasm/blob/master/LICENSE)
 [![CMake](https://github.com/ZehMatt/zasm/actions/workflows/build.yml/badge.svg)](https://github.com/ZehMatt/zasm/actions/workflows/build.yml)
+[![Gitter](https://badges.gitter.im/zydis-zasm/zasm.svg)](https://gitter.im/zydis-zasm/zasm?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=body_badge)
 
 ## Introduction[![](./docs/img/pin.svg)](#introduction)
 
