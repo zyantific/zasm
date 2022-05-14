@@ -22,7 +22,7 @@ namespace zasm::tests
         program.insertBefore(program.getHead(), labelNode.value());
 
         ASSERT_EQ(program.size(), 11);
-        ASSERT_EQ(program.getHead()->is<Label>(), true);
+        ASSERT_EQ(program.getHead()->holds<Label>(), true);
     }
 
     TEST(ProgramTests, NodeInsertBeforeTail)
@@ -44,7 +44,7 @@ namespace zasm::tests
         program.insertBefore(program.getTail(), labelNode.value());
 
         ASSERT_EQ(program.size(), 11);
-        ASSERT_EQ(program.getTail()->getPrev()->is<Label>(), true);
+        ASSERT_EQ(program.getTail()->getPrev()->holds<Label>(), true);
     }
 
     TEST(ProgramTests, NodeDestroyHead)
@@ -74,7 +74,7 @@ namespace zasm::tests
         {
             ASSERT_NE(node, nullptr);
 
-            const auto& instr = node->as<Instruction>();
+            const auto& instr = node->get<Instruction>();
 
             const auto& imm = instr.getOperand<1, Imm>();
             ASSERT_EQ(imm.value<int>(), i);
@@ -112,7 +112,7 @@ namespace zasm::tests
         {
             ASSERT_NE(node, nullptr);
 
-            const auto& instr = node->as<Instruction>();
+            const auto& instr = node->get<Instruction>();
 
             const auto& imm = instr.getOperand<1, Imm>();
             ASSERT_EQ(imm.value<int>(), i);
@@ -184,7 +184,7 @@ namespace zasm::tests
         {
             ASSERT_NE(node, nullptr);
 
-            const auto& instr = node->as<Instruction>();
+            const auto& instr = node->get<Instruction>();
 
             const auto& imm = instr.getOperand<1, Imm>();
             ASSERT_EQ(imm.value<int>(), NumberOrder[i]);
@@ -222,7 +222,7 @@ namespace zasm::tests
         {
             ASSERT_NE(node, nullptr);
 
-            const auto& instr = node->as<Instruction>();
+            const auto& instr = node->get<Instruction>();
 
             const auto& imm = instr.getOperand<1, Imm>();
             ASSERT_EQ(imm.value<int>(), NumberOrder[i]);

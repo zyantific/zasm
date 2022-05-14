@@ -283,7 +283,7 @@ namespace zasm::formatter
             size_t opIndex = 0;
             for (auto& op : node.getOperands())
             {
-                if (op.is<operands::None>())
+                if (op.holds<operands::None>())
                     break;
 
                 if (node.isOperandHidden(opIndex))

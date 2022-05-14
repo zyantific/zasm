@@ -75,14 +75,14 @@ namespace zasm
                 continue;
 
             const auto& opSrc = operands[i];
-            if (opSrc.is<operands::Label>())
+            if (opSrc.holds<operands::Label>())
             {
                 newOps[i] = opSrc;
             }
-            else if (const auto* opMem = opSrc.tryAs<operands::Mem>(); opMem != nullptr)
+            else if (const auto* opMem = opSrc.getIf<operands::Mem>(); opMem != nullptr)
             {
                 // FIXME: Handle labels in memory operands.
-                auto& decodedMemOp = newOps[i].as<operands::Mem>();
+                auto& decodedMemOp = newOps[i].get<operands::Mem>();
 
                 if (opMem->hasLabel())
                 {
@@ -91,7 +91,7 @@ namespace zasm
                         opMem->getScale(), opMem->getDisplacement());
                 }
             }
-            if (opSrc.is<operands::Imm>())
+            if (opSrc.holds<operands::Imm>())
             {
                 if (i == 0 && isImmediateControlFlow(decodedInstr.getId()))
                 {

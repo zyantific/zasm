@@ -75,17 +75,17 @@ namespace zasm
             return _next;
         }
 
-        template<typename T> bool is() const noexcept
+        template<typename T> bool holds() const noexcept
         {
             return std::holds_alternative<T>(_data);
         }
 
-        template<typename T> const T& as() const
+        template<typename T> const T& get() const
         {
             return std::get<T>(_data);
         }
 
-        template<typename T> const T* tryAs() const noexcept
+        template<typename T> const T* getIf() const noexcept
         {
             return std::get_if<T>(&_data);
         }
