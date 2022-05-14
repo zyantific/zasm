@@ -18,7 +18,7 @@ namespace zasm
 
     public:
         constexpr Label() noexcept = default;
-        constexpr Label(const Id id) noexcept
+        constexpr explicit Label(const Id id) noexcept
             : _id{ id }
         {
         }

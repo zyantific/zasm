@@ -30,12 +30,12 @@ namespace zasm::operands
 
     public:
         constexpr Reg() noexcept = default;
-        constexpr Reg(const ZydisRegister reg) noexcept
+        constexpr explicit Reg(const ZydisRegister reg) noexcept
             : _reg{ static_cast<Id>(reg) }
         {
         }
 #ifndef _DEBUG
-        constexpr Reg(const Id reg) noexcept
+        constexpr explicit Reg(const Id reg) noexcept
             : _reg{ reg }
         {
         }
