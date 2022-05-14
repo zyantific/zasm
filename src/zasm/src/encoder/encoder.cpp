@@ -502,7 +502,7 @@ namespace zasm
                 break;
 
             auto& op = operands[i];
-            if (op.is<operands::None>())
+            if (op.holds<operands::None>())
                 break;
 
             explicitOps++;

@@ -65,7 +65,7 @@ namespace zasm
             JI32_32_64 = ZYDIS_OPERAND_ENCODING_JIMM32_32_64,
             JI16_32_32 = ZYDIS_OPERAND_ENCODING_JIMM16_32_32,
         };
-    }
+    } // namespace detail
 
     class Operand
     {
@@ -115,7 +115,7 @@ namespace zasm
             return *this;
         }
 
-        template<typename T> const T& as() const
+        template<typename T> const T& get() const
         {
             if constexpr (std::is_same_v<T, Operand>)
             {
@@ -127,7 +127,7 @@ namespace zasm
             }
         }
 
-        template<typename T> const T* tryAs() const noexcept
+        template<typename T> const T* getIf() const noexcept
         {
             if constexpr (std::is_same_v<T, Operand>)
             {
@@ -139,8 +139,7 @@ namespace zasm
             }
         }
 
-        template<typename T>
-        constexpr bool is() const noexcept
+        template<typename T> constexpr bool holds() const noexcept
         {
             if constexpr (std::is_same_v<T, Operand>)
             {
