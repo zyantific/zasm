@@ -58,7 +58,7 @@ Decodes binary data into the Instruction object which can be either directly use
 
 ---
 
-## Examples[![](./docs/img/pin.svg)](#examples)
+## Examples[![](./docs/img/pin.svg)](#examples) [![Join the chat at https://gitter.im/zydis-zasm/zasm](https://badges.gitter.im/zydis-zasm/zasm.svg)](https://gitter.im/zydis-zasm/zasm?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 <details>
   <summary>Decode binary to Program</summary>
