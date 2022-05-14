@@ -9,6 +9,9 @@
 
 namespace zasm
 {
+    // Ensure size is correct.
+    static_assert(std::tuple_size_v<EncoderOperands> == ZYDIS_ENCODER_MAX_OPERANDS);
+
     struct EncoderState
     {
         EncoderContext* ctx{};
@@ -17,6 +20,7 @@ namespace zasm
         RelocationKind relocKind{};
     };
 
+    // NOTE: This value has to be at least larger than 0xFFFF to be used with imm32/rel32 displacement.
     static constexpr int32_t kTemporaryRel32Value = 0x123456;
     static constexpr int32_t kHintRequiresSize = -1;
 
@@ -67,7 +71,7 @@ namespace zasm
         data[ZYDIS_MNEMONIC_JZ] = EncodeVariantsInfo{ true, 2, 6 };
 
         data[ZYDIS_MNEMONIC_LOOP] = EncodeVariantsInfo{ true, 2, -1 };
-        data[ZYDIS_MNEMONIC_LOOPE] = EncodeVariantsInfo{ true, 2, -1 } ;
+        data[ZYDIS_MNEMONIC_LOOPE] = EncodeVariantsInfo{ true, 2, -1 };
         data[ZYDIS_MNEMONIC_LOOPNE] = EncodeVariantsInfo{ true, 2, -1 };
 
         data[ZYDIS_MNEMONIC_CALL] = EncodeVariantsInfo{ true, -1, 5 };

@@ -59,7 +59,7 @@ namespace zasm::operands
         constexpr uint8_t getScale() const noexcept
         {
             // In case no index is assigned scale has to be zero.
-            if (_index == ZYDIS_REGISTER_NONE)
+            if (_index == static_cast<Reg::Id>(ZYDIS_REGISTER_NONE))
                 return 0;
 
             return _scale;

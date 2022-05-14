@@ -19,7 +19,11 @@ namespace zasm::operands
 #ifdef _DEBUG
         using Id = ZydisRegister;
 #else
-        using Id = uint16_t;
+        enum class Id : int16_t
+        {
+            None = ZYDIS_REGISTER_NONE,
+            Invalid = -1,
+        };
 #endif
     protected:
         Id _reg{ ZYDIS_REGISTER_NONE };

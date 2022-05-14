@@ -1,11 +1,8 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
-#include <optional>
-#include <unordered_map>
-#include <vector>
 #include <zasm/core/errors.hpp>
-#include <zasm/core/expected.hpp>
 #include <zasm/program/instruction.hpp>
 
 namespace zasm
@@ -29,7 +26,7 @@ namespace zasm
         RelocationKind relocKind{};
     };
 
-    using EncoderOperands = std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>;
+    using EncoderOperands = std::array<Operand, 5 /* ZYDIS_ENCODER_MAX_OPERANDS */>;
 
     // This function might change some operands internally in order to encode without a context.
     // The purpose of this function is to generate instructions for the assembler before
