@@ -46,6 +46,28 @@ endif()
 add_subdirectory(thirdparty)
 set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
 
+# Target zasm_common
+set(CMKR_TARGET zasm_common)
+set(zasm_common_SOURCES "")
+
+set(CMKR_SOURCES ${zasm_common_SOURCES})
+add_library(zasm_common INTERFACE)
+
+if(zasm_common_SOURCES)
+	target_sources(zasm_common INTERFACE ${zasm_common_SOURCES})
+endif()
+
+add_library(zasm::common ALIAS zasm_common)
+if(MSVC) # msvc
+	target_compile_options(zasm_common INTERFACE
+		"/bigobj"
+		"/MP"
+	)
+endif()
+
+unset(CMKR_TARGET)
+unset(CMKR_SOURCES)
+
 # Target zasm
 set(CMKR_TARGET zasm)
 set(zasm_SOURCES "")
@@ -144,6 +166,7 @@ if(ZASM_BUILD_TESTS) # tests
 	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${testing_SOURCES})
 
 	target_link_libraries(testing PRIVATE
+		zasm::common
 		zasm::zasm
 	)
 
@@ -186,6 +209,7 @@ if(ZASM_BUILD_TESTS) # tests
 		"src/tests/tests/tests.registers.cpp"
 		"src/tests/tests/tests.relocation.cpp"
 		"src/tests/tests/tests.sections.cpp"
+		"src/tests/tests/tests.segments.cpp"
 		"src/tests/tests/tests.serialization.cpp"
 		"src/tests/tests/tests.stringpool.cpp"
 		"src/tests/testutils.cpp"
@@ -210,13 +234,8 @@ if(ZASM_BUILD_TESTS) # tests
 
 	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${tests_SOURCES})
 
-	if(MSVC) # msvc
-		target_compile_options(tests PRIVATE
-			"/bigobj"
-		)
-	endif()
-
 	target_link_libraries(tests PRIVATE
+		zasm::common
 		zasm::zasm
 		zasm::testdata
 		GTest::gtest
@@ -256,13 +275,8 @@ if(ZASM_BUILD_TESTS) # tests
 
 	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${benchmarks_SOURCES})
 
-	if(MSVC) # msvc
-		target_compile_options(benchmarks PRIVATE
-			"/bigobj"
-		)
-	endif()
-
 	target_link_libraries(benchmarks PRIVATE
+		zasm::common
 		zasm::zasm
 		zasm::testdata
 		benchmark::benchmark

@@ -19,19 +19,23 @@ namespace zasm::operands
 #ifdef _DEBUG
         using Id = ZydisRegister;
 #else
-        using Id = uint16_t;
+        enum class Id : int16_t
+        {
+            None = ZYDIS_REGISTER_NONE,
+            Invalid = -1,
+        };
 #endif
     protected:
         Id _reg{ ZYDIS_REGISTER_NONE };
 
     public:
         constexpr Reg() noexcept = default;
-        constexpr Reg(const ZydisRegister reg) noexcept
+        constexpr explicit Reg(const ZydisRegister reg) noexcept
             : _reg{ static_cast<Id>(reg) }
         {
         }
 #ifndef _DEBUG
-        constexpr Reg(const Id reg) noexcept
+        constexpr explicit Reg(const Id reg) noexcept
             : _reg{ reg }
         {
         }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "immediate.hpp"
 #include "label.hpp"
 #include "register.hpp"
 #include "zasm/core/bitsize.hpp"
@@ -18,7 +19,8 @@ namespace zasm::operands
         Label::Id _label{ Label::Id::Invalid };
 
     public:
-        constexpr Mem(BitSize bitSize, const Seg& seg, const Reg& base, const Reg& index, int32_t scale, int64_t disp) noexcept
+        constexpr explicit Mem(
+            BitSize bitSize, const Seg& seg, const Reg& base, const Reg& index, int32_t scale, int64_t disp) noexcept
             : _bitSize{ bitSize }
             , _seg{ static_cast<Seg::Id>(seg.getId()) }
             , _base{ static_cast<Reg::Id>(base.getId()) }
@@ -29,8 +31,9 @@ namespace zasm::operands
         {
         }
 
-        constexpr Mem(
-            BitSize bitSize, const Seg& seg, const Label& label, const Reg& base, const Reg& index, int32_t scale, int64_t disp) noexcept
+        constexpr explicit Mem(
+            BitSize bitSize, const Seg& seg, const Label& label, const Reg& base, const Reg& index, int32_t scale,
+            int64_t disp) noexcept
             : _bitSize{ bitSize }
             , _seg{ static_cast<Seg::Id>(seg.getId()) }
             , _base{ static_cast<Reg::Id>(base.getId()) }
@@ -59,7 +62,7 @@ namespace zasm::operands
         constexpr uint8_t getScale() const noexcept
         {
             // In case no index is assigned scale has to be zero.
-            if (_index == ZYDIS_REGISTER_NONE)
+            if (_index == static_cast<Reg::Id>(ZYDIS_REGISTER_NONE))
                 return 0;
 
             return _scale;
@@ -97,26 +100,25 @@ namespace zasm::operands
     };
 #pragma pack(pop)
 
-    static constexpr auto SizeOfMem = sizeof(Mem);
-
-    static constexpr Mem ptr(BitSize bitSize, const Reg& base, int32_t offset = 0) noexcept
+    // Default Segment.
+    static constexpr Mem ptr(BitSize bitSize, const Gp& base, int64_t disp = 0) noexcept
     {
-        return Mem(bitSize, Seg{}, base, {}, 0, offset);
+        return Mem(bitSize, Seg{}, base, {}, 0, disp);
     }
 
-    static constexpr Mem ptr(BitSize bitSize, const Reg& base, const Reg& index, int32_t scale, int32_t offset) noexcept
+    static constexpr Mem ptr(BitSize bitSize, const Gp& base, const Gp& index, int32_t scale, int64_t disp) noexcept
     {
-        return Mem(bitSize, Seg{}, base, index, scale, offset);
+        return Mem(bitSize, Seg{}, base, index, scale, disp);
     }
 
-    static constexpr Mem ptr(BitSize bitSize, const Label& base, int32_t offset = 0) noexcept
+    static constexpr Mem ptr(BitSize bitSize, const Label& base, int64_t disp = 0) noexcept
     {
-        return Mem(bitSize, Seg{}, base, Reg{}, Reg{}, 0, offset);
+        return Mem(bitSize, Seg{}, base, Reg{}, Reg{}, 0, disp);
     }
 
-    static constexpr Mem ptr(BitSize bitSize, const Rip& rip_, const Label& base, int32_t offset = 0) noexcept
+    static constexpr Mem ptr(BitSize bitSize, const Rip& rip_, const Label& base, int64_t disp = 0) noexcept
     {
-        return Mem(bitSize, Seg{}, base, rip_, Reg{}, 0, offset);
+        return Mem(bitSize, Seg{}, base, rip_, Reg{}, 0, disp);
     }
 
     static constexpr Mem ptr(BitSize bitSize, int64_t base) noexcept
@@ -124,54 +126,87 @@ namespace zasm::operands
         return Mem(bitSize, Seg{}, Reg{}, Reg{}, 0, base);
     }
 
-    static constexpr Mem ptr(BitSize bitSize, int64_t base, const Reg& index, int32_t scale) noexcept
+    static constexpr Mem ptr(BitSize bitSize, int64_t base, const Gp& index, int32_t scale) noexcept
     {
         return Mem(bitSize, Seg{}, Reg{}, index, scale, base);
     }
 
+    // Explicit Segment
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Gp& base, int64_t disp = 0) noexcept
+    {
+        return Mem(bitSize, seg, base, {}, 0, disp);
+    }
+
+    static constexpr Mem ptr(
+        BitSize bitSize, const Seg& seg, const Gp& base, const Gp& index, int32_t scale, int64_t disp) noexcept
+    {
+        return Mem(bitSize, seg, base, index, scale, disp);
+    }
+
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Label& base, int64_t disp = 0) noexcept
+    {
+        return Mem(bitSize, seg, base, Reg{}, Reg{}, 0, disp);
+    }
+
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Rip& rip_, const Label& base, int64_t disp = 0) noexcept
+    {
+        return Mem(bitSize, seg, base, rip_, Reg{}, 0, disp);
+    }
+
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, int64_t disp) noexcept
+    {
+        return Mem(bitSize, seg, Reg{}, Reg{}, 0, disp);
+    }
+
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, int64_t base, const Gp& index, int32_t scale) noexcept
+    {
+        return Mem(bitSize, seg, Reg{}, index, scale, base);
+    }
+
+    // Generic.
     template<typename... TArgs> static Mem byte_ptr(TArgs&&... args) noexcept
     {
-        return ptr(BitSize::_8, args...);
+        return ptr(BitSize::_8, std::forward<TArgs>(args)...);
     };
     template<typename... TArgs> static Mem word_ptr(TArgs&&... args) noexcept
     {
-        return ptr(BitSize::_16, args...);
+        return ptr(BitSize::_16, std::forward<TArgs>(args)...);
     };
     template<typename... TArgs> static Mem dword_ptr(TArgs&&... args) noexcept
     {
-        return ptr(BitSize::_32, args...);
+        return ptr(BitSize::_32, std::forward<TArgs>(args)...);
     };
     template<typename... TArgs> static Mem fword_ptr(TArgs&&... args) noexcept
     {
-        return ptr(BitSize::_48, args...);
+        return ptr(BitSize::_48, std::forward<TArgs>(args)...);
     };
     template<typename... TArgs> static Mem qword_ptr(TArgs&&... args) noexcept
     {
-        return ptr(BitSize::_64, args...);
+        return ptr(BitSize::_64, std::forward<TArgs>(args)...);
     };
     template<typename... TArgs> static Mem tbyte_ptr(TArgs&&... args) noexcept
     {
-        return ptr(BitSize::_80, args...);
+        return ptr(BitSize::_80, std::forward<TArgs>(args)...);
     };
     template<typename... TArgs> static Mem tword_ptr(TArgs&&... args) noexcept
     {
-        return ptr(BitSize::_80, args...);
+        return ptr(BitSize::_80, std::forward<TArgs>(args)...);
     };
     template<typename... TArgs> static Mem oword_ptr(TArgs&&... args) noexcept
     {
-        return ptr(BitSize::_128, args...);
+        return ptr(BitSize::_128, std::forward<TArgs>(args)...);
     };
     template<typename... TArgs> static Mem xmmword_ptr(TArgs&&... args) noexcept
     {
-        return ptr(BitSize::_128, args...);
+        return ptr(BitSize::_128, std::forward<TArgs>(args)...);
     };
     template<typename... TArgs> static Mem ymmword_ptr(TArgs&&... args) noexcept
     {
-        return ptr(BitSize::_256, args...);
+        return ptr(BitSize::_256, std::forward<TArgs>(args)...);
     };
     template<typename... TArgs> static Mem zmmword_ptr(TArgs&&... args) noexcept
     {
-        return ptr(BitSize::_512, args...);
+        return ptr(BitSize::_512, std::forward<TArgs>(args)...);
     };
 
 } // namespace zasm::operands
