@@ -11,7 +11,7 @@ BENCHMARK_USE_BUNDLED_GTEST = false
 
 [fetch-content.Zydis]
 git = "https://github.com/zyantific/zydis"
-tag = "91742f4"
+tag = "9b88291"
 
 [fetch-content.GTest]
 condition = "tests"
