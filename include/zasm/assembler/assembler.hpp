@@ -441,7 +441,7 @@ namespace zasm
         Error f2xm1();
         Error fabs();
         Error fadd(const operands::St& a, const operands::St& b);
-        Error fadd(const operands::St& a, const operands::Mem& b);
+        Error fadd(const operands::Mem& b);
         Error faddp(const operands::St& a, const operands::St& b);
         Error fbld(const operands::St& a, const operands::Mem& b);
         Error fbstp(const operands::Mem& a, const operands::St& b);
