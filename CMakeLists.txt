@@ -295,7 +295,7 @@ if(ZASM_BUILD_TESTS) # tests
 		WORKING_DIRECTORY
 			"${CMAKE_CURRENT_LIST_DIR}/"
 		COMMAND
-			$<TARGET_FILE:tests>
+			"$<TARGET_FILE:tests>"
 	)
 
 endif()

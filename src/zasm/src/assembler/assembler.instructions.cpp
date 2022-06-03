@@ -1383,9 +1383,9 @@ namespace zasm
     {
         return emit(ZYDIS_MNEMONIC_FADD, a, b);
     }
-    Error Assembler::fadd(const operands::St& a, const operands::Mem& b)
+    Error Assembler::fadd(const operands::Mem& b)
     {
-        return emit(ZYDIS_MNEMONIC_FADD, a, b);
+        return emit(ZYDIS_MNEMONIC_FADD, b);
     }
     Error Assembler::faddp(const operands::St& a, const operands::St& b)
     {
