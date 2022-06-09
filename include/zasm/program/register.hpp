@@ -378,8 +378,6 @@ namespace zasm::operands
         using Reg::Reg;
     };
 
-    static constexpr auto SizeOfReg = sizeof(Reg);
-
     // General purpose registers  8-bit
     static constexpr Gp8 al(ZYDIS_REGISTER_AL);
     static constexpr Gp8 cl(ZYDIS_REGISTER_CL);
