@@ -32,7 +32,6 @@ namespace zasm
         return _state->mode;
     }
 
-
     detail::ProgramState& Program::getState() const noexcept
     {
         return *_state;
@@ -60,7 +59,7 @@ namespace zasm
         if (head != nullptr)
             head->setPrev(node);
         else
-            tail = node;
+            _state->tail = node;
 
         _state->head = node;
         _state->nodeCount++;
@@ -94,7 +93,9 @@ namespace zasm
     const Node* Program::insertBefore(const Node* p, const Node* n) noexcept
     {
         auto* pos = detail::toInternal(p);
-        if (pos == _state->head || pos == nullptr)
+        if (pos == nullptr)
+            return nullptr; // Impossible placement.
+        if (pos == _state->head)
             return prepend(n);
 
         auto* pre = detail::toInternal(pos->getPrev());
@@ -114,7 +115,9 @@ namespace zasm
     const Node* Program::insertAfter(const Node* p, const Node* n) noexcept
     {
         auto* pos = detail::toInternal(p);
-        if (pos == _state->tail || pos == nullptr)
+        if (pos == nullptr)
+            return prepend(n);
+        if (pos == _state->tail)
             return append(n);
 
         auto* next = detail::toInternal(pos->getNext());
@@ -402,6 +405,5 @@ namespace zasm
 
         return Error::None;
     }
-
 
 } // namespace zasm
