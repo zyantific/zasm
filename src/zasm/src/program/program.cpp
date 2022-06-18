@@ -59,7 +59,7 @@ namespace zasm
         if (head != nullptr)
             head->setPrev(node);
         else
-            tail = node;
+            _state->tail = node;
 
         _state->head = node;
         _state->nodeCount++;
