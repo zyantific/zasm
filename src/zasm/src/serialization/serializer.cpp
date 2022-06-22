@@ -44,7 +44,7 @@ namespace zasm
             return false;
 
         const auto& entry = prog.labels[idx];
-        if ((entry.flags & detail::LabelFlags::External) != detail::LabelFlags::None)
+        if ((entry.flags & LabelFlags::External) != LabelFlags::None)
             return true;
 
         return false;

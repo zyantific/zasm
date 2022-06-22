@@ -96,7 +96,7 @@ namespace zasm
             return false;
 
         auto& data = state->labels[idx];
-        if ((data.flags & detail::LabelFlags::External) != detail::LabelFlags::None)
+        if ((data.flags & LabelFlags::External) != LabelFlags::None)
         {
             return true;
         }
@@ -323,6 +323,10 @@ namespace zasm
             // Memory ABS, mark relocatable.
             state.relocKind = RelocationType::Abs;
             state.relocData = RelocationData::Memory;
+            if (usingLabel)
+            {
+                state.relocLabel = op.getLabelId();
+            }
         }
         else if (dst.mem.base == ZydisRegister::ZYDIS_REGISTER_RIP)
         {

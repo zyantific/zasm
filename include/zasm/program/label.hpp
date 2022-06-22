@@ -4,7 +4,6 @@
 
 namespace zasm
 {
-
     class Label
     {
     public:

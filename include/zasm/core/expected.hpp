@@ -66,6 +66,14 @@ namespace zasm
         {
             return std::get<TSuccess>(data);
         }
+        constexpr TSuccess* operator->()
+        {
+            return &std::get<TSuccess>(data);
+        }
+        constexpr const TSuccess* operator->() const
+        {
+            return &std::get<TSuccess>(data);
+        }
     };
 
     template<typename T> constexpr ::zasm::detail::Unexpected<T> makeUnexpected(const T& val) noexcept
@@ -73,4 +81,4 @@ namespace zasm
         return ::zasm::detail::Unexpected<T>(val);
     }
 
-} // namespace xstd
+} // namespace zasm
