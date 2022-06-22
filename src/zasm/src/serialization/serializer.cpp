@@ -37,6 +37,19 @@ namespace zasm
 
     } // namespace detail
 
+    static bool isLabelExternal(detail::ProgramState& prog, Label::Id id)
+    {
+        const auto idx = static_cast<size_t>(id);
+        if (idx >= prog.labels.size())
+            return false;
+
+        const auto& entry = prog.labels[idx];
+        if ((entry.flags & detail::LabelFlags::External) != detail::LabelFlags::None)
+            return true;
+
+        return false;
+    }
+
     static Error serializeNode(detail::ProgramState&, SerializeContext& state, const NodePoint&)
     {
         auto& ctx = state.ctx;
@@ -224,7 +237,7 @@ namespace zasm
         return Error::None;
     }
 
-    static Error serializeNode(detail::ProgramState&, SerializeContext& state, const EmbeddedLabel& data)
+    static Error serializeNode(detail::ProgramState& program, SerializeContext& state, const EmbeddedLabel& data)
     {
         auto& ctx = state.ctx;
 
@@ -238,7 +251,10 @@ namespace zasm
         }
         else
         {
-            ctx.needsExtraPass = true;
+            if (!isLabelExternal(program, label.getId()))
+            {
+                ctx.needsExtraPass = true;
+            }
         }
 
         if (data.isRelative() && !ctx.needsExtraPass)
@@ -393,8 +409,8 @@ namespace zasm
 
         // Check if all labels were bound, a link entry is added when it encounters a label.
         const bool hasUnresolvedLinks = std::any_of(
-            std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks), [&program](auto&& link) {
-                return !program.isLabelExternal(Label{ link.id }) && link.id != Label::Id::Invalid && link.boundOffset == -1;
+            std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks), [&programState](auto&& link) {
+                return !isLabelExternal(programState, link.id) && link.id != Label::Id::Invalid && link.boundOffset == -1;
             });
         if (hasUnresolvedLinks)
         {
@@ -469,7 +485,7 @@ namespace zasm
             bool isExternal = false;
             if (reloc.label != Label::Id::Invalid)
             {
-                isExternal = program.isLabelExternal(Label{ reloc.label });
+                isExternal = isLabelExternal(programState, reloc.label);
             }
 
             if (node.relocData == RelocationData::Data)
