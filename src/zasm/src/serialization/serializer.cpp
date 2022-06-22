@@ -84,6 +84,8 @@ namespace zasm
             nodeEntry.offset = ctx.offset;
             nodeEntry.address = ctx.va;
             nodeEntry.relocKind = res.relocKind;
+            nodeEntry.relocData = res.relocData;
+            nodeEntry.relocLabel = res.relocLabel;
 
             ctx.nodeIndex++;
         }
@@ -252,6 +254,7 @@ namespace zasm
         }
 
         uint8_t tempBuf[8]{};
+        RelocationType relocKind = RelocationType::Abs;
 
         const auto absValue = std::abs(labelAddr);
         if (data.getSize() == BitSize::_8)
@@ -292,19 +295,19 @@ namespace zasm
             return Error::InvalidOperation;
         }
 
+        auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
+        ctx.nodeIndex++;
+
+        nodeEntry.offset = ctx.offset;
+        nodeEntry.address = ctx.va;
+        nodeEntry.length = byteSize;
+
+        if (!data.isRelative())
         {
-            auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
-            nodeEntry.offset = ctx.offset;
-            nodeEntry.address = ctx.va;
-            nodeEntry.length = byteSize;
-
-            if (!data.isRelative())
-            {
-                // Needs to be relocatable if this is an absolute label.
-                nodeEntry.relocKind = RelocationKind::Data;
-            }
-
-            ctx.nodeIndex++;
+            // Needs to be relocatable if this is an absolute label.
+            nodeEntry.relocKind = relocKind;
+            nodeEntry.relocData = RelocationData::Data;
+            nodeEntry.relocLabel = label.getId();
         }
 
         ctx.va += byteSize;
@@ -334,6 +337,7 @@ namespace zasm
         detail::ProgramState& programState = program.getState();
 
         EncoderContext encoderCtx{};
+        encoderCtx.program = &program.getState();
         encoderCtx.nodes.resize(program.size());
         encoderCtx.baseVA = newBase;
 
@@ -388,8 +392,9 @@ namespace zasm
 
         // Check if all labels were bound, a link entry is added when it encounters a label.
         const bool hasUnresolvedLinks = std::any_of(
-            std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks),
-            [](auto&& link) { return link.id != Label::Id::Invalid && link.boundOffset == -1; });
+            std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks), [&program](auto&& link) {
+                return !program.isLabelExternal(Label{ link.id }) && link.id != Label::Id::Invalid && link.boundOffset == -1;
+            });
         if (hasUnresolvedLinks)
         {
             return Error::UnresolvedLabel;
@@ -453,13 +458,19 @@ namespace zasm
         _state->relocations.clear();
         for (auto& node : encoderCtx.nodes)
         {
-            if (node.relocKind == RelocationKind::None)
+            if (node.relocKind == RelocationType::None)
                 continue;
 
             RelocationInfo reloc;
             reloc.kind = node.relocKind;
+            reloc.label = node.relocLabel;
 
-            if (node.relocKind == RelocationKind::Data)
+            if (reloc.label != Label::Id::Invalid)
+            {
+                reloc.isExternal = program.isLabelExternal(Label{ reloc.label });
+            }
+
+            if (node.relocData == RelocationData::Data)
             {
                 reloc.offset = node.offset;
                 reloc.address = node.address;
@@ -472,7 +483,7 @@ namespace zasm
                 decoderStatus = ZydisDecoderDecodeFull(
                     &decoder, data, node.length, &instr, instrOps, static_cast<ZyanU8>(std::size(instrOps)), 0);
 
-                if (node.relocKind == RelocationKind::Immediate)
+                if (node.relocData == RelocationData::Immediate)
                 {
                     if (instr.raw.imm[0].is_relative)
                         continue;
@@ -481,7 +492,7 @@ namespace zasm
                     reloc.address = node.address + instr.raw.imm[0].offset;
                     reloc.size = toBitSize(instr.raw.imm[0].size);
                 }
-                else if (node.relocKind == RelocationKind::Displacement)
+                else if (node.relocData == RelocationData::Memory)
                 {
                     reloc.offset = node.offset + instr.raw.disp.offset;
                     reloc.address = node.address + instr.raw.disp.offset;

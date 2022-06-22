@@ -30,7 +30,7 @@ namespace zasm::tests
 
         ASSERT_EQ(serializer.getRelocationCount(), 1);
         const auto* relocInfo = serializer.getRelocation(0);
-        ASSERT_EQ(relocInfo->kind, RelocationKind::Displacement);
+        ASSERT_EQ(relocInfo->kind, RelocationType::Abs);
         ASSERT_EQ(relocInfo->address, 0x0000000000401004);
         ASSERT_EQ(relocInfo->size, BitSize::_32);
         ASSERT_EQ(relocInfo->offset, 4);
@@ -61,7 +61,7 @@ namespace zasm::tests
 
         ASSERT_EQ(serializer.getRelocationCount(), 1);
         const auto* relocInfo = serializer.getRelocation(0);
-        ASSERT_EQ(relocInfo->kind, RelocationKind::Displacement);
+        ASSERT_EQ(relocInfo->kind, RelocationType::Abs);
         ASSERT_EQ(relocInfo->address, 0x0000000000401002);
         ASSERT_EQ(relocInfo->size, BitSize::_32);
         ASSERT_EQ(relocInfo->offset, 2);
@@ -94,7 +94,7 @@ namespace zasm::tests
 
         ASSERT_EQ(serializer.getRelocationCount(), 1);
         const auto* relocInfo = serializer.getRelocation(0);
-        ASSERT_EQ(relocInfo->kind, RelocationKind::Immediate);
+        ASSERT_EQ(relocInfo->kind, RelocationType::Abs);
         ASSERT_EQ(relocInfo->address, 0x0000000000401001);
         ASSERT_EQ(relocInfo->size, BitSize::_32);
         ASSERT_EQ(relocInfo->offset, 1);
@@ -127,7 +127,7 @@ namespace zasm::tests
 
         ASSERT_EQ(serializer.getRelocationCount(), 1);
         const auto* relocInfo = serializer.getRelocation(0);
-        ASSERT_EQ(relocInfo->kind, RelocationKind::Immediate);
+        ASSERT_EQ(relocInfo->kind, RelocationType::Abs);
         ASSERT_EQ(relocInfo->address, 0x0000000401000002);
         ASSERT_EQ(relocInfo->size, BitSize::_64);
         ASSERT_EQ(relocInfo->offset, 2);
@@ -160,7 +160,7 @@ namespace zasm::tests
 
         ASSERT_EQ(serializer.getRelocationCount(), 1);
         const auto* relocInfo = serializer.getRelocation(0);
-        ASSERT_EQ(relocInfo->kind, RelocationKind::Displacement);
+        ASSERT_EQ(relocInfo->kind, RelocationType::Abs);
         ASSERT_EQ(relocInfo->address, 0x0000000000401001);
         ASSERT_EQ(relocInfo->size, BitSize::_32);
         ASSERT_EQ(relocInfo->offset, 1);
@@ -195,13 +195,13 @@ namespace zasm::tests
 
             ASSERT_EQ(serializer.getRelocationCount(), 2);
             const auto* relocInfo01 = serializer.getRelocation(0);
-            ASSERT_EQ(relocInfo01->kind, RelocationKind::Displacement);
+            ASSERT_EQ(relocInfo01->kind, RelocationType::Abs);
             ASSERT_EQ(relocInfo01->address, 0x0000000000401001);
             ASSERT_EQ(relocInfo01->size, BitSize::_32);
             ASSERT_EQ(relocInfo01->offset, 1);
 
             const auto* relocInfo02 = serializer.getRelocation(1);
-            ASSERT_EQ(relocInfo02->kind, RelocationKind::Data);
+            ASSERT_EQ(relocInfo02->kind, RelocationType::Abs);
             ASSERT_EQ(relocInfo02->address, 0x0000000000401005);
             ASSERT_EQ(relocInfo02->size, BitSize::_32);
             ASSERT_EQ(relocInfo02->offset, 5);
@@ -224,13 +224,13 @@ namespace zasm::tests
 
             ASSERT_EQ(serializer.getRelocationCount(), 2);
             const auto* relocInfo01 = serializer.getRelocation(0);
-            ASSERT_EQ(relocInfo01->kind, RelocationKind::Displacement);
+            ASSERT_EQ(relocInfo01->kind, RelocationType::Abs);
             ASSERT_EQ(relocInfo01->address, 0x0000000000501001);
             ASSERT_EQ(relocInfo01->size, BitSize::_32);
             ASSERT_EQ(relocInfo01->offset, 1);
 
             const auto* relocInfo02 = serializer.getRelocation(1);
-            ASSERT_EQ(relocInfo02->kind, RelocationKind::Data);
+            ASSERT_EQ(relocInfo02->kind, RelocationType::Abs);
             ASSERT_EQ(relocInfo02->address, 0x0000000000501005);
             ASSERT_EQ(relocInfo02->size, BitSize::_32);
             ASSERT_EQ(relocInfo02->offset, 5);
@@ -267,13 +267,13 @@ namespace zasm::tests
             ASSERT_EQ(serializer.getRelocationCount(), 2);
 
             const auto* relocInfo01 = serializer.getRelocation(0);
-            ASSERT_EQ(relocInfo01->kind, RelocationKind::Immediate);
+            ASSERT_EQ(relocInfo01->kind, RelocationType::Abs);
             ASSERT_EQ(relocInfo01->address, 0x0000000401000002);
             ASSERT_EQ(relocInfo01->size, BitSize::_64);
             ASSERT_EQ(relocInfo01->offset, 2);
 
             const auto* relocInfo02 = serializer.getRelocation(1);
-            ASSERT_EQ(relocInfo02->kind, RelocationKind::Data);
+            ASSERT_EQ(relocInfo02->kind, RelocationType::Abs);
             ASSERT_EQ(relocInfo02->address, 0x000000040100000a);
             ASSERT_EQ(relocInfo02->size, BitSize::_64);
             ASSERT_EQ(relocInfo02->offset, 10);
@@ -297,13 +297,13 @@ namespace zasm::tests
             ASSERT_EQ(serializer.getRelocationCount(), 2);
 
             const auto* relocInfo01 = serializer.getRelocation(0);
-            ASSERT_EQ(relocInfo01->kind, RelocationKind::Immediate);
+            ASSERT_EQ(relocInfo01->kind, RelocationType::Abs);
             ASSERT_EQ(relocInfo01->address, 0x0000000501000002);
             ASSERT_EQ(relocInfo01->size, BitSize::_64);
             ASSERT_EQ(relocInfo01->offset, 2);
 
             const auto* relocInfo02 = serializer.getRelocation(1);
-            ASSERT_EQ(relocInfo02->kind, RelocationKind::Data);
+            ASSERT_EQ(relocInfo02->kind, RelocationType::Abs);
             ASSERT_EQ(relocInfo02->address, 0x000000050100000a);
             ASSERT_EQ(relocInfo02->size, BitSize::_64);
             ASSERT_EQ(relocInfo02->offset, 10);

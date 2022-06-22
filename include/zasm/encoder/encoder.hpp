@@ -10,11 +10,18 @@ namespace zasm
     // Encoder context used for serialization by the Program.
     struct EncoderContext;
 
-    enum class RelocationKind : uint8_t
+    enum class RelocationType : uint8_t
+    {
+        None = 0,
+        Abs,
+        Rel32,
+    };
+
+    enum class RelocationData : uint8_t
     {
         None = 0,
         Immediate,
-        Displacement,
+        Memory,
         Data,
     };
 
@@ -23,7 +30,9 @@ namespace zasm
     {
         std::array<uint8_t, 15> data{};
         uint8_t length{};
-        RelocationKind relocKind{};
+        RelocationType relocKind{};
+        RelocationData relocData{};
+        Label::Id relocLabel{ Label::Id::Invalid };
     };
 
     using EncoderOperands = std::array<Operand, 5 /* ZYDIS_ENCODER_MAX_OPERANDS */>;

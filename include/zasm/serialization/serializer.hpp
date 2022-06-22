@@ -30,7 +30,9 @@ namespace zasm
         int32_t offset{};
         int64_t address{};
         BitSize size{};
-        RelocationKind kind{};
+        RelocationType kind{};
+        Label::Id label{ Label::Id::Invalid };
+        bool isExternal{};
     };
 
     class Serializer

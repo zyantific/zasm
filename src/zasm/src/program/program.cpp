@@ -239,18 +239,25 @@ namespace zasm
         return createNode_(_state->nodePool, value);
     }
 
-    const Label Program::createLabel(const char* name /*= nullptr*/)
+    static Label createLabel_(detail::ProgramState* state, const char* name, detail::LabelFlags flags)
     {
-        const auto labelId = static_cast<Label::Id>(_state->labels.size());
+        const auto labelId = static_cast<Label::Id>(state->labels.size());
 
-        auto& entry = _state->labels.emplace_back();
+        auto& entry = state->labels.emplace_back();
         entry.id = labelId;
+        entry.flags = flags;
+
         if (name != nullptr)
         {
-            entry.nameId = _state->symbolNames.aquire(name);
+            entry.nameId = state->symbolNames.aquire(name);
         }
 
         return Label{ labelId };
+    }
+
+    const Label Program::createLabel(const char* name /*= nullptr*/)
+    {
+        return createLabel_(_state, name, detail::LabelFlags::None);
     }
 
     Expected<const Node*, Error> Program::bindLabel(const Label& label)
@@ -262,6 +269,11 @@ namespace zasm
         }
 
         auto& entry = _state->labels[entryIdx];
+        if ((entry.flags & detail::LabelFlags::External) != detail::LabelFlags::None)
+        {
+            return makeUnexpected(Error::ExternalLabelNotBindable);
+        }
+
         if (entry.node != nullptr)
         {
             return makeUnexpected(Error::LabelAlreadyBound);
@@ -271,6 +283,26 @@ namespace zasm
         entry.node = node;
 
         return node;
+    }
+
+    const Label Program::createExternalLabel(const char* name /*= nullptr*/)
+    {
+        return createLabel_(_state, name, detail::LabelFlags::External);
+    }
+
+    bool Program::isLabelExternal(const Label& label) const noexcept
+    {
+        if (!label.isValid())
+            return false;
+
+        const auto entryIdx = static_cast<size_t>(label.getId());
+        if (entryIdx >= _state->labels.size())
+        {
+            return false;
+        }
+
+        auto& entry = _state->labels[entryIdx];
+        return (entry.flags & detail::LabelFlags::External) != detail::LabelFlags::None;
     }
 
     template<typename T> Data createDataInline(const void* ptr)

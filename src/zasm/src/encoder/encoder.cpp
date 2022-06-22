@@ -1,5 +1,6 @@
 #include "zasm/encoder/encoder.hpp"
 
+#include "../program/program.state.hpp"
 #include "encoder.context.hpp"
 
 #include <Zydis/Decoder.h>
@@ -17,7 +18,9 @@ namespace zasm
         EncoderContext* ctx{};
         ZydisEncoderRequest req{};
         size_t operandIndex{};
-        RelocationKind relocKind{};
+        RelocationType relocKind{};
+        RelocationData relocData{};
+        Label::Id relocLabel{ Label::Id::Invalid };
     };
 
     // NOTE: This value has to be at least larger than 0xFFFF to be used with imm32/rel32 displacement.
@@ -84,6 +87,21 @@ namespace zasm
     static const EncodeVariantsInfo& getEncodeVariantInfo(ZydisMnemonic mnemonic) noexcept
     {
         return encoderVariantData[mnemonic];
+    }
+
+    static bool isLabelExternal(detail::ProgramState* state, Label::Id id)
+    {
+        size_t idx = static_cast<size_t>(id);
+        if (idx >= state->labels.size())
+            return false;
+
+        auto& data = state->labels[idx];
+        if ((data.flags & detail::LabelFlags::External) != detail::LabelFlags::None)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     static int64_t getRelativeAddress(int64_t va, int64_t target, int32_t instrSize) noexcept
@@ -166,10 +184,14 @@ namespace zasm
         // context is provided.
         int64_t immValue = ctx != nullptr ? ctx->va + kTemporaryRel32Value : kTemporaryRel32Value;
 
-        auto labelVA = ctx != nullptr ? ctx->getLabelAddress(op.getId()) : std::nullopt;
-        if (!labelVA.has_value() && ctx != nullptr)
+        std::optional<int64_t> labelVA;
+        if (ctx != nullptr && !isLabelExternal(ctx->program, op.getId()))
         {
-            ctx->needsExtraPass = true;
+            labelVA = ctx != nullptr ? ctx->getLabelAddress(op.getId()) : std::nullopt;
+            if (!labelVA.has_value() && ctx != nullptr)
+            {
+                ctx->needsExtraPass = true;
+            }
         }
 
         // Check if this operand is used as the control flow target.
@@ -191,6 +213,17 @@ namespace zasm
             {
                 immValue = *labelVA;
             }
+
+            // Mark relocatable, only mov is allowed to have a label.
+            if (state.req.mnemonic == ZYDIS_MNEMONIC_MOV)
+            {
+                if (state.req.operands[0].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER)
+                {
+                    state.relocKind = RelocationType::Abs;
+                    state.relocData = RelocationData::Immediate;
+                    state.relocLabel = op.getId();
+                }
+            }
         }
 
         if (desiredBranchType != ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE)
@@ -200,9 +233,6 @@ namespace zasm
 
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_IMMEDIATE;
         dst.imm.s = immValue;
-
-        // Mark relocatable.
-        state.relocKind = RelocationKind::Immediate;
 
         return Error::None;
     }
@@ -251,6 +281,8 @@ namespace zasm
         const auto va = ctx ? ctx->va : 0;
 
         bool usingLabel = false;
+        bool externalLabel = false;
+
         if (auto labelId = op.getLabelId(); labelId != Label::Id::Invalid)
         {
             if (ctx != nullptr)
@@ -265,6 +297,7 @@ namespace zasm
                     displacement += kTemporaryRel32Value;
                     ctx->needsExtraPass = true;
                 }
+                externalLabel = isLabelExternal(ctx->program, labelId);
             }
             else
             {
@@ -286,10 +319,10 @@ namespace zasm
         if (dst.mem.base == ZYDIS_REGISTER_NONE && dst.mem.index == ZYDIS_REGISTER_NONE)
         {
             // Memory ABS, mark relocatable.
-            state.relocKind = RelocationKind::Displacement;
+            state.relocKind = RelocationType::Abs;
+            state.relocData = RelocationData::Memory;
         }
-
-        if (dst.mem.base == ZydisRegister::ZYDIS_REGISTER_RIP)
+        else if (dst.mem.base == ZydisRegister::ZYDIS_REGISTER_RIP)
         {
             // We require the exact instruction size to encode this correctly.
             const auto instrSize = ctx ? ctx->instrSize : 0;
@@ -300,6 +333,13 @@ namespace zasm
             }
 
             displacement = displacement - (va + instrSize);
+
+            if (ctx != nullptr && usingLabel && isLabelExternal(ctx->program, op.getLabelId()))
+            {
+                state.relocKind = RelocationType::Rel32;
+                state.relocData = RelocationData::Memory;
+                state.relocLabel = op.getLabelId();
+            }
         }
 
         dst.mem.displacement = displacement;
@@ -449,6 +489,8 @@ namespace zasm
 
         res.length = static_cast<uint8_t>(bufLen);
         res.relocKind = state.relocKind;
+        res.relocData = state.relocData;
+        res.relocLabel = state.relocLabel;
 
         return Error::None;
     }

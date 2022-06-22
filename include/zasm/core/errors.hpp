@@ -18,6 +18,7 @@ namespace zasm
         UnresolvedLabel,
         InvalidLabel,
         LabelAlreadyBound,
+        ExternalLabelNotBindable,
         SectionNotFound,
         SectionAlreadyBound,
         // Decoder.

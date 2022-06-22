@@ -145,6 +145,21 @@ namespace zasm
         Expected<const Node*, Error> bindLabel(const Label& label);
 
         /// <summary>
+        /// Creates a new named external label that can be referenced and later
+        /// patched by relocation items to modify the address.
+        /// </summary>
+        /// <param name="name">Optional label name, pass null for none.</param>
+        /// <returns>Label</returns>
+        const Label createExternalLabel(const char* name = nullptr);
+
+        /// <summary>
+        /// Returns if the specified label is an external label.
+        /// </summary>
+        /// <param name="label">Label to check</param>
+        /// <returns>True if label is external</returns>
+        bool isLabelExternal(const Label& label) const noexcept;
+
+        /// <summary>
         /// Creates a Data object that can be stored in a Node. The data object
         /// can hold up to 32 bytes of data before it will use the heap.
         /// </summary>
