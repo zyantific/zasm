@@ -31,6 +31,7 @@ namespace zasm
             std::vector<SectionInfo> sections;
             std::vector<uint8_t> code;
             std::vector<RelocationInfo> relocations;
+            std::vector<RelocationInfo> externalRelocations;
             std::vector<LabelInfo> labels;
         };
 
@@ -465,9 +466,10 @@ namespace zasm
             reloc.kind = node.relocKind;
             reloc.label = node.relocLabel;
 
+            bool isExternal = false;
             if (reloc.label != Label::Id::Invalid)
             {
-                reloc.isExternal = program.isLabelExternal(Label{ reloc.label });
+                isExternal = program.isLabelExternal(Label{ reloc.label });
             }
 
             if (node.relocData == RelocationData::Data)
@@ -500,7 +502,7 @@ namespace zasm
                 }
             }
 
-            if (reloc.isExternal)
+            if (isExternal)
             {
                 // Zero out the temporary value to make it easier to spot unpatched values.
                 constexpr const uint8_t temp[sizeof(uint64_t)]{};
@@ -512,9 +514,13 @@ namespace zasm
                     std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint32_t));
                 else if (reloc.size == BitSize::_64)
                     std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint64_t));
-            }
 
-            _state->relocations.push_back(reloc);
+                _state->externalRelocations.push_back(reloc);
+            }
+            else
+            {
+                _state->relocations.push_back(reloc);
+            }
         }
 
         _state->code = std::move(state.buffer);
@@ -587,6 +593,14 @@ namespace zasm
             reloc.address += newBase;
         }
 
+        // Adjust external relocations.
+        auto externalRelocs = _state->externalRelocations;
+        for (auto& reloc : externalRelocs)
+        {
+            reloc.address -= oldBase;
+            reloc.address += newBase;
+        }
+
         // Adjust label addresses.
         auto labels = _state->labels;
         for (auto& label : labels)
@@ -608,6 +622,7 @@ namespace zasm
         _state->labels = std::move(labels);
         _state->sections = std::move(sections);
         _state->relocations = std::move(relocs);
+        _state->externalRelocations = std::move(externalRelocs);
         _state->base = newBase;
 
         return Error::None;
@@ -677,6 +692,19 @@ namespace zasm
             return nullptr;
 
         return &_state->relocations[index];
+    }
+
+    size_t Serializer::getExternalRelocationCount() const noexcept
+    {
+        return _state->externalRelocations.size();
+    }
+
+    const zasm::RelocationInfo* Serializer::getExternalRelocation(const size_t index) const noexcept
+    {
+        if (index >= _state->externalRelocations.size())
+            return nullptr;
+
+        return &_state->externalRelocations[index];
     }
 
     void Serializer::clear()
