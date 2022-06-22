@@ -9,7 +9,13 @@
 
 namespace zasm
 {
-    enum class RelocationKind : uint8_t;
+    enum class RelocationType : uint8_t;
+    enum class RelocationData : uint8_t;
+
+    namespace detail
+    {
+        class ProgramState;
+    }
 
     // Encoder context used for serialization by the Program.
     struct EncoderSection
@@ -26,6 +32,7 @@ namespace zasm
 
     struct EncoderContext
     {
+        detail::ProgramState* program{};
         bool needsExtraPass{};
         size_t nodeIndex{};
         size_t sectionIndex{};
@@ -45,10 +52,12 @@ namespace zasm
 
         struct Node
         {
-            int64_t address;
-            int32_t offset;
-            int32_t length;
-            RelocationKind relocKind;
+            int64_t address{};
+            int32_t offset{};
+            int32_t length{};
+            RelocationType relocKind{};
+            RelocationData relocData{};
+            Label::Id relocLabel{ Label::Id::Invalid };
         };
 
         std::vector<EncoderSection> sections;

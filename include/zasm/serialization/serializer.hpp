@@ -30,7 +30,8 @@ namespace zasm
         int32_t offset{};
         int64_t address{};
         BitSize size{};
-        RelocationKind kind{};
+        RelocationType kind{};
+        Label::Id label{ Label::Id::Invalid };
     };
 
     class Serializer
@@ -116,6 +117,19 @@ namespace zasm
         /// <param name="index">Index of the relocation item</param>
         /// <returns>Pointer to relocation info or null in case the index does not exist</returns>
         const RelocationInfo* getRelocation(const size_t index) const noexcept;
+
+        /// <summary>
+        /// Returns the amount of external relocation items.
+        /// </summary>
+        size_t getExternalRelocationCount() const noexcept;
+
+        /// <summary>
+        /// Returns the external relocation info of the specified index.
+        /// </summary>
+        /// <param name="index">Index of the relocation item</param>
+        /// <returns>Pointer to relocation info or null in case the index does not exist</returns>
+        const RelocationInfo* getExternalRelocation(const size_t index) const noexcept;
+
 
         /// <summary>
         /// Clears the current serialized state.

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "zasm/core/enumflags.hpp"
 #include "zasm/core/objectpool.hpp"
 #include "zasm/core/stringpool.hpp"
 #include "zasm/encoder/encoder.hpp"
@@ -14,10 +15,17 @@ namespace zasm::detail
 {
     constexpr size_t PoolSize = 1u << 10;
 
+    enum class LabelFlags : uint32_t
+    {
+        None = 0,
+        External = (1u << 0),
+    };
+    ZASM_ENABLE_ENUM_OPERATORS(LabelFlags);
+
     struct LabelData
     {
         Label::Id id{ Label::Id::Invalid };
-
+        LabelFlags flags{ LabelFlags::None };
         StringPool::Id nameId{ StringPool::Id::Invalid };
 
         // The node that holds/binds the label in the list.

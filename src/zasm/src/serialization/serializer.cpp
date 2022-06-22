@@ -31,10 +31,24 @@ namespace zasm
             std::vector<SectionInfo> sections;
             std::vector<uint8_t> code;
             std::vector<RelocationInfo> relocations;
+            std::vector<RelocationInfo> externalRelocations;
             std::vector<LabelInfo> labels;
         };
 
     } // namespace detail
+
+    static bool isLabelExternal(detail::ProgramState& prog, Label::Id id)
+    {
+        const auto idx = static_cast<size_t>(id);
+        if (idx >= prog.labels.size())
+            return false;
+
+        const auto& entry = prog.labels[idx];
+        if ((entry.flags & detail::LabelFlags::External) != detail::LabelFlags::None)
+            return true;
+
+        return false;
+    }
 
     static Error serializeNode(detail::ProgramState&, SerializeContext& state, const NodePoint&)
     {
@@ -84,6 +98,8 @@ namespace zasm
             nodeEntry.offset = ctx.offset;
             nodeEntry.address = ctx.va;
             nodeEntry.relocKind = res.relocKind;
+            nodeEntry.relocData = res.relocData;
+            nodeEntry.relocLabel = res.relocLabel;
 
             ctx.nodeIndex++;
         }
@@ -221,7 +237,7 @@ namespace zasm
         return Error::None;
     }
 
-    static Error serializeNode(detail::ProgramState&, SerializeContext& state, const EmbeddedLabel& data)
+    static Error serializeNode(detail::ProgramState& program, SerializeContext& state, const EmbeddedLabel& data)
     {
         auto& ctx = state.ctx;
 
@@ -235,7 +251,10 @@ namespace zasm
         }
         else
         {
-            ctx.needsExtraPass = true;
+            if (!isLabelExternal(program, label.getId()))
+            {
+                ctx.needsExtraPass = true;
+            }
         }
 
         if (data.isRelative() && !ctx.needsExtraPass)
@@ -252,6 +271,7 @@ namespace zasm
         }
 
         uint8_t tempBuf[8]{};
+        RelocationType relocKind = RelocationType::Abs;
 
         const auto absValue = std::abs(labelAddr);
         if (data.getSize() == BitSize::_8)
@@ -292,19 +312,19 @@ namespace zasm
             return Error::InvalidOperation;
         }
 
+        auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
+        ctx.nodeIndex++;
+
+        nodeEntry.offset = ctx.offset;
+        nodeEntry.address = ctx.va;
+        nodeEntry.length = byteSize;
+
+        if (!data.isRelative())
         {
-            auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
-            nodeEntry.offset = ctx.offset;
-            nodeEntry.address = ctx.va;
-            nodeEntry.length = byteSize;
-
-            if (!data.isRelative())
-            {
-                // Needs to be relocatable if this is an absolute label.
-                nodeEntry.relocKind = RelocationKind::Data;
-            }
-
-            ctx.nodeIndex++;
+            // Needs to be relocatable if this is an absolute label.
+            nodeEntry.relocKind = relocKind;
+            nodeEntry.relocData = RelocationData::Data;
+            nodeEntry.relocLabel = label.getId();
         }
 
         ctx.va += byteSize;
@@ -334,6 +354,7 @@ namespace zasm
         detail::ProgramState& programState = program.getState();
 
         EncoderContext encoderCtx{};
+        encoderCtx.program = &program.getState();
         encoderCtx.nodes.resize(program.size());
         encoderCtx.baseVA = newBase;
 
@@ -388,8 +409,9 @@ namespace zasm
 
         // Check if all labels were bound, a link entry is added when it encounters a label.
         const bool hasUnresolvedLinks = std::any_of(
-            std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks),
-            [](auto&& link) { return link.id != Label::Id::Invalid && link.boundOffset == -1; });
+            std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks), [&programState](auto&& link) {
+                return !isLabelExternal(programState, link.id) && link.id != Label::Id::Invalid && link.boundOffset == -1;
+            });
         if (hasUnresolvedLinks)
         {
             return Error::UnresolvedLabel;
@@ -453,13 +475,20 @@ namespace zasm
         _state->relocations.clear();
         for (auto& node : encoderCtx.nodes)
         {
-            if (node.relocKind == RelocationKind::None)
+            if (node.relocKind == RelocationType::None)
                 continue;
 
             RelocationInfo reloc;
             reloc.kind = node.relocKind;
+            reloc.label = node.relocLabel;
 
-            if (node.relocKind == RelocationKind::Data)
+            bool isExternal = false;
+            if (reloc.label != Label::Id::Invalid)
+            {
+                isExternal = isLabelExternal(programState, reloc.label);
+            }
+
+            if (node.relocData == RelocationData::Data)
             {
                 reloc.offset = node.offset;
                 reloc.address = node.address;
@@ -472,7 +501,7 @@ namespace zasm
                 decoderStatus = ZydisDecoderDecodeFull(
                     &decoder, data, node.length, &instr, instrOps, static_cast<ZyanU8>(std::size(instrOps)), 0);
 
-                if (node.relocKind == RelocationKind::Immediate)
+                if (node.relocData == RelocationData::Immediate)
                 {
                     if (instr.raw.imm[0].is_relative)
                         continue;
@@ -481,7 +510,7 @@ namespace zasm
                     reloc.address = node.address + instr.raw.imm[0].offset;
                     reloc.size = toBitSize(instr.raw.imm[0].size);
                 }
-                else if (node.relocKind == RelocationKind::Displacement)
+                else if (node.relocData == RelocationData::Memory)
                 {
                     reloc.offset = node.offset + instr.raw.disp.offset;
                     reloc.address = node.address + instr.raw.disp.offset;
@@ -489,7 +518,25 @@ namespace zasm
                 }
             }
 
-            _state->relocations.push_back(reloc);
+            if (isExternal)
+            {
+                // Zero out the temporary value to make it easier to spot unpatched values.
+                constexpr const uint8_t temp[sizeof(uint64_t)]{};
+                if (reloc.size == BitSize::_8)
+                    std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint8_t));
+                else if (reloc.size == BitSize::_16)
+                    std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint16_t));
+                else if (reloc.size == BitSize::_32)
+                    std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint32_t));
+                else if (reloc.size == BitSize::_64)
+                    std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint64_t));
+
+                _state->externalRelocations.push_back(reloc);
+            }
+            else
+            {
+                _state->relocations.push_back(reloc);
+            }
         }
 
         _state->code = std::move(state.buffer);
@@ -562,6 +609,14 @@ namespace zasm
             reloc.address += newBase;
         }
 
+        // Adjust external relocations.
+        auto externalRelocs = _state->externalRelocations;
+        for (auto& reloc : externalRelocs)
+        {
+            reloc.address -= oldBase;
+            reloc.address += newBase;
+        }
+
         // Adjust label addresses.
         auto labels = _state->labels;
         for (auto& label : labels)
@@ -583,6 +638,7 @@ namespace zasm
         _state->labels = std::move(labels);
         _state->sections = std::move(sections);
         _state->relocations = std::move(relocs);
+        _state->externalRelocations = std::move(externalRelocs);
         _state->base = newBase;
 
         return Error::None;
@@ -652,6 +708,19 @@ namespace zasm
             return nullptr;
 
         return &_state->relocations[index];
+    }
+
+    size_t Serializer::getExternalRelocationCount() const noexcept
+    {
+        return _state->externalRelocations.size();
+    }
+
+    const zasm::RelocationInfo* Serializer::getExternalRelocation(const size_t index) const noexcept
+    {
+        if (index >= _state->externalRelocations.size())
+            return nullptr;
+
+        return &_state->externalRelocations[index];
     }
 
     void Serializer::clear()
