@@ -23,6 +23,9 @@ type = "static"
 alias = "zasm::zasm"
 sources = [
     "src/zasm/**.cpp",
+]
+headers = [
+	"src/zasm/**.hpp",
     "include/zasm/**.hpp",
 ]
 include-directories = ["include"]
@@ -49,6 +52,8 @@ condition = "tests"
 type = "executable"
 sources = [
     "src/tests/**.cpp",
+]
+headers = [
     "src/tests/**.hpp",
 ]
 link-libraries = [
@@ -63,6 +68,8 @@ condition = "tests"
 type = "executable"
 sources = [
     "src/benchmark/**.cpp",
+]
+headers = [
     "src/benchmark/**.hpp",
 ]
 link-libraries = [
