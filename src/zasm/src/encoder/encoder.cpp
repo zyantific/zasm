@@ -287,6 +287,8 @@ namespace zasm
         {
             if (ctx != nullptr)
             {
+                externalLabel = isLabelExternal(ctx->program, labelId);
+
                 auto labelVA = ctx->getLabelAddress(labelId);
                 if (labelVA.has_value())
                 {
@@ -295,9 +297,9 @@ namespace zasm
                 else
                 {
                     displacement += kTemporaryRel32Value;
-                    ctx->needsExtraPass = true;
+                    if (!externalLabel)
+                        ctx->needsExtraPass = true;
                 }
-                externalLabel = isLabelExternal(ctx->program, labelId);
             }
             else
             {
@@ -334,7 +336,7 @@ namespace zasm
 
             displacement = displacement - (va + instrSize);
 
-            if (ctx != nullptr && usingLabel && isLabelExternal(ctx->program, op.getLabelId()))
+            if (externalLabel)
             {
                 state.relocKind = RelocationType::Rel32;
                 state.relocData = RelocationData::Memory;

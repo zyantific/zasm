@@ -500,6 +500,20 @@ namespace zasm
                 }
             }
 
+            if (reloc.isExternal)
+            {
+                // Zero out the temporary value to make it easier to spot unpatched values.
+                constexpr const uint8_t temp[sizeof(uint64_t)]{};
+                if (reloc.size == BitSize::_8)
+                    std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint8_t));
+                else if (reloc.size == BitSize::_16)
+                    std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint16_t));
+                else if (reloc.size == BitSize::_32)
+                    std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint32_t));
+                else if (reloc.size == BitSize::_64)
+                    std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint64_t));
+            }
+
             _state->relocations.push_back(reloc);
         }
 
