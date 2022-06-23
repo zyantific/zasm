@@ -340,6 +340,92 @@ namespace zasm::tests
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::UnresolvedLabel);
     }
 
+    TEST(SerializationTests, UnBoundLabelRegression01)
+    {
+        using namespace zasm::operands;
+
+        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Assembler a(program);
+        Serializer serializer;
+
+        Label labelMain = a.createLabel("main");
+        Label labelData01 = a.createLabel("data01");
+        Label labelData02 = a.createLabel("data02");
+        Label labelData03 = a.createLabel("data03");
+        Label labelData04 = a.createLabel("data04");
+        Label labelData05 = a.createLabel("data05");
+        Label labelRData01 = a.createLabel("rdata01");
+        Label labelRData02 = a.createLabel("rdata02");
+        Label labelRData03 = a.createLabel("rdata03");
+        Label labelRData04 = a.createLabel("rdata04");
+        Label labelRData05 = a.createLabel("rdata05");
+        Label labelStrTitle = a.createLabel("strTitle");
+        Label labelStrMessage = a.createLabel("strMessage");
+        Label labelImpExitProcess = program.getOrCreateImportLabel("kernel32.dll", "ExitProcess");
+        Label labelImpMessageBoxA = program.getOrCreateImportLabel("user32.dll", "MessageBoxA");
+
+        ASSERT_EQ(a.section(".text", Section::Attribs::Code | Section::Attribs::Exec | Section::Attribs::Read), Error::None);
+        ASSERT_EQ(a.bind(labelMain), Error::None);
+        ASSERT_EQ(a.sub(rsp, Imm(0x28)), Error::None);
+        ASSERT_EQ(a.lea(rdx, qword_ptr(labelRData01)), Error::None);
+        ASSERT_EQ(a.lea(rax, qword_ptr(rdx)), Error::None);
+        ASSERT_EQ(a.lea(rdx, qword_ptr(labelData01)), Error::None);
+        ASSERT_EQ(a.mov(qword_ptr(rdx), rax), Error::None);
+        ASSERT_EQ(a.lea(rdx, qword_ptr(labelRData02)), Error::None);
+        ASSERT_EQ(a.lea(rax, qword_ptr(rdx)), Error::None);
+        ASSERT_EQ(a.lea(rdx, qword_ptr(labelData02)), Error::None);
+        ASSERT_EQ(a.mov(qword_ptr(rdx), rax), Error::None);
+        ASSERT_EQ(a.lea(rdx, qword_ptr(labelRData03)), Error::None);
+        ASSERT_EQ(a.lea(rax, qword_ptr(rdx)), Error::None);
+        ASSERT_EQ(a.lea(rdx, qword_ptr(labelData03)), Error::None);
+        ASSERT_EQ(a.mov(qword_ptr(rdx), rax), Error::None);
+        ASSERT_EQ(a.lea(rdx, qword_ptr(labelRData04)), Error::None);
+        ASSERT_EQ(a.lea(rax, qword_ptr(rdx)), Error::None);
+        ASSERT_EQ(a.lea(rdx, qword_ptr(labelData04)), Error::None);
+        ASSERT_EQ(a.mov(qword_ptr(rdx), rax), Error::None);
+        ASSERT_EQ(a.lea(rdx, qword_ptr(labelRData05)), Error::None);
+        ASSERT_EQ(a.lea(rax, qword_ptr(rdx)), Error::None);
+        ASSERT_EQ(a.lea(rdx, qword_ptr(labelData05)), Error::None);
+        ASSERT_EQ(a.mov(qword_ptr(rdx), rax), Error::None);
+        ASSERT_EQ(a.xor_(rcx, rcx), Error::None);
+        ASSERT_EQ(a.lea(rdx, qword_ptr(labelStrMessage)), Error::None);
+        ASSERT_EQ(a.lea(r8, qword_ptr(labelStrTitle)), Error::None);
+        ASSERT_EQ(a.mov(r9, Imm(0)), Error::None);
+        ASSERT_EQ(a.call(qword_ptr(labelImpMessageBoxA)), Error::None);
+        ASSERT_EQ(a.xor_(rcx, rcx), Error::None);
+        ASSERT_EQ(a.call(qword_ptr(labelImpExitProcess)), Error::None);
+        ASSERT_EQ(a.add(rsp, Imm(0x28)), Error::None);
+        ASSERT_EQ(a.ret(), Error::None);
+
+        ASSERT_EQ(a.section(".data", Section::Attribs::Data | Section::Attribs::Read | Section::Attribs::Write), Error::None);
+        ASSERT_EQ(a.bind(labelData01), Error::None);
+        ASSERT_EQ(a.dq(01), Error::None);
+        ASSERT_EQ(a.bind(labelData02), Error::None);
+        ASSERT_EQ(a.dq(02), Error::None);
+        ASSERT_EQ(a.bind(labelData03), Error::None);
+        ASSERT_EQ(a.dq(03), Error::None);
+        ASSERT_EQ(a.bind(labelData04), Error::None);
+        ASSERT_EQ(a.dq(04), Error::None);
+        ASSERT_EQ(a.bind(labelData05), Error::None);
+        ASSERT_EQ(a.dq(05), Error::None);
+
+        ASSERT_EQ(a.section(".rdata", Section::Attribs::RData | Section::Attribs::Read), Error::None);
+        ASSERT_EQ(a.bind(labelStrMessage), Error::None);
+        ASSERT_EQ(a.embed("Hello World", 12), Error::None);
+        ASSERT_EQ(a.bind(labelRData01), Error::None);
+        ASSERT_EQ(a.dq(01), Error::None);
+        ASSERT_EQ(a.bind(labelRData02), Error::None);
+        ASSERT_EQ(a.dq(02), Error::None);
+        ASSERT_EQ(a.bind(labelRData03), Error::None);
+        ASSERT_EQ(a.dq(03), Error::None);
+        ASSERT_EQ(a.bind(labelRData04), Error::None);
+        ASSERT_EQ(a.dq(04), Error::None);
+        ASSERT_EQ(a.bind(labelRData05), Error::None);
+        ASSERT_EQ(a.dq(05), Error::None);
+
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::UnresolvedLabel);
+    }
+
     TEST(SerializationTests, EmbeddedLabelX64)
     {
         using namespace zasm::operands;
