@@ -46,9 +46,17 @@ namespace zasm
 
         struct LabelLink
         {
+            static constexpr int32_t kUnboundOffset = -1;
+            static constexpr int64_t kUnboundVA = -1;
+
             Label::Id id{ Label::Id::Invalid };
-            int32_t boundOffset{ -1 };
-            int64_t boundVA{ -1 };
+            int32_t boundOffset{ kUnboundOffset };
+            int64_t boundVA{ kUnboundVA };
+
+            constexpr bool isBound() const noexcept
+            {
+                return boundOffset != kUnboundOffset;
+            }
         };
 
         struct Node
