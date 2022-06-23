@@ -208,6 +208,16 @@ namespace zasm
         _state->symbolNames.clear();
     }
 
+    void Program::setEntryPoint(const Label& label)
+    {
+        _state->entryPoint = label;
+    }
+
+    Label Program::getEntryPoint() const noexcept
+    {
+        return _state->entryPoint;
+    }
+
     template<typename TPool, typename... TArgs> const Node* createNode_(TPool& pool, TArgs&&... args)
     {
         auto* node = detail::toInternal(pool.allocate(1));
@@ -247,8 +257,7 @@ namespace zasm
         return state->symbolNames.aquire(str);
     }
 
-    static Label createLabel_(
-        detail::ProgramState* state, StringPool::Id nameId, StringPool::Id modId, LabelFlags flags)
+    static Label createLabel_(detail::ProgramState* state, StringPool::Id nameId, StringPool::Id modId, LabelFlags flags)
     {
         const auto labelId = static_cast<Label::Id>(state->labels.size());
 

@@ -59,6 +59,8 @@ namespace zasm::detail
         std::vector<LabelData> labels;
         std::vector<SectionData> sections;
 
+        Label entryPoint{ Label::Id::Invalid };
+
         ProgramState(ZydisMachineMode m)
             : mode(m)
         {
