@@ -80,7 +80,9 @@ list(APPEND zasm_SOURCES
 	"src/zasm/src/program/data.cpp"
 	"src/zasm/src/program/formatter.cpp"
 	"src/zasm/src/program/program.cpp"
+	"src/zasm/src/program/register.cpp"
 	"src/zasm/src/serialization/serializer.cpp"
+	"src/zasm/src/x86/x86.register.cpp"
 	"src/zasm/src/zasm.cpp"
 	"src/zasm/src/encoder/encoder.context.hpp"
 	"src/zasm/src/encoder/generator.hpp"
@@ -111,6 +113,7 @@ list(APPEND zasm_SOURCES
 	"include/zasm/program/register.hpp"
 	"include/zasm/program/section.hpp"
 	"include/zasm/serialization/serializer.hpp"
+	"include/zasm/x86/register.hpp"
 	"include/zasm/zasm.hpp"
 )
 

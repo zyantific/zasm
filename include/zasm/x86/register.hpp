@@ -1,138 +1,10 @@
 #pragma once
 
-#include <Zydis/Zydis.h>
-#include <cstdint>
-#include <zasm/core/bitsize.hpp>
+#include <zasm/program/register.hpp>
 
-namespace zasm::operands
+namespace zasm::x86
 {
-    class Reg
-    {
-    protected:
-        static_assert(ZYDIS_REGISTER_AL < ZYDIS_REGISTER_AH);
-        static constexpr int8_t kGp8HiStartIndex = ZYDIS_REGISTER_AH - ZYDIS_REGISTER_AL;
-        static_assert(kGp8HiStartIndex == 4, "This should be 4, if this triggers the definition probably changed");
-
-    public:
-        // For debug builds this makes inspection easier.
-        // For release builds size matters more.
-#ifdef _DEBUG
-        using Id = ZydisRegister;
-#else
-        enum class Id : int16_t
-        {
-            None = ZYDIS_REGISTER_NONE,
-            Invalid = -1,
-        };
-#endif
-    protected:
-        Id _reg{ ZYDIS_REGISTER_NONE };
-
-    public:
-        constexpr Reg() noexcept = default;
-        constexpr explicit Reg(const ZydisRegister reg) noexcept
-            : _reg{ static_cast<Id>(reg) }
-        {
-        }
-#ifndef _DEBUG
-        constexpr explicit Reg(const Id reg) noexcept
-            : _reg{ reg }
-        {
-        }
-#endif
-        BitSize getSize(ZydisMachineMode mode) const noexcept;
-
-        ZydisRegisterClass getClass() const noexcept;
-
-        /// <summary>
-        /// Returns the index per register class
-        /// NOTE: For Gp8 there are 20 registers, hi/lo regs are in the same class.
-        /// </summary>
-        int8_t getIndex() const noexcept;
-
-        /// <summary>
-        /// Returns the physical index which is also used for the encoding.
-        /// </summary>
-        /// <returns>Physical index, typically 0 to 31. Returns -1 if it has no index.</returns>
-        int8_t getPhysicalIndex() const noexcept;
-
-        /// <summary>
-        /// Returns the root register for registers that are lower size, ex.: root of ax
-        /// would be eax on 32 bit mode and rax on 64 bit.
-        /// In case the register has no root it will return Reg::None.
-        /// </summary>
-        Reg getRoot(ZydisMachineMode mode) const noexcept;
-
-        bool isGp8() const noexcept;
-        bool isGp8Lo() const noexcept;
-        bool isGp8Hi() const noexcept;
-        bool isGp16() const noexcept;
-        bool isGp32() const noexcept;
-        bool isGp64() const noexcept;
-        bool isGp() const noexcept;
-        bool isXmm() const noexcept;
-        bool isYmm() const noexcept;
-        bool isZmm() const noexcept;
-
-        constexpr ZydisRegister getId() const noexcept
-        {
-            return static_cast<ZydisRegister>(_reg);
-        }
-
-        /// <summary>
-        /// Returns the offset in the space of the root register as bytes.
-        /// This is typically 0 except for Gp8Hi registers.
-        /// </summary>
-        constexpr int8_t getOffset() const noexcept
-        {
-            switch (getId())
-            {
-                case ZYDIS_REGISTER_AH:
-                case ZYDIS_REGISTER_CH:
-                case ZYDIS_REGISTER_BH:
-                case ZYDIS_REGISTER_DH:
-                    return 1;
-                default:
-                    return 0;
-            }
-            return 0;
-        }
-
-        constexpr bool isValid() const noexcept
-        {
-            return getId() != ZYDIS_REGISTER_NONE;
-        }
-
-        constexpr bool operator==(const Reg& other) const noexcept
-        {
-            return _reg == other._reg;
-        }
-
-        constexpr bool operator!=(const Reg& other) const noexcept
-        {
-            return _reg != other._reg;
-        }
-
-        constexpr bool operator<(const Reg& other) const noexcept
-        {
-            return _reg < other._reg;
-        }
-
-        constexpr bool operator>(const Reg& other) const noexcept
-        {
-            return _reg > other._reg;
-        }
-
-        template<typename T> constexpr T& as() noexcept
-        {
-            return static_cast<T&>(*this);
-        }
-
-        template<typename T> constexpr const T& as() const noexcept
-        {
-            return static_cast<T&>(*this);
-        }
-    };
+    using Reg = operands::Reg;
 
     // Strong type for general purpose regs.
     class Gp : public Reg
@@ -140,55 +12,12 @@ namespace zasm::operands
     public:
         using Reg::Reg;
 
-        Gp r8lo() const noexcept
-        {
-            auto regIndex = getPhysicalIndex();
-            if (regIndex >= kGp8HiStartIndex)
-            {
-                // Skip the hi ones.
-                regIndex += kGp8HiStartIndex;
-            }
-            auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR8, regIndex);
-            return Gp{ reg };
-        }
-
-        Gp r8() const noexcept
-        {
-            return r8lo();
-        }
-
-        Gp r8hi() const noexcept
-        {
-            auto regIndex = getPhysicalIndex();
-            if (regIndex >= kGp8HiStartIndex)
-            {
-                // Unsupported.
-                return Gp{};
-            }
-            auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR8, regIndex + kGp8HiStartIndex);
-            return Gp{ reg };
-        }
-
-        Gp r16() const noexcept
-        {
-            auto regIndex = getPhysicalIndex();
-            auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR16, regIndex);
-            return Gp{ reg };
-        }
-
-        Gp r32() const noexcept
-        {
-            auto regIndex = getPhysicalIndex();
-            auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR32, regIndex);
-            return Gp{ reg };
-        }
-
-        Gp r64() const noexcept
-        {
-            auto regIndex = getPhysicalIndex();
-            auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR64, regIndex);
-            return Gp{ reg };
-        }
+        Gp r8lo() const noexcept;
+        Gp r8() const noexcept;
+        Gp r8hi() const noexcept;
+        Gp r16() const noexcept;
+        Gp r32() const noexcept;
+        Gp r64() const noexcept;
     };
 
     class Gp8 : public Gp
@@ -578,5 +407,4 @@ namespace zasm::operands
     static constexpr Reg pkru(ZYDIS_REGISTER_PKRU);
     static constexpr Reg xcr0(ZYDIS_REGISTER_XCR0);
     static constexpr Reg uif(ZYDIS_REGISTER_UIF);
-
-} // namespace zasm::operands
+} // namespace zasm::x86
