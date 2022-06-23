@@ -40,6 +40,16 @@ namespace zasm
         Error dq(uint64_t val);
         Error embed(const void* data, size_t len);
 
+        template<size_t N> Error embed(const char (&str)[N])
+        {
+            return embed(str, N);
+        }
+
+        template<size_t N> Error embed(const wchar_t (&str)[N])
+        {
+            return embed(str, N * sizeof(wchar_t));
+        }
+
         Error embedLabel(Label label);
         Error embedLabelRel(Label label, Label relativeTo, BitSize size);
 
