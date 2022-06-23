@@ -6,6 +6,7 @@
 #include "zasm/encoder/encoder.hpp"
 #include "zasm/program/data.hpp"
 #include "zasm/program/label.hpp"
+#include "zasm/program/labeldata.hpp"
 #include "zasm/program/node.hpp"
 #include "zasm/program/section.hpp"
 
@@ -15,18 +16,12 @@ namespace zasm::detail
 {
     constexpr size_t PoolSize = 1u << 10;
 
-    enum class LabelFlags : uint32_t
-    {
-        None = 0,
-        External = (1u << 0),
-    };
-    ZASM_ENABLE_ENUM_OPERATORS(LabelFlags);
-
     struct LabelData
     {
         Label::Id id{ Label::Id::Invalid };
         LabelFlags flags{ LabelFlags::None };
         StringPool::Id nameId{ StringPool::Id::Invalid };
+        StringPool::Id moduleId{ StringPool::Id::Invalid };
 
         // The node that holds/binds the label in the list.
         const zasm::Node* node{};

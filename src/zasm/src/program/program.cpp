@@ -234,30 +234,48 @@ namespace zasm
         return createNode_(_state->nodePool, std::move(data));
     }
 
-    const zasm::Node* Program::createNode(const EmbeddedLabel& value)
+    const Node* Program::createNode(const EmbeddedLabel& value)
     {
         return createNode_(_state->nodePool, value);
     }
 
-    static Label createLabel_(detail::ProgramState* state, const char* name, detail::LabelFlags flags)
+    static StringPool::Id getStringId(detail::ProgramState* state, const char* str)
+    {
+        if (str == nullptr)
+            return StringPool::Id::Invalid;
+
+        return state->symbolNames.aquire(str);
+    }
+
+    static Label createLabel_(
+        detail::ProgramState* state, StringPool::Id nameId, StringPool::Id modId, LabelFlags flags)
     {
         const auto labelId = static_cast<Label::Id>(state->labels.size());
 
         auto& entry = state->labels.emplace_back();
         entry.id = labelId;
         entry.flags = flags;
-
-        if (name != nullptr)
-        {
-            entry.nameId = state->symbolNames.aquire(name);
-        }
+        entry.nameId = nameId;
+        entry.moduleId = modId;
 
         return Label{ labelId };
     }
 
+    static bool hasLabelFlags(detail::ProgramState* state, const Label::Id id, const LabelFlags flags)
+    {
+        const auto entryIdx = static_cast<size_t>(id);
+        if (entryIdx >= state->labels.size())
+        {
+            return false;
+        }
+
+        auto& entry = state->labels[entryIdx];
+        return (entry.flags & flags) != LabelFlags::None;
+    }
+
     const Label Program::createLabel(const char* name /*= nullptr*/)
     {
-        return createLabel_(_state, name, detail::LabelFlags::None);
+        return createLabel_(_state, getStringId(_state, name), StringPool::Id::Invalid, LabelFlags::None);
     }
 
     Expected<const Node*, Error> Program::bindLabel(const Label& label)
@@ -269,7 +287,7 @@ namespace zasm
         }
 
         auto& entry = _state->labels[entryIdx];
-        if ((entry.flags & detail::LabelFlags::External) != detail::LabelFlags::None)
+        if ((entry.flags & LabelFlags::External) != LabelFlags::None)
         {
             return makeUnexpected(Error::ExternalLabelNotBindable);
         }
@@ -287,7 +305,7 @@ namespace zasm
 
     const Label Program::createExternalLabel(const char* name /*= nullptr*/)
     {
-        return createLabel_(_state, name, detail::LabelFlags::External);
+        return createLabel_(_state, getStringId(_state, name), StringPool::Id::Invalid, LabelFlags::External);
     }
 
     bool Program::isLabelExternal(const Label& label) const noexcept
@@ -295,14 +313,59 @@ namespace zasm
         if (!label.isValid())
             return false;
 
+        return hasLabelFlags(_state, label.getId(), LabelFlags::External);
+    }
+
+    const Label Program::getOrCreateImportLabel(const char* moduleName, const char* importName)
+    {
+        if (moduleName == nullptr || importName == nullptr)
+        {
+            return Label{};
+        }
+
+        // Allow imports only once.
+        const auto modId = getStringId(_state, moduleName);
+        const auto nameId = getStringId(_state, importName);
+        const auto labelFlags = LabelFlags::External | LabelFlags::Import;
+        for (size_t id = 0; id < _state->labels.size(); ++id)
+        {
+            auto& entry = _state->labels[id];
+            if (entry.flags == labelFlags && entry.moduleId == modId && entry.nameId == nameId)
+            {
+                return Label{ static_cast<Label::Id>(id) };
+            }
+        }
+
+        // Create new one.
+        return createLabel_(_state, nameId, modId, labelFlags);
+    }
+
+    bool Program::isLabelImport(const Label& label) const noexcept
+    {
+        return hasLabelFlags(_state, label.getId(), LabelFlags::Import);
+    }
+
+    Expected<LabelData, Error> Program::getLabelData(const Label& label) const noexcept
+    {
+        if (!label.isValid())
+            return zasm::makeUnexpected(Error::InvalidLabel);
+
         const auto entryIdx = static_cast<size_t>(label.getId());
         if (entryIdx >= _state->labels.size())
         {
-            return false;
+            return makeUnexpected(Error::InvalidLabel);
         }
 
-        auto& entry = _state->labels[entryIdx];
-        return (entry.flags & detail::LabelFlags::External) != detail::LabelFlags::None;
+        const auto& entry = _state->labels[entryIdx];
+
+        auto res = LabelData{};
+        res.flags = entry.flags;
+        res.id = entry.id;
+        res.moduleName = entry.moduleId != StringPool::Id::Invalid ? _state->symbolNames.get(entry.moduleId) : nullptr;
+        res.name = entry.nameId != StringPool::Id::Invalid ? _state->symbolNames.get(entry.nameId) : nullptr;
+        res.node = entry.node;
+
+        return res;
     }
 
     template<typename T> Data createDataInline(const void* ptr)

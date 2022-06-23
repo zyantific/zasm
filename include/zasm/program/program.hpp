@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <zasm/core/errors.hpp>
 #include <zasm/core/expected.hpp>
+#include <zasm/program/labeldata.hpp>
 
 namespace zasm
 {
@@ -160,6 +161,30 @@ namespace zasm
         bool isLabelExternal(const Label& label) const noexcept;
 
         /// <summary>
+        /// Gets or creates a new import label, this label can not be bound and is considered an external label.
+        /// Import labels are unique per module name and import name so calling this twice with the same parameters
+        /// returns the same label.
+        /// This label provides a way to post-patch import addresses after serialization.
+        /// </summary>
+        /// <param name="moduleName">Name of the module to import.</param>
+        /// <returns>Label</returns>
+        const Label getOrCreateImportLabel(const char* moduleName, const char* importName);
+
+        /// <summary>
+        /// Returns if the specified label is an import label.
+        /// </summary>
+        /// <param name="label">Label to check</param>
+        /// <returns>True if label is external</returns>
+        bool isLabelImport(const Label& label) const noexcept;
+
+        /// <summary>
+        /// Returns a structure containing all the data stored for a label.
+        /// </summary>
+        /// <param name="label">The label to query the data for</param>
+        /// <returns>Returns LabelData on success, Error on failure.</returns>
+        Expected<LabelData, Error> getLabelData(const Label& label) const noexcept;
+
+        /// <summary>
         /// Creates a Data object that can be stored in a Node. The data object
         /// can hold up to 32 bytes of data before it will use the heap.
         /// </summary>
@@ -183,7 +208,7 @@ namespace zasm
         /// Binds the section to a new unlinked node. A section can be only bound once.
         /// </summary>
         /// <param name="label">The label to bind</param>
-        /// <returns>The new node which contains the section</returns>
+        /// <returns>The new node which contains the section or Error</returns>
         Expected<const Node*, Error> bindSection(const Section& section);
 
         /// <summary>
