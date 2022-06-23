@@ -31,6 +31,11 @@ namespace zasm
         return _program.createLabel(name);
     }
 
+    Label Assembler::getOrCreateImportLabel(const char* moduleName, const char* entryName)
+    {
+        return _program.getOrCreateImportLabel(moduleName, entryName);
+    }
+
     Error Assembler::bind(const Label& label)
     {
         auto labelNode = _program.bindLabel(label);

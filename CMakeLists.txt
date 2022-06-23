@@ -74,7 +74,6 @@ set(zasm_SOURCES "")
 
 list(APPEND zasm_SOURCES
 	"src/zasm/src/assembler/assembler.cpp"
-	"src/zasm/src/assembler/assembler.instructions.cpp"
 	"src/zasm/src/decoder/decoder.cpp"
 	"src/zasm/src/encoder/encoder.cpp"
 	"src/zasm/src/encoder/generator.cpp"
@@ -88,6 +87,7 @@ list(APPEND zasm_SOURCES
 	"src/zasm/src/program/program.node.hpp"
 	"src/zasm/src/program/program.state.hpp"
 	"include/zasm/assembler/assembler.hpp"
+	"include/zasm/assembler/emitter.x86.hpp"
 	"include/zasm/core/bitsize.hpp"
 	"include/zasm/core/enumflags.hpp"
 	"include/zasm/core/errors.hpp"
