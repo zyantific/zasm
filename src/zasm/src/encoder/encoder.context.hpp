@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <optional>
 #include <vector>
@@ -66,21 +67,31 @@ namespace zasm
 
         LabelLink& getOrCreateLabelLink(Label::Id id)
         {
+            assert(id != Label::Id::Invalid);
+
             const auto labelIdx = static_cast<size_t>(id);
             if (labelIdx >= labelLinks.size())
             {
+                const size_t resizeStartIndex = labelLinks.size();
                 labelLinks.resize(labelIdx + 1);
 
-                auto& entry = labelLinks[labelIdx];
-                entry.id = id;
+                // Ensure each entry has a valid id assigned.
+                for (size_t i = resizeStartIndex; i < labelLinks.size(); i++)
+                {
+                    labelLinks[i].id = static_cast<Label::Id>(i);
+                }
 
+                auto& entry = labelLinks[labelIdx];
                 return entry;
             }
+
             return labelLinks[labelIdx];
         }
 
         std::optional<int64_t> getLabelAddress(Label::Id id)
         {
+            assert(id != Label::Id::Invalid);
+
             const auto& entry = getOrCreateLabelLink(id);
             if (entry.boundVA == -1)
             {
