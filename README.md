@@ -1,16 +1,16 @@
-## Project Status[![](./docs/img/pin.svg)](#project-status)
+## Project Status
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/ZehMatt/zasm/blob/master/LICENSE)
 [![CMake](https://github.com/zyantific/zasm/actions/workflows/build.yml/badge.svg)](https://github.com/ZehMatt/zasm/actions/workflows/build.yml)
 [![Gitter](https://badges.gitter.im/zyantific/zyan-disassembler-engine.svg)](https://gitter.im/zyantific/zydis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=body_badge)
 [![Discord](https://img.shields.io/discord/390136917779415060.svg?logo=discord&label=Discord)](https://discord.zyantific.com/)
 
-## Introduction[![](./docs/img/pin.svg)](#introduction)
+## Introduction
 
 **Zasm** provides a very flexible and lightweight library to manipulate and generate x86-64 code using Zydis as the backend. Zasm stores everything as nodes such as instructions, data, labels, sections, etc. which provides a way to easily manipulate/transform the code before serializing it into binary. The API is inspired by AsmJit so if you have used AsmJit before this should feel very familiar.
 
 ---
 
-## Table of contents[![](./docs/img/pin.svg)](#table-of-contents)
+## Table of contents
 1. [Motivation](#motivation)
 2. [Building](#building)
 5. [Design](#design)
@@ -22,7 +22,7 @@
 
 ---
 
-## Motivation[![](./docs/img/pin.svg)](#motivation)
+## Motivation
 
 Some of my projects were using Zydis and AsmJit where instructions where were first decoded with Zydis and then put into AsmJit's Builder to allow processing/analysing of the instructions/branches before re-encoding/relocating the modified code, there are a couple of downsides to this approach which will be explained further down. Zydis recently introduced a way to use the same structures/data it already has to encode instructions which lead to Zasm. This library aims to be a higher level assembler/decoder which can be used for various things like the previously mentioned example.
 
@@ -32,7 +32,7 @@ The second reason for Zasm is that Zydis Encoder being extremely low level which
 
 ---
 
-## Building[![](./docs/img/pin.svg)](#building)
+## Building
 Zasm uses CMake in combination with [cmkr](https://github.com/build-cpp/cmkr) to simplify the maintenance of the CMakeLists.txt. Building should be as easy as using following commands from a terminal in the root directory:
 ```
 cmake . -B build
@@ -44,7 +44,7 @@ cmake . -B build -DZASM_BUILD_TESTS=ON
 ```
 ---
 
-## Design[![](./docs/img/pin.svg)](#design)
+## Design
 
 #### Program[![](./docs/img/pin.svg)](#program)
 Program is the container that holds all the data and also serves as a doubly linked list. Instructions, labels, data, sections, etc. are stored as nodes which allows the user to remove/insert/re-order quite easily.
@@ -60,7 +60,7 @@ Decodes binary data into the Instruction object which can be either directly use
 
 ---
 
-## Examples[![](./docs/img/pin.svg)](#examples)
+## Examples
 
 <details>
   <summary>Decode binary to Program</summary>
