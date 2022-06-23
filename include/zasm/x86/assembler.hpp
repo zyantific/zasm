@@ -1,22 +1,27 @@
 #pragma once
 
-#include <zasm/assembler/emitter.x86.hpp>
+#include "emitter.hpp"
+
 #include <zasm/core/errors.hpp>
 #include <zasm/program/instruction.hpp>
 #include <zasm/program/operand.hpp>
 #include <zasm/program/section.hpp>
+#include <zasm/x86/instruction.hpp>
 
 namespace zasm
 {
     class Program;
     class Node;
     class InstrGenerator;
+} // namespace zasm
 
-    class Assembler : public x86::Emitter<Assembler>
+namespace zasm::x86
+{
+    class Assembler : public Emitter<Assembler>
     {
         Program& _program;
         const Node* _cursor{};
-        Instruction::Attribs _attribState{};
+        Attribs _attribState{};
         InstrGenerator* _generator{};
 
     public:
@@ -64,19 +69,17 @@ namespace zasm
         Error embedLabelRel(Label label, Label relativeTo, BitSize size);
 
     public:
-        template<typename... TArgs> Error emit(ZydisMnemonic id, TArgs&&... args)
+        template<typename... TArgs> Error emit(Mnemonic id, TArgs&&... args)
         {
             const auto attribs = _attribState;
-            _attribState = Instruction::Attribs::None;
+            _attribState = Attribs::None;
             return emit_(attribs, id, sizeof...(TArgs), { args... });
         }
 
     private:
-        Error emit_(
-            Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps,
-            std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops);
+        Error emit_(Attribs attribs, Mnemonic id, size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops);
 
-        void addAttrib(Instruction::Attribs attrib) noexcept
+        void addAttrib(Attribs attrib) noexcept
         {
             _attribState = _attribState | attrib;
         }
@@ -84,36 +87,36 @@ namespace zasm
     public: // Attribs/State modifier.
         Assembler& o8()
         {
-            addAttrib(Instruction::Attribs::OperandSize8);
+            addAttrib(Attribs::OperandSize8);
             return *this;
         }
 
         Assembler& o16()
         {
-            addAttrib(Instruction::Attribs::OperandSize16);
+            addAttrib(Attribs::OperandSize16);
             return *this;
         }
 
         Assembler& o32()
         {
-            addAttrib(Instruction::Attribs::OperandSize32);
+            addAttrib(Attribs::OperandSize32);
             return *this;
         }
 
         Assembler& o64()
         {
-            addAttrib(Instruction::Attribs::OperandSize64);
+            addAttrib(Attribs::OperandSize64);
             return *this;
         }
 
         Assembler& lock()
         {
-            addAttrib(Instruction::Attribs::Lock);
+            addAttrib(Attribs::Lock);
             return *this;
         }
 
     public:
-        Error fromInstruction(const Instruction& instr);
+        Error fromInstruction(const zasm::Instruction& instr);
     };
 
-} // namespace zasm
+} // namespace zasm::x86

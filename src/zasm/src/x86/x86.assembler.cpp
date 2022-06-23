@@ -1,9 +1,9 @@
-#include "zasm/assembler/assembler.hpp"
-
 #include "../encoder/generator.hpp"
-#include "zasm/program/program.hpp"
 
-namespace zasm
+#include <zasm/program/program.hpp>
+#include <zasm/x86/assembler.hpp>
+
+namespace zasm::x86
 {
     Assembler::Assembler(Program& program)
         : _program(program)
@@ -96,9 +96,10 @@ namespace zasm
     }
 
     Error Assembler::emit_(
-        Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops)
+        Attribs attribs, Mnemonic id, size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops)
     {
-        auto genResult = _generator->generate(attribs, id, numOps, std::move(ops));
+        auto genResult = _generator->generate(
+            static_cast<Instruction::Attribs>(attribs), static_cast<Instruction::Mnemonic>(id), numOps, std::move(ops));
         if (!genResult)
         {
             return genResult.error();
@@ -110,9 +111,9 @@ namespace zasm
         return Error::None;
     }
 
-    Error Assembler::fromInstruction(const Instruction& instr)
+    Error Assembler::fromInstruction(const zasm::Instruction& instr)
     {
-        auto* instrNode = _program.createNode(instr);
+        auto* instrNode = _program.createNode(static_cast<const zasm::Instruction&>(instr));
         _cursor = _program.insertAfter(_cursor, instrNode);
 
         return Error::None;
@@ -121,13 +122,11 @@ namespace zasm
     Error Assembler::embedLabel(Label label)
     {
         BitSize size = BitSize::_0;
-        if (_program.getMode() == ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64)
+        if (_program.getMode() == MachineMode::AMD64)
         {
             size = BitSize::_64;
         }
-        else if (
-            _program.getMode() == ZydisMachineMode::ZYDIS_MACHINE_MODE_LEGACY_32
-            || _program.getMode() == ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_COMPAT_32)
+        else if (_program.getMode() == MachineMode::I386)
         {
             size = BitSize::_32;
         }
@@ -150,4 +149,4 @@ namespace zasm
         return Error::None;
     }
 
-} // namespace zasm
+} // namespace zasm::x86

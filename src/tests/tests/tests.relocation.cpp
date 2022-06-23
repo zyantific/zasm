@@ -7,13 +7,13 @@ namespace zasm::tests
 {
     TEST(RelocationTests, LeaRax0X64)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
+
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(0)), Error::None);
+
         Serializer serializer;
-
-        ASSERT_EQ(assembler.lea(rax, qword_ptr(0)), Error::None);
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
         const std::array<uint8_t, 8> expected = {
@@ -38,13 +38,13 @@ namespace zasm::tests
 
     TEST(RelocationTests, LeaEax0X86)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::I386);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_COMPAT_32);
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
+
+        ASSERT_EQ(assembler.lea(x86::eax, x86::dword_ptr(0)), Error::None);
+
         Serializer serializer;
-
-        ASSERT_EQ(assembler.lea(eax, dword_ptr(0)), Error::None);
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
         const std::array<uint8_t, 6> expected = {
@@ -69,15 +69,15 @@ namespace zasm::tests
 
     TEST(RelocationTests, MovEaxLabelX86)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::I386);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_COMPAT_32);
-        Assembler assembler(program);
-        Serializer serializer;
+        x86::Assembler assembler(program);
 
         auto label = assembler.createLabel();
         ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.mov(eax, label), Error::None);
+        ASSERT_EQ(assembler.mov(x86::eax, label), Error::None);
+
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
         const std::array<uint8_t, 5> expected = {
@@ -102,15 +102,15 @@ namespace zasm::tests
 
     TEST(RelocationTests, MovRaxLabelX64)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
-        Serializer serializer;
+        x86::Assembler assembler(program);
 
         auto label = assembler.createLabel();
         ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.mov(rax, label), Error::None);
+        ASSERT_EQ(assembler.mov(x86::rax, label), Error::None);
+
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000401000000), Error::None);
 
         const std::array<uint8_t, 10> expected = {
@@ -135,15 +135,15 @@ namespace zasm::tests
 
     TEST(RelocationTests, MovEaxMemLabelX86)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::I386);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_COMPAT_32);
-        Assembler assembler(program);
-        Serializer serializer;
+        x86::Assembler assembler(program);
 
         auto label = assembler.createLabel();
         ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.mov(eax, dword_ptr(label)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::eax, x86::dword_ptr(label)), Error::None);
+
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
         const std::array<uint8_t, 5> expected = {
@@ -168,16 +168,16 @@ namespace zasm::tests
 
     TEST(RelocationTests, RelocateX86)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::I386);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_COMPAT_32);
-        Assembler assembler(program);
-        Serializer serializer;
+        x86::Assembler assembler(program);
 
         auto label = assembler.createLabel();
         ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.mov(eax, dword_ptr(label)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::eax, x86::dword_ptr(label)), Error::None);
         ASSERT_EQ(assembler.embedLabel(label), Error::None);
+
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
         {
@@ -239,16 +239,16 @@ namespace zasm::tests
 
     TEST(RelocationTests, RelocateX64)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
-        Serializer serializer;
+        x86::Assembler assembler(program);
 
         auto label = assembler.createLabel();
         ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.mov(rax, label), Error::None);
+        ASSERT_EQ(assembler.mov(x86::rax, label), Error::None);
         ASSERT_EQ(assembler.embedLabel(label), Error::None);
+
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000401000000), Error::None);
 
         {
@@ -312,12 +312,9 @@ namespace zasm::tests
 
     TEST(RelocationTests, RelocateSectionsX64)
     {
-        using namespace zasm;
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler a(program);
-        Serializer serializer;
+        x86::Assembler a(program);
 
         auto labelA = a.createLabel();
         ASSERT_EQ(labelA.isValid(), true);
@@ -328,9 +325,9 @@ namespace zasm::tests
 
         ASSERT_EQ(a.section(".text"), Error::None);
         {
-            ASSERT_EQ(a.lea(rax, qword_ptr(labelA)), Error::None);
-            ASSERT_EQ(a.lea(rbx, qword_ptr(labelB)), Error::None);
-            ASSERT_EQ(a.lea(rdx, qword_ptr(labelC)), Error::None);
+            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(labelA)), Error::None);
+            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(labelB)), Error::None);
+            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelC)), Error::None);
         }
 
         ASSERT_EQ(a.section(".data", Section::Attribs::Data), Error::None);
@@ -343,6 +340,7 @@ namespace zasm::tests
             ASSERT_EQ(a.dq(0xABCDEF123), Error::None);
         }
 
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
 
         {
@@ -368,7 +366,7 @@ namespace zasm::tests
                 hexEncode(serializer.getCode() + sectInfo02->offset, sectInfo02->physicalSize),
                 std::string("8967452301000000214365870900000023F1DEBC0A000000"));
         }
- 
+
         ASSERT_EQ(serializer.relocate(0x00500000), Error::None);
 
         {

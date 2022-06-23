@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <zasm/base/mode.hpp>
 #include <zasm/core/errors.hpp>
 #include <zasm/program/instruction.hpp>
 
@@ -42,12 +43,12 @@ namespace zasm
     // full serialization. This allows to query instruction meta data such as operand access
     // and CPU flags, this can be also used to estimate the size.
     Error encodeEstimated(
-        EncoderResult& buf, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps,
+        EncoderResult& buf, MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic id, size_t numOps,
         const EncoderOperands& operands) noexcept;
 
     // Encodes with full context. This function still allows labels to be unbound and will not error
     // instead a temporary value be usually encoded. It is expected for the serialization to handle this
     // with multiple passes.
-    Error encodeFull(EncoderResult& buf, EncoderContext& ctx, ZydisMachineMode mode, const Instruction& instr) noexcept;
+    Error encodeFull(EncoderResult& buf, EncoderContext& ctx, MachineMode mode, const Instruction& instr) noexcept;
 
 } // namespace zasm

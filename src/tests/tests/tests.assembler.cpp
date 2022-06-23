@@ -5,10 +5,9 @@ namespace zasm::tests
 {
     TEST(AssemblerTests, TestBindLabel)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
 
         auto label01 = assembler.createLabel();
         ASSERT_EQ(label01.isValid(), true);
@@ -17,10 +16,9 @@ namespace zasm::tests
 
     TEST(AssemblerTests, TestDoubleBindLabel)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
 
         auto label01 = assembler.createLabel();
         ASSERT_EQ(label01.isValid(), true);
@@ -30,14 +28,22 @@ namespace zasm::tests
 
     TEST(AssemblerTests, TestBindInvalidLabel)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
 
         zasm::Label label01;
         ASSERT_EQ(label01.isValid(), false);
         ASSERT_EQ(assembler.bind(label01), Error::InvalidLabel);
+    }
+
+    TEST(AssemblerTests, TestEmitDirectMov)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        ASSERT_EQ(assembler.emit(x86::Mnemonic::Mov, x86::rax, Imm(01)), Error::None);
     }
 
 } // namespace zasm::tests

@@ -7,6 +7,7 @@
 #include "section.hpp"
 
 #include <cstdint>
+#include <zasm/base/mode.hpp>
 #include <zasm/core/errors.hpp>
 #include <zasm/core/expected.hpp>
 #include <zasm/program/labeldata.hpp>
@@ -23,10 +24,10 @@ namespace zasm
         detail::ProgramState* _state;
 
     public:
-        Program(ZydisMachineMode mode);
+        Program(MachineMode mode);
         ~Program();
 
-        ZydisMachineMode getMode() const noexcept;
+        MachineMode getMode() const noexcept;
 
         /// <summary>
         /// This is primarily used by other components, this should not be directly used.

@@ -451,20 +451,15 @@ namespace zasm
         ZyanStatus decoderStatus{};
         switch (program.getMode())
         {
-            case ZYDIS_MACHINE_MODE_LONG_64:
-                decoderStatus = ZydisDecoderInit(&decoder, program.getMode(), ZydisStackWidth::ZYDIS_STACK_WIDTH_64);
+            case MachineMode::I386:
+                decoderStatus = ZydisDecoderInit(
+                    &decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZydisStackWidth::ZYDIS_STACK_WIDTH_32);
                 break;
-            case ZYDIS_MACHINE_MODE_LONG_COMPAT_32:
-            case ZYDIS_MACHINE_MODE_LEGACY_32:
-                decoderStatus = ZydisDecoderInit(&decoder, program.getMode(), ZydisStackWidth::ZYDIS_STACK_WIDTH_32);
-                break;
-            case ZYDIS_MACHINE_MODE_LONG_COMPAT_16:
-            case ZYDIS_MACHINE_MODE_LEGACY_16:
-            case ZYDIS_MACHINE_MODE_REAL_16:
-                decoderStatus = ZydisDecoderInit(&decoder, program.getMode(), ZydisStackWidth::ZYDIS_STACK_WIDTH_16);
+            case MachineMode::AMD64:
+                decoderStatus = ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZydisStackWidth::ZYDIS_STACK_WIDTH_64);
                 break;
             default:
-                break;
+                return Error::InvalidParameter;
         }
 
         ZydisDecodedOperand instrOps[ZYDIS_MAX_OPERAND_COUNT];

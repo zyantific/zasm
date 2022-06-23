@@ -6,9 +6,7 @@ namespace zasm::tests
 {
     TEST(ImportLabelTests, BasicImport)
     {
-        using namespace zasm::operands;
-
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Program program(MachineMode::AMD64);
 
         const auto labelImpExitProcess = program.getOrCreateImportLabel("kernel32.dll", "ExitProcess");
         ASSERT_TRUE(labelImpExitProcess.isValid());
@@ -21,9 +19,7 @@ namespace zasm::tests
 
     TEST(ImportLabelTests, TestUnique)
     {
-        using namespace zasm::operands;
-
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Program program(MachineMode::AMD64);
 
         const auto labelImpExitProcess = program.getOrCreateImportLabel("kernel32.dll", "ExitProcess");
         ASSERT_TRUE(labelImpExitProcess.isValid());
@@ -35,16 +31,16 @@ namespace zasm::tests
 
     TEST(ImportLabelTests, ImportReferenceTestX86)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::I386);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_COMPAT_32);
-        Assembler assembler(program);
-        Serializer serializer;
+        x86::Assembler assembler(program);
 
         const auto labelImpExitProcess = program.getOrCreateImportLabel("kernel32.dll", "ExitProcess");
         ASSERT_TRUE(labelImpExitProcess.isValid());
 
-        ASSERT_EQ(assembler.mov(eax, dword_ptr(labelImpExitProcess)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::eax, x86::dword_ptr(labelImpExitProcess)), Error::None);
+
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
         const std::array<uint8_t, 5> expected = {
@@ -76,16 +72,16 @@ namespace zasm::tests
 
     TEST(ImportLabelTests, ImportReferenceTestX64)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
-        Serializer serializer;
+        x86::Assembler assembler(program);
 
         const auto labelImpExitProcess = program.getOrCreateImportLabel("kernel32.dll", "ExitProcess");
         ASSERT_TRUE(labelImpExitProcess.isValid());
 
-        ASSERT_EQ(assembler.mov(rax, qword_ptr(labelImpExitProcess)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::rax, x86::qword_ptr(labelImpExitProcess)), Error::None);
+
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
         const std::array<uint8_t, 7> expected = {

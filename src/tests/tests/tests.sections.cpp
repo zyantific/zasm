@@ -7,12 +7,9 @@ namespace zasm::tests
 {
     TEST(SectionTests, TestSectionImplicit)
     {
-        using namespace zasm;
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler a(program);
-        Serializer serializer;
+        x86::Assembler a(program);
 
         auto labelA = a.createLabel();
         ASSERT_EQ(labelA.isValid(), true);
@@ -25,6 +22,7 @@ namespace zasm::tests
             ASSERT_EQ(a.nop(), Error::None);
         }
 
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
 
         ASSERT_EQ(serializer.getSectionCount(), 1);
@@ -35,18 +33,13 @@ namespace zasm::tests
         ASSERT_EQ(sectInfo01->attribs, Section::Attribs::Code);
         ASSERT_EQ(sectInfo01->virtualSize, 0x1000);
         ASSERT_EQ(sectInfo01->physicalSize, 0x4);
-        ASSERT_EQ(
-            hexEncode(serializer.getCode() + sectInfo01->offset, sectInfo01->physicalSize), std::string("EB019090"));
+        ASSERT_EQ(hexEncode(serializer.getCode() + sectInfo01->offset, sectInfo01->physicalSize), std::string("EB019090"));
     }
 
     TEST(SectionTests, TestSectionBasic)
     {
-        using namespace zasm;
-        using namespace zasm::operands;
-
-        Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler a(program);
-        Serializer serializer;
+        Program program(MachineMode::AMD64);
+        x86::Assembler a(program);
 
         auto labelA = a.createLabel();
         ASSERT_EQ(labelA.isValid(), true);
@@ -57,9 +50,9 @@ namespace zasm::tests
 
         ASSERT_EQ(a.section(".text"), Error::None);
         {
-            ASSERT_EQ(a.lea(rax, qword_ptr(labelA)), Error::None);
-            ASSERT_EQ(a.lea(rbx, qword_ptr(labelB)), Error::None);
-            ASSERT_EQ(a.lea(rdx, qword_ptr(labelC)), Error::None);
+            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(labelA)), Error::None);
+            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(labelB)), Error::None);
+            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelC)), Error::None);
         }
 
         ASSERT_EQ(a.section(".data", Section::Attribs::Data), Error::None);
@@ -72,6 +65,7 @@ namespace zasm::tests
             ASSERT_EQ(a.dq(0xABCDEF123), Error::None);
         }
 
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
 
         ASSERT_EQ(serializer.getSectionCount(), 2);
@@ -83,7 +77,8 @@ namespace zasm::tests
         ASSERT_EQ(sectInfo01->virtualSize, 0x1000);
         ASSERT_EQ(sectInfo01->physicalSize, 0x15);
         ASSERT_EQ(
-            hexEncode(serializer.getCode() + sectInfo01->offset, sectInfo01->physicalSize), std::string("488D05F90F0000488D1DFA0F0000488D15FB0F0000"));
+            hexEncode(serializer.getCode() + sectInfo01->offset, sectInfo01->physicalSize),
+            std::string("488D05F90F0000488D1DFA0F0000488D15FB0F0000"));
 
         const auto* sectInfo02 = serializer.getSectionInfo(1);
         ASSERT_NE(sectInfo02, nullptr);
@@ -98,12 +93,9 @@ namespace zasm::tests
 
     TEST(SectionTests, TestSectionMerged)
     {
-        using namespace zasm;
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler a(program);
-        Serializer serializer;
+        x86::Assembler a(program);
 
         auto labelA = a.createLabel();
         ASSERT_EQ(labelA.isValid(), true);
@@ -114,17 +106,17 @@ namespace zasm::tests
 
         ASSERT_EQ(a.section(".text"), Error::None);
         {
-            ASSERT_EQ(a.lea(rax, qword_ptr(labelA)), Error::None);
-            ASSERT_EQ(a.lea(rbx, qword_ptr(labelB)), Error::None);
-            ASSERT_EQ(a.lea(rdx, qword_ptr(labelC)), Error::None);
+            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(labelA)), Error::None);
+            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(labelB)), Error::None);
+            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelC)), Error::None);
         }
 
         // Identical name attrib align causes a merge.
         ASSERT_EQ(a.section(".text"), Error::None);
         {
-            ASSERT_EQ(a.lea(rax, qword_ptr(labelA)), Error::None);
-            ASSERT_EQ(a.lea(rbx, qword_ptr(labelB)), Error::None);
-            ASSERT_EQ(a.lea(rdx, qword_ptr(labelC)), Error::None);
+            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(labelA)), Error::None);
+            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(labelB)), Error::None);
+            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelC)), Error::None);
         }
 
         ASSERT_EQ(a.section(".data", Section::Attribs::Data), Error::None);
@@ -137,6 +129,7 @@ namespace zasm::tests
             ASSERT_EQ(a.dq(0xABCDEF123), Error::None);
         }
 
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
 
         ASSERT_EQ(serializer.getSectionCount(), 2);
@@ -164,12 +157,9 @@ namespace zasm::tests
 
     TEST(SectionTests, TestSectionSameNameDiffAttrib)
     {
-        using namespace zasm;
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler a(program);
-        Serializer serializer;
+        x86::Assembler a(program);
 
         auto labelA = a.createLabel();
         ASSERT_EQ(labelA.isValid(), true);
@@ -180,16 +170,16 @@ namespace zasm::tests
 
         ASSERT_EQ(a.section(".text"), Error::None);
         {
-            ASSERT_EQ(a.lea(rax, qword_ptr(labelA)), Error::None);
-            ASSERT_EQ(a.lea(rbx, qword_ptr(labelB)), Error::None);
-            ASSERT_EQ(a.lea(rdx, qword_ptr(labelC)), Error::None);
+            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(labelA)), Error::None);
+            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(labelB)), Error::None);
+            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelC)), Error::None);
         }
 
         ASSERT_EQ(a.section(".text", Section::Attribs::Exec), Error::None);
         {
-            ASSERT_EQ(a.lea(rax, qword_ptr(labelA)), Error::None);
-            ASSERT_EQ(a.lea(rbx, qword_ptr(labelB)), Error::None);
-            ASSERT_EQ(a.lea(rdx, qword_ptr(labelC)), Error::None);
+            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(labelA)), Error::None);
+            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(labelB)), Error::None);
+            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelC)), Error::None);
         }
 
         ASSERT_EQ(a.section(".data", Section::Attribs::Data), Error::None);
@@ -202,6 +192,7 @@ namespace zasm::tests
             ASSERT_EQ(a.dq(0xABCDEF123), Error::None);
         }
 
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
 
         ASSERT_EQ(serializer.getSectionCount(), 3);
@@ -213,7 +204,8 @@ namespace zasm::tests
         ASSERT_EQ(sectInfo01->virtualSize, 0x1000);
         ASSERT_EQ(sectInfo01->physicalSize, 0x15);
         ASSERT_EQ(
-            hexEncode(serializer.getCode() + sectInfo01->offset, sectInfo01->physicalSize), std::string("488D05F91F0000488D1DFA1F0000488D15FB1F0000"));
+            hexEncode(serializer.getCode() + sectInfo01->offset, sectInfo01->physicalSize),
+            std::string("488D05F91F0000488D1DFA1F0000488D15FB1F0000"));
 
         const auto* sectInfo02 = serializer.getSectionInfo(1);
         ASSERT_NE(sectInfo02, nullptr);
@@ -222,7 +214,8 @@ namespace zasm::tests
         ASSERT_EQ(sectInfo02->virtualSize, 0x1000);
         ASSERT_EQ(sectInfo02->physicalSize, 0x15);
         ASSERT_EQ(
-            hexEncode(serializer.getCode() + sectInfo02->offset, sectInfo02->physicalSize), std::string("488D05F90F0000488D1DFA0F0000488D15FB0F0000"));
+            hexEncode(serializer.getCode() + sectInfo02->offset, sectInfo02->physicalSize),
+            std::string("488D05F90F0000488D1DFA0F0000488D15FB0F0000"));
 
         const auto* sectInfo03 = serializer.getSectionInfo(2);
         ASSERT_NE(sectInfo03, nullptr);
@@ -237,12 +230,9 @@ namespace zasm::tests
 
     TEST(SectionTests, TestSectionCrossing01)
     {
-        using namespace zasm;
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler a(program);
-        Serializer serializer;
+        x86::Assembler a(program);
 
         auto labelA = a.createLabel();
         ASSERT_EQ(labelA.isValid(), true);
@@ -263,8 +253,8 @@ namespace zasm::tests
             ASSERT_EQ(a.jmp(labelA), Error::None);
         }
 
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
-
         ASSERT_EQ(serializer.getSectionCount(), 2);
 
         const auto* sectInfo01 = serializer.getSectionInfo(0);
@@ -286,12 +276,9 @@ namespace zasm::tests
 
     TEST(SectionTests, TestSectionCrossing02)
     {
-        using namespace zasm;
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler a(program);
-        Serializer serializer;
+        x86::Assembler a(program);
 
         auto labelA = a.createLabel();
         ASSERT_EQ(labelA.isValid(), true);
@@ -312,8 +299,8 @@ namespace zasm::tests
             ASSERT_EQ(a.jz(labelA), Error::None);
         }
 
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
-
         ASSERT_EQ(serializer.getSectionCount(), 2);
 
         const auto* sectInfo01 = serializer.getSectionInfo(0);

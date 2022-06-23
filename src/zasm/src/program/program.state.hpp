@@ -1,5 +1,6 @@
 #pragma once
 
+#include "zasm/base/mode.hpp"
 #include "zasm/core/enumflags.hpp"
 #include "zasm/core/objectpool.hpp"
 #include "zasm/core/stringpool.hpp"
@@ -54,14 +55,14 @@ namespace zasm::detail
 
     struct ProgramState : NodeList, Symbols
     {
-        ZydisMachineMode mode{};
+        MachineMode mode{};
 
         std::vector<LabelData> labels;
         std::vector<SectionData> sections;
 
         Label entryPoint{ Label::Id::Invalid };
 
-        ProgramState(ZydisMachineMode m)
+        ProgramState(MachineMode m)
             : mode(m)
         {
         }

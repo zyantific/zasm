@@ -5,15 +5,13 @@ namespace zasm::tests
 {
     TEST(ProgramTests, NodeInsertBeforeHead)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
 
         for (int i = 0; i < 10; i++)
         {
-            ASSERT_EQ(assembler.mov(eax, Imm(i)), Error::None);
+            ASSERT_EQ(assembler.mov(x86::eax, Imm(i)), Error::None);
         }
         ASSERT_EQ(program.size(), 10);
 
@@ -27,15 +25,13 @@ namespace zasm::tests
 
     TEST(ProgramTests, NodeInsertBeforeTail)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
 
         for (int i = 0; i < 10; i++)
         {
-            ASSERT_EQ(assembler.mov(eax, Imm(i)), Error::None);
+            ASSERT_EQ(assembler.mov(x86::eax, Imm(i)), Error::None);
         }
         ASSERT_EQ(program.size(), 10);
 
@@ -49,15 +45,13 @@ namespace zasm::tests
 
     TEST(ProgramTests, NodeDestroyHead)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
 
         for (int i = 0; i < 10; i++)
         {
-            ASSERT_EQ(assembler.mov(eax, Imm(i)), Error::None);
+            ASSERT_EQ(assembler.mov(x86::eax, Imm(i)), Error::None);
         }
         ASSERT_EQ(program.size(), 10);
 
@@ -74,7 +68,7 @@ namespace zasm::tests
         {
             ASSERT_NE(node, nullptr);
 
-            const auto& instr = node->get<Instruction>();
+            const auto& instr = node->get<zasm::Instruction>();
 
             const auto& imm = instr.getOperand<1, Imm>();
             ASSERT_EQ(imm.value<int>(), i);
@@ -87,15 +81,13 @@ namespace zasm::tests
 
     TEST(ProgramTests, NodeDestroyTail)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
 
         for (int i = 0; i < 10; i++)
         {
-            ASSERT_EQ(assembler.mov(eax, Imm(i)), Error::None);
+            ASSERT_EQ(assembler.mov(x86::eax, Imm(i)), Error::None);
         }
         ASSERT_EQ(program.size(), 10);
 
@@ -112,7 +104,7 @@ namespace zasm::tests
         {
             ASSERT_NE(node, nullptr);
 
-            const auto& instr = node->get<Instruction>();
+            const auto& instr = node->get<zasm::Instruction>();
 
             const auto& imm = instr.getOperand<1, Imm>();
             ASSERT_EQ(imm.value<int>(), i);
@@ -125,13 +117,11 @@ namespace zasm::tests
 
     TEST(ProgramTests, NodeDestroySingleHead)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        x86::Assembler assembler(program);
 
-        Assembler assembler(program);
-
-        ASSERT_EQ(assembler.mov(eax, Imm(0)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::eax, Imm(0)), Error::None);
         ASSERT_EQ(program.size(), 1);
 
         ASSERT_EQ(program.getHead(), program.getTail());
@@ -142,13 +132,11 @@ namespace zasm::tests
 
     TEST(ProgramTests, NodeDestroySingleTail)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        x86::Assembler assembler(program);
 
-        Assembler assembler(program);
-
-        ASSERT_EQ(assembler.mov(eax, Imm(0)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::eax, Imm(0)), Error::None);
         ASSERT_EQ(program.size(), 1);
 
         ASSERT_EQ(program.getHead(), program.getTail());
@@ -159,16 +147,14 @@ namespace zasm::tests
 
     TEST(ProgramTests, NodeReorderMoveAfter)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
 
         const Node* fifthNode = nullptr;
         for (int i = 0; i < 10; i++)
         {
-            ASSERT_EQ(assembler.mov(eax, Imm(i)), Error::None);
+            ASSERT_EQ(assembler.mov(x86::eax, Imm(i)), Error::None);
             if (i == 5)
                 fifthNode = assembler.getCursor();
         }
@@ -184,7 +170,7 @@ namespace zasm::tests
         {
             ASSERT_NE(node, nullptr);
 
-            const auto& instr = node->get<Instruction>();
+            const auto& instr = node->get<zasm::Instruction>();
 
             const auto& imm = instr.getOperand<1, Imm>();
             ASSERT_EQ(imm.value<int>(), NumberOrder[i]);
@@ -197,16 +183,14 @@ namespace zasm::tests
 
     TEST(ProgramTests, NodeReorderMoveBefore)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
 
         const Node* fifthNode = nullptr;
         for (int i = 0; i < 10; i++)
         {
-            ASSERT_EQ(assembler.mov(eax, Imm(i)), Error::None);
+            ASSERT_EQ(assembler.mov(x86::eax, Imm(i)), Error::None);
             if (i == 5)
                 fifthNode = assembler.getCursor();
         }
@@ -222,7 +206,7 @@ namespace zasm::tests
         {
             ASSERT_NE(node, nullptr);
 
-            const auto& instr = node->get<Instruction>();
+            const auto& instr = node->get<zasm::Instruction>();
 
             const auto& imm = instr.getOperand<1, Imm>();
             ASSERT_EQ(imm.value<int>(), NumberOrder[i]);
@@ -235,26 +219,25 @@ namespace zasm::tests
 
     TEST(ProgramTests, TestClear)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
-        Serializer serializer;
+        x86::Assembler assembler(program);
 
-        ASSERT_EQ(assembler.mov(eax, ebx), zasm::Error::None);
-        ASSERT_EQ(assembler.xor_(ebx, edx), zasm::Error::None);
-        ASSERT_EQ(assembler.add(eax, Imm(1)), zasm::Error::None);
-        ASSERT_EQ(assembler.not_(eax), zasm::Error::None);
-        ASSERT_EQ(assembler.xor_(eax, Imm(1)), zasm::Error::None);
+        ASSERT_EQ(assembler.mov(x86::eax, x86::ebx), zasm::Error::None);
+        ASSERT_EQ(assembler.xor_(x86::ebx, x86::edx), zasm::Error::None);
+        ASSERT_EQ(assembler.add(x86::eax, Imm(1)), zasm::Error::None);
+        ASSERT_EQ(assembler.not_(x86::eax), zasm::Error::None);
+        ASSERT_EQ(assembler.xor_(x86::eax, Imm(1)), zasm::Error::None);
 
         auto labelFoo = assembler.createLabel("foo");
         ASSERT_EQ(labelFoo.getId(), zasm::Label::Id{ 0 });
         ASSERT_EQ(labelFoo.isValid(), true);
         ASSERT_EQ(assembler.bind(labelFoo), zasm::Error::None);
-        ASSERT_EQ(assembler.mov(dword_ptr(labelFoo), eax), zasm::Error::None);
+        ASSERT_EQ(assembler.mov(x86::dword_ptr(labelFoo), x86::eax), zasm::Error::None);
 
         ASSERT_EQ(program.size(), 7);
 
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x400000), zasm::Error::None);
 
         const std::array<uint8_t, 18> expected = {
@@ -278,49 +261,47 @@ namespace zasm::tests
 
     TEST(ProgramTests, TestClear2)
     {
-        using namespace zasm::operands;
-
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        Program program(MachineMode::AMD64);
         Serializer serializer;
 
         int64_t address = 0x00400000;
         for (int i = 0; i < 1'000; i++)
         {
-            Assembler assembler(program);
+            x86::Assembler assembler(program);
 
-            ASSERT_EQ(assembler.push(rax), zasm::Error::None);
-            ASSERT_EQ(assembler.push(rcx), zasm::Error::None);
-            ASSERT_EQ(assembler.push(rdx), zasm::Error::None);
-            ASSERT_EQ(assembler.push(rbx), zasm::Error::None);
-            ASSERT_EQ(assembler.push(rbp), zasm::Error::None);
-            ASSERT_EQ(assembler.push(rsi), zasm::Error::None);
-            ASSERT_EQ(assembler.push(rdi), zasm::Error::None);
-            ASSERT_EQ(assembler.push(r8), zasm::Error::None);
-            ASSERT_EQ(assembler.push(r9), zasm::Error::None);
-            ASSERT_EQ(assembler.push(r10), zasm::Error::None);
-            ASSERT_EQ(assembler.push(r11), zasm::Error::None);
-            ASSERT_EQ(assembler.push(r12), zasm::Error::None);
-            ASSERT_EQ(assembler.push(r13), zasm::Error::None);
-            ASSERT_EQ(assembler.push(r14), zasm::Error::None);
-            ASSERT_EQ(assembler.push(r15), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::rax), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::rcx), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::rdx), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::rbx), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::rbp), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::rsi), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::rdi), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::r8), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::r9), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::r10), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::r11), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::r12), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::r13), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::r14), zasm::Error::None);
+            ASSERT_EQ(assembler.push(x86::r15), zasm::Error::None);
             ASSERT_EQ(assembler.pushfq(), zasm::Error::None);
 
             ASSERT_EQ(assembler.popfq(), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(r15), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(r14), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(r13), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(r12), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(r11), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(r10), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(r9), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(r8), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(rdi), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(rsi), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(rbp), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(rbx), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(rdx), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(rcx), zasm::Error::None);
-            ASSERT_EQ(assembler.pop(rax), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::r15), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::r14), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::r13), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::r12), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::r11), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::r10), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::r9), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::r8), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::rdi), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::rsi), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::rbp), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::rbx), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::rdx), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::rcx), zasm::Error::None);
+            ASSERT_EQ(assembler.pop(x86::rax), zasm::Error::None);
 
             ASSERT_EQ(serializer.serialize(program, address), zasm::Error::None);
             address += 0x10;

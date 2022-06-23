@@ -9,7 +9,7 @@
 
 namespace zasm
 {
-    Program::Program(ZydisMachineMode mode)
+    Program::Program(MachineMode mode)
         : _state{ new detail::ProgramState(mode) }
     {
     }
@@ -27,7 +27,7 @@ namespace zasm
         delete _state;
     }
 
-    ZydisMachineMode Program::getMode() const noexcept
+    MachineMode Program::getMode() const noexcept
     {
         return _state->mode;
     }

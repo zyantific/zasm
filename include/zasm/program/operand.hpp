@@ -7,79 +7,68 @@
 
 #include <cstdint>
 #include <variant>
+#include <zasm/core/enumflags.hpp>
 
 namespace zasm
 {
-    namespace operands
-    {
-        struct None
-        {
-        };
-    } // namespace operands
-
     namespace detail
     {
         enum class OperandVisibility : uint8_t
         {
-            Invalid = ZYDIS_OPERAND_VISIBILITY_INVALID,
-            Explicit = ZYDIS_OPERAND_VISIBILITY_EXPLICIT,
-            Implicit = ZYDIS_OPERAND_VISIBILITY_IMPLICIT,
-            Hidden = ZYDIS_OPERAND_VISIBILITY_HIDDEN,
+            Invalid = 0,
+            Explicit,
+            Implicit,
+            Hidden,
         };
 
-        enum class OperandEncoding : uint8_t
+        enum class OperandAccess : uint8_t
         {
-            None = ZYDIS_OPERAND_ENCODING_NONE,
-            ModRMReg = ZYDIS_OPERAND_ENCODING_MODRM_REG,
-            ModRmRm = ZYDIS_OPERAND_ENCODING_MODRM_RM,
-            Opcode = ZYDIS_OPERAND_ENCODING_OPCODE,
-            Ndsndd = ZYDIS_OPERAND_ENCODING_NDSNDD,
-            Is4 = ZYDIS_OPERAND_ENCODING_IS4,
-            Mask = ZYDIS_OPERAND_ENCODING_MASK,
-            Disp8 = ZYDIS_OPERAND_ENCODING_DISP8,
-            Disp16 = ZYDIS_OPERAND_ENCODING_DISP16,
-            Disp32 = ZYDIS_OPERAND_ENCODING_DISP32,
-            Disp64 = ZYDIS_OPERAND_ENCODING_DISP64,
-            Disp16_32_64 = ZYDIS_OPERAND_ENCODING_DISP16_32_64,
-            Disp32_32_64 = ZYDIS_OPERAND_ENCODING_DISP32_32_64,
-            Disp16_32_32 = ZYDIS_OPERAND_ENCODING_DISP16_32_32,
-            U8 = ZYDIS_OPERAND_ENCODING_UIMM8,
-            U16 = ZYDIS_OPERAND_ENCODING_UIMM16,
-            U32 = ZYDIS_OPERAND_ENCODING_UIMM32,
-            U64 = ZYDIS_OPERAND_ENCODING_UIMM64,
-            U16_32_64 = ZYDIS_OPERAND_ENCODING_UIMM16_32_64,
-            U32_32_64 = ZYDIS_OPERAND_ENCODING_UIMM32_32_64,
-            U16_32_32 = ZYDIS_OPERAND_ENCODING_UIMM16_32_32,
-            I8 = ZYDIS_OPERAND_ENCODING_SIMM8,
-            I16 = ZYDIS_OPERAND_ENCODING_SIMM16,
-            I32 = ZYDIS_OPERAND_ENCODING_SIMM32,
-            I64 = ZYDIS_OPERAND_ENCODING_SIMM64,
-            I16_32_64 = ZYDIS_OPERAND_ENCODING_SIMM16_32_64,
-            I32_32_64 = ZYDIS_OPERAND_ENCODING_SIMM32_32_64,
-            I16_32_32 = ZYDIS_OPERAND_ENCODING_SIMM16_32_32,
-            JI8 = ZYDIS_OPERAND_ENCODING_JIMM8,
-            JI16 = ZYDIS_OPERAND_ENCODING_JIMM16,
-            JI32 = ZYDIS_OPERAND_ENCODING_JIMM32,
-            JI64 = ZYDIS_OPERAND_ENCODING_JIMM64,
-            JI16_32_64 = ZYDIS_OPERAND_ENCODING_JIMM16_32_64,
-            JI32_32_64 = ZYDIS_OPERAND_ENCODING_JIMM32_32_64,
-            JI16_32_32 = ZYDIS_OPERAND_ENCODING_JIMM16_32_32,
+            None = 0,
+
+            // The operand is read by the instruction.
+            Read = (1u << 0),
+            // The operand is written by the instruction (must write).
+            Write = (1u << 1),
+            // The operand is conditionally written by the instruction (may write).
+            CondRead = (1u << 2),
+            // The operand is conditionally written by the instruction (may write).
+            CondWrite = (1u << 3),
+
+            // The operand is read (must read) and written by the instruction (must write).
+            ReadWrite = (Read | Write),
+            // The operand is conditionally read (may read) and conditionally written by the instruction (may write).
+            CondReadCondWrite = (CondRead | CondWrite),
+            // The operand is read (must read) and conditionally written by the instruction (may read).
+            ReadCondWrite = (Read | CondWrite),
+            // The operand is written (must write) and conditionally read by the instruction (may read).
+            CondReadWrite = (CondRead | Write),
+
+            // Masks
+            MaskRead = (Read | CondRead),
+            MaskWrite = (Write | CondWrite),
         };
+        ZASM_ENABLE_ENUM_OPERATORS(OperandAccess);
+
     } // namespace detail
 
     class Operand
     {
-        using Variant = std::variant<operands::None, operands::Reg, operands::Mem, operands::Imm, operands::Label>;
+    public:
+        struct None
+        {
+        };
 
+    private:
+        using Variant = std::variant<None, Reg, Mem, Imm, Label>;
         Variant _data;
 
     public:
         using Visibility = detail::OperandVisibility;
-        using Encoding = detail::OperandEncoding;
+        using Access = detail::OperandAccess;
 
     public:
         constexpr Operand() noexcept
-            : _data{ operands::None{} }
+            : _data{ None{} }
         {
         }
         constexpr Operand(Operand&& other) noexcept
@@ -137,6 +126,7 @@ namespace zasm
             {
                 return std::get_if<T>(&_data);
             }
+            return nullptr;
         }
 
         template<typename T> constexpr bool holds() const noexcept
@@ -149,6 +139,7 @@ namespace zasm
             {
                 return std::holds_alternative<T>(_data);
             }
+            return false;
         }
 
         template<typename F> auto visit(F&& f) const

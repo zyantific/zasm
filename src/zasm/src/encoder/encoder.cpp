@@ -2,6 +2,7 @@
 
 #include "../program/program.state.hpp"
 #include "encoder.context.hpp"
+#include "zasm/x86/instruction.hpp"
 
 #include <Zydis/Decoder.h>
 #include <Zydis/Encoder.h>
@@ -109,29 +110,29 @@ namespace zasm
         return target - (va + instrSize);
     }
 
-    static bool hasAttrib(Instruction::Attribs attribs, Instruction::Attribs other) noexcept
+    static bool hasAttrib(x86::Attribs attribs, x86::Attribs other) noexcept
     {
-        return (attribs & other) != Instruction::Attribs::None;
+        return (attribs & other) != x86::Attribs::None;
     }
 
-    static ZydisInstructionAttributes getAttribs(Instruction::Attribs attribs) noexcept
+    static ZydisInstructionAttributes getAttribs(x86::Attribs attribs) noexcept
     {
         ZydisInstructionAttributes res{};
 
-        const auto translateAttrib = [&res, &attribs](Instruction::Attribs other, ZydisInstructionAttributes newAttrib) {
+        const auto translateAttrib = [&res, &attribs](x86::Attribs other, ZydisInstructionAttributes newAttrib) {
             if (hasAttrib(attribs, other))
             {
                 res |= newAttrib;
             }
         };
 
-        translateAttrib(Instruction::Attribs::Lock, ZYDIS_ATTRIB_HAS_LOCK);
-        translateAttrib(Instruction::Attribs::Rep, ZYDIS_ATTRIB_HAS_REP);
-        translateAttrib(Instruction::Attribs::Repe, ZYDIS_ATTRIB_HAS_REPE);
-        translateAttrib(Instruction::Attribs::Repne, ZYDIS_ATTRIB_HAS_REPNE);
-        translateAttrib(Instruction::Attribs::Bnd, ZYDIS_ATTRIB_HAS_BND);
-        translateAttrib(Instruction::Attribs::Xacquire, ZYDIS_ATTRIB_HAS_XACQUIRE);
-        translateAttrib(Instruction::Attribs::Xrelease, ZYDIS_ATTRIB_HAS_XRELEASE);
+        translateAttrib(x86::Attribs::Lock, ZYDIS_ATTRIB_HAS_LOCK);
+        translateAttrib(x86::Attribs::Rep, ZYDIS_ATTRIB_HAS_REP);
+        translateAttrib(x86::Attribs::Repe, ZYDIS_ATTRIB_HAS_REPE);
+        translateAttrib(x86::Attribs::Repne, ZYDIS_ATTRIB_HAS_REPNE);
+        translateAttrib(x86::Attribs::Bnd, ZYDIS_ATTRIB_HAS_BND);
+        translateAttrib(x86::Attribs::Xacquire, ZYDIS_ATTRIB_HAS_XACQUIRE);
+        translateAttrib(x86::Attribs::Xrelease, ZYDIS_ATTRIB_HAS_XRELEASE);
 
         return res;
     }
@@ -167,15 +168,15 @@ namespace zasm
         return { res, desiredBranchType };
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState&, const operands::Reg& op) noexcept
+    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState&, const Reg& op) noexcept
     {
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER;
-        dst.reg.value = op.getId();
+        dst.reg.value = static_cast<ZydisRegister>(op.getId());
 
         return Error::None;
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const operands::Label& op) noexcept
+    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Label& op) noexcept
     {
         auto* ctx = state.ctx;
         auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
@@ -237,7 +238,7 @@ namespace zasm
         return Error::None;
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const operands::Imm& op) noexcept
+    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Imm& op) noexcept
     {
         auto* ctx = state.ctx;
 
@@ -266,13 +267,13 @@ namespace zasm
         return Error::None;
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const operands::Mem& op) noexcept
+    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Mem& op) noexcept
     {
         auto* ctx = state.ctx;
 
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY;
-        dst.mem.base = op.getBase().getId();
-        dst.mem.index = op.getIndex().getId();
+        dst.mem.base = static_cast<ZydisRegister>(op.getBase().getId());
+        dst.mem.index = static_cast<ZydisRegister>(op.getIndex().getId());
         dst.mem.scale = op.getScale();
         dst.mem.size = static_cast<uint16_t>(op.getByteSize());
 
@@ -351,7 +352,7 @@ namespace zasm
         dst.mem.displacement = displacement;
 
         // Handling segment
-        const auto segmentId = op.getSegment().getId();
+        const auto segmentId = static_cast<ZydisRegister>(op.getSegment().getId());
         if (segmentId == ZYDIS_REGISTER_GS)
             state.req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_GS;
         else if (segmentId == ZYDIS_REGISTER_FS)
@@ -360,7 +361,7 @@ namespace zasm
         return Error::None;
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState&, const operands::None&) noexcept
+    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState&, const Operand::None&) noexcept
     {
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_UNUSED;
         return Error::None;
@@ -439,7 +440,7 @@ namespace zasm
     }
 
     static Error encode_(
-        EncoderResult& res, EncoderContext* ctx, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id,
+        EncoderResult& res, EncoderContext* ctx, MachineMode mode, x86::Attribs attribs, Instruction::Mnemonic id,
         size_t numOps, const Operand* operands) noexcept
     {
         res.length = 0;
@@ -448,23 +449,26 @@ namespace zasm
         state.ctx = ctx;
 
         ZydisEncoderRequest& req = state.req;
-        req.machine_mode = mode;
-        req.mnemonic = id;
+        if (mode == MachineMode::AMD64)
+            req.machine_mode = ZYDIS_MACHINE_MODE_LONG_64;
+        else if (mode == MachineMode::I386)
+            req.machine_mode = ZYDIS_MACHINE_MODE_LONG_COMPAT_32;
+        req.mnemonic = static_cast<ZydisMnemonic>(id);
         req.prefixes = getAttribs(attribs);
 
-        if (hasAttrib(attribs, Instruction::Attribs::OperandSize8))
+        if (hasAttrib(attribs, x86::Attribs::OperandSize8))
         {
             req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_8;
         }
-        else if (hasAttrib(attribs, Instruction::Attribs::OperandSize16))
+        else if (hasAttrib(attribs, x86::Attribs::OperandSize16))
         {
             req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_16;
         }
-        else if (hasAttrib(attribs, Instruction::Attribs::OperandSize32))
+        else if (hasAttrib(attribs, x86::Attribs::OperandSize32))
         {
             req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_32;
         }
-        else if (hasAttrib(attribs, Instruction::Attribs::OperandSize64))
+        else if (hasAttrib(attribs, x86::Attribs::OperandSize64))
         {
             req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_64;
         }
@@ -502,20 +506,21 @@ namespace zasm
     }
 
     Error encodeEstimated(
-        EncoderResult& res, ZydisMachineMode mode, Instruction::Attribs attribs, ZydisMnemonic id, size_t numOps,
+        EncoderResult& res, MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic id, size_t numOps,
         const EncoderOperands& operands) noexcept
     {
-        return encode_(res, nullptr, mode, attribs, id, numOps, operands.data());
+        return encode_(res, nullptr, mode, static_cast<x86::Attribs>(attribs), id, numOps, operands.data());
     }
 
     static Error encodeFull_(
-        EncoderResult& res, EncoderContext& ctx, ZydisMachineMode mode, Instruction::Attribs prefixes, ZydisMnemonic id,
+        EncoderResult& res, EncoderContext& ctx, MachineMode mode, Instruction::Attribs prefixes, Instruction::Mnemonic id,
         size_t numOps, const Operand* operands) noexcept
     {
         // encode_ will set this to kHintRequiresSize in case a length is required for correct encoding.
         ctx.instrSize = 0;
 
-        if (auto encodeError = encode_(res, &ctx, mode, prefixes, id, numOps, operands); encodeError != Error::None)
+        if (auto encodeError = encode_(res, &ctx, mode, static_cast<x86::Attribs>(prefixes), id, numOps, operands);
+            encodeError != Error::None)
         {
             return encodeError;
         }
@@ -524,7 +529,8 @@ namespace zasm
         {
             // Encode with now known size, instruction size can change again in this call.
             ctx.instrSize = res.length;
-            if (auto encodeError = encode_(res, &ctx, mode, prefixes, id, numOps, operands); encodeError != Error::None)
+            if (auto encodeError = encode_(res, &ctx, mode, static_cast<x86::Attribs>(prefixes), id, numOps, operands);
+                encodeError != Error::None)
             {
                 return encodeError;
             }
@@ -541,7 +547,7 @@ namespace zasm
         return Error::None;
     }
 
-    Error encodeFull(EncoderResult& buf, EncoderContext& ctx, ZydisMachineMode mode, const Instruction& instr) noexcept
+    Error encodeFull(EncoderResult& buf, EncoderContext& ctx, MachineMode mode, const Instruction& instr) noexcept
     {
         const auto& operands = instr.getOperands();
         const auto& vis = instr.getOperandsVisibility();
@@ -554,13 +560,13 @@ namespace zasm
                 break;
 
             auto& op = operands[i];
-            if (op.holds<operands::None>())
+            if (op.holds<Operand::None>())
                 break;
 
             explicitOps++;
         }
 
-        return encodeFull_(buf, ctx, mode, instr.getAttribs(), instr.getId(), explicitOps, operands.data());
+        return encodeFull_(buf, ctx, mode, instr.getAttribs(), instr.getMnemonic(), explicitOps, operands.data());
     }
 
 } // namespace zasm
