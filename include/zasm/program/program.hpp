@@ -118,6 +118,18 @@ namespace zasm
         /// </summary>
         void clear() noexcept;
 
+        /// <summary>
+        /// Sets the optional entry point.
+        /// </summary>
+        /// <param name="label">Entry Point</param>
+        void setEntryPoint(const Label& label);
+
+        /// <summary>
+        /// Gets the current set entry point.
+        /// </summary>
+        /// <returns>Label</returns>
+        Label getEntryPoint() const noexcept;
+
     public:
         /// <summary>
         /// Allocates a new unlinked node with containing the specified value.
