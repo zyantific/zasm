@@ -5,13 +5,13 @@ namespace zasm::tests
 {
     TEST(AssemblerTests, TestSegmentFS64)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
+
+        ASSERT_EQ(assembler.mov(x86::rax, x86::qword_ptr(x86::fs, 0x30)), Error::None);
+
         Serializer serializer;
-
-        ASSERT_EQ(assembler.mov(rax, qword_ptr(fs, 0x30)), Error::None);
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
         const std::array<uint8_t, 8> expected = {
@@ -29,13 +29,13 @@ namespace zasm::tests
 
     TEST(AssemblerTests, TestSegmentFS86)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::I386);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_COMPAT_32);
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
+
+        ASSERT_EQ(assembler.mov(x86::eax, x86::dword_ptr(x86::fs, 0x30)), Error::None);
+
         Serializer serializer;
-
-        ASSERT_EQ(assembler.mov(eax, dword_ptr(fs, 0x30)), Error::None);
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
         const std::array<uint8_t, 5> expected = {
@@ -53,13 +53,13 @@ namespace zasm::tests
 
     TEST(AssemblerTests, TestSegmentGS64)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
+
+        ASSERT_EQ(assembler.mov(x86::rax, x86::qword_ptr(x86::gs, 0x30)), Error::None);
+
         Serializer serializer;
-
-        ASSERT_EQ(assembler.mov(rax, qword_ptr(gs, 0x30)), Error::None);
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
         const std::array<uint8_t, 8> expected = {
@@ -77,13 +77,13 @@ namespace zasm::tests
 
     TEST(AssemblerTests, TestSegmentGS86)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::I386);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_COMPAT_32);
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
+
+        ASSERT_EQ(assembler.mov(x86::eax, x86::dword_ptr(x86::gs, 0x30)), Error::None);
+
         Serializer serializer;
-
-        ASSERT_EQ(assembler.mov(eax, dword_ptr(gs, 0x30)), Error::None);
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
         const std::array<uint8_t, 5> expected = {

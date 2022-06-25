@@ -5,7 +5,7 @@ namespace zasm::tests
 {
     TEST(RegisterTests, TestGpConvertRax)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(al.r8lo(), al);
         ASSERT_EQ(al.r8hi(), ah);
@@ -35,7 +35,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertRbx)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(bl.r8lo(), bl);
         ASSERT_EQ(bl.r8hi(), bh);
@@ -65,7 +65,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertRcx)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(cl.r8lo(), cl);
         ASSERT_EQ(cl.r8hi(), ch);
@@ -95,7 +95,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertRdx)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(dl.r8lo(), dl);
         ASSERT_EQ(dl.r8hi(), dh);
@@ -125,7 +125,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertRbp)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(bpl.r8lo(), bpl);
         ASSERT_EQ(bpl.r8hi(), Gp{});
@@ -151,7 +151,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertRsp)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(spl.r8lo(), spl);
         ASSERT_EQ(spl.r8hi(), Gp{});
@@ -177,7 +177,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertRsi)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(sil.r8lo(), sil);
         ASSERT_EQ(sil.r8hi(), Gp{});
@@ -203,7 +203,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertRdi)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(dil.r8lo(), dil);
         ASSERT_EQ(dil.r8hi(), Gp{});
@@ -229,7 +229,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertR8)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(r8b.r8lo(), r8b);
         ASSERT_EQ(r8b.r8hi(), Gp{});
@@ -255,7 +255,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertR9)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(r9b.r8lo(), r9b);
         ASSERT_EQ(r9b.r8hi(), Gp{});
@@ -281,7 +281,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertR10)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(r10b.r8lo(), r10b);
         ASSERT_EQ(r10b.r8hi(), Gp{});
@@ -307,7 +307,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertR11)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(r11b.r8lo(), r11b);
         ASSERT_EQ(r11b.r8hi(), Gp{});
@@ -333,7 +333,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertR12)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(r12b.r8lo(), r12b);
         ASSERT_EQ(r12b.r8hi(), Gp{});
@@ -359,7 +359,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertR13)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(r13b.r8lo(), r13b);
         ASSERT_EQ(r13b.r8hi(), Gp{});
@@ -385,7 +385,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertR14)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(r14b.r8lo(), r14b);
         ASSERT_EQ(r14b.r8hi(), Gp{});
@@ -411,7 +411,7 @@ namespace zasm::tests
 
     TEST(RegisterTests, TestGpConvertR15)
     {
-        using namespace zasm::operands;
+        using namespace zasm::x86;
 
         ASSERT_EQ(r15b.r8lo(), r15b);
         ASSERT_EQ(r15b.r8hi(), Gp{});

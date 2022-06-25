@@ -3,7 +3,7 @@
 
 namespace zasm::tests::data
 {
-    using InstrEmitter = zasm::Error (*)(class Assembler& a);
+    using InstrEmitter = zasm::Error (*)(class x86::Assembler& a);
 
     struct InstrTest
     {
@@ -15,7 +15,7 @@ namespace zasm::tests::data
 #define INSTRUCTION_TEST(INSTR_BYTES, ...)                                                                                     \
     InstrTest                                                                                                                  \
     {                                                                                                                          \
-#INSTR_BYTES, #__VA_ARGS__, [](auto& a) { using namespace zasm::operands; return a.__VA_ARGS__; }                              \
+#INSTR_BYTES, #__VA_ARGS__, [](auto& a) { using namespace zasm::operands; using namespace zasm::x86; return a.__VA_ARGS__; }   \
     }
 
     // clang-format off

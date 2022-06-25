@@ -10,21 +10,18 @@
 
 namespace zasm
 {
-    struct SerializeContext
-    {
-        EncoderContext& ctx;
-        std::vector<uint8_t> buffer;
-    };
-
-    struct LabelInfo
-    {
-        Label::Id labelId{ Label::Id::Invalid };
-        size_t boundOffset{};
-        size_t boundAddress{};
-    };
-
     namespace detail
     {
+        struct LabelInfo
+        {
+            static constexpr int32_t kUnboundOffset = -1;
+            static constexpr int64_t kUnboundAddress = -1;
+
+            Label::Id labelId{ Label::Id::Invalid };
+            int32_t boundOffset{ kUnboundOffset };
+            int64_t boundAddress{ kUnboundAddress };
+        };
+
         struct SerializerState
         {
             int64_t base{};
@@ -36,6 +33,12 @@ namespace zasm
         };
 
     } // namespace detail
+
+    struct SerializeContext
+    {
+        EncoderContext& ctx;
+        std::vector<uint8_t> buffer;
+    };
 
     static bool isLabelExternal(detail::ProgramState& prog, Label::Id id)
     {
@@ -118,6 +121,9 @@ namespace zasm
 
     static Error serializeNode(detail::ProgramState& prog, SerializeContext& state, const Label& label)
     {
+        if (!label.isValid())
+            return Error::InvalidLabel;
+
         auto& ctx = state.ctx;
 
         {
@@ -134,13 +140,7 @@ namespace zasm
             return Error::LabelNotFound;
         }
 
-        if (labelIdx >= ctx.labelLinks.size())
-        {
-            ctx.labelLinks.resize(labelIdx + 1);
-        }
-
-        auto& linkEntry = ctx.labelLinks[labelIdx];
-        linkEntry.id = label.getId();
+        auto& linkEntry = state.ctx.getOrCreateLabelLink(label.getId());
         linkEntry.boundOffset = ctx.offset;
         linkEntry.boundVA = ctx.va;
 
@@ -408,10 +408,11 @@ namespace zasm
         }
 
         // Check if all labels were bound, a link entry is added when it encounters a label.
+        const auto isUnresolvedLabel = [&programState](auto&& link) {
+            return !link.isBound() && !isLabelExternal(programState, link.id);
+        };
         const bool hasUnresolvedLinks = std::any_of(
-            std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks), [&programState](auto&& link) {
-                return !isLabelExternal(programState, link.id) && link.id != Label::Id::Invalid && link.boundOffset == -1;
-            });
+            std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks), isUnresolvedLabel);
         if (hasUnresolvedLinks)
         {
             return Error::UnresolvedLabel;
@@ -433,9 +434,6 @@ namespace zasm
         _state->labels.clear();
         for (auto& labelLink : encoderCtx.labelLinks)
         {
-            if (labelLink.id == Label::Id::Invalid)
-                continue;
-
             const auto labelIdx = static_cast<size_t>(labelLink.id);
             if (labelIdx >= programState.labels.size())
             {
@@ -453,20 +451,15 @@ namespace zasm
         ZyanStatus decoderStatus{};
         switch (program.getMode())
         {
-            case ZYDIS_MACHINE_MODE_LONG_64:
-                decoderStatus = ZydisDecoderInit(&decoder, program.getMode(), ZydisStackWidth::ZYDIS_STACK_WIDTH_64);
+            case MachineMode::I386:
+                decoderStatus = ZydisDecoderInit(
+                    &decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZydisStackWidth::ZYDIS_STACK_WIDTH_32);
                 break;
-            case ZYDIS_MACHINE_MODE_LONG_COMPAT_32:
-            case ZYDIS_MACHINE_MODE_LEGACY_32:
-                decoderStatus = ZydisDecoderInit(&decoder, program.getMode(), ZydisStackWidth::ZYDIS_STACK_WIDTH_32);
-                break;
-            case ZYDIS_MACHINE_MODE_LONG_COMPAT_16:
-            case ZYDIS_MACHINE_MODE_LEGACY_16:
-            case ZYDIS_MACHINE_MODE_REAL_16:
-                decoderStatus = ZydisDecoderInit(&decoder, program.getMode(), ZydisStackWidth::ZYDIS_STACK_WIDTH_16);
+            case MachineMode::AMD64:
+                decoderStatus = ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZydisStackWidth::ZYDIS_STACK_WIDTH_64);
                 break;
             default:
-                break;
+                return Error::InvalidParameter;
         }
 
         ZydisDecodedOperand instrOps[ZYDIS_MAX_OPERAND_COUNT];

@@ -1,57 +1,60 @@
 #include "generator.hpp"
 
 #include <Zydis/Zydis.h>
+#include <zasm/x86/instruction.hpp>
 
 namespace zasm
 {
     // FIXME: Duplicate code, move this somewhere.
-    static bool isImmediateControlFlow(ZydisMnemonic mnemonic) noexcept
+    static bool isImmediateControlFlow(Instruction::Mnemonic mnemonic) noexcept
     {
-        switch (mnemonic)
+        switch (static_cast<x86::Mnemonic>(mnemonic))
         {
-            case ZYDIS_MNEMONIC_CALL:
-            case ZYDIS_MNEMONIC_JB:
-            case ZYDIS_MNEMONIC_JBE:
-            case ZYDIS_MNEMONIC_JCXZ:
-            case ZYDIS_MNEMONIC_JECXZ:
-            case ZYDIS_MNEMONIC_JKNZD:
-            case ZYDIS_MNEMONIC_JKZD:
-            case ZYDIS_MNEMONIC_JL:
-            case ZYDIS_MNEMONIC_JLE:
-            case ZYDIS_MNEMONIC_JMP:
-            case ZYDIS_MNEMONIC_JNB:
-            case ZYDIS_MNEMONIC_JNBE:
-            case ZYDIS_MNEMONIC_JNL:
-            case ZYDIS_MNEMONIC_JNLE:
-            case ZYDIS_MNEMONIC_JNO:
-            case ZYDIS_MNEMONIC_JNP:
-            case ZYDIS_MNEMONIC_JNS:
-            case ZYDIS_MNEMONIC_JNZ:
-            case ZYDIS_MNEMONIC_JO:
-            case ZYDIS_MNEMONIC_JP:
-            case ZYDIS_MNEMONIC_JRCXZ:
-            case ZYDIS_MNEMONIC_JS:
-            case ZYDIS_MNEMONIC_JZ:
-            case ZYDIS_MNEMONIC_LOOP:
-            case ZYDIS_MNEMONIC_LOOPE:
-            case ZYDIS_MNEMONIC_LOOPNE:
+            case x86::Mnemonic::Call:
+            case x86::Mnemonic::Jb:
+            case x86::Mnemonic::Jbe:
+            case x86::Mnemonic::Jcxz:
+            case x86::Mnemonic::Jecxz:
+            case x86::Mnemonic::Jknzd:
+            case x86::Mnemonic::Jkzd:
+            case x86::Mnemonic::Jl:
+            case x86::Mnemonic::Jle:
+            case x86::Mnemonic::Jmp:
+            case x86::Mnemonic::Jnb:
+            case x86::Mnemonic::Jnbe:
+            case x86::Mnemonic::Jnl:
+            case x86::Mnemonic::Jnle:
+            case x86::Mnemonic::Jno:
+            case x86::Mnemonic::Jnp:
+            case x86::Mnemonic::Jns:
+            case x86::Mnemonic::Jnz:
+            case x86::Mnemonic::Jo:
+            case x86::Mnemonic::Jp:
+            case x86::Mnemonic::Jrcxz:
+            case x86::Mnemonic::Js:
+            case x86::Mnemonic::Jz:
+            case x86::Mnemonic::Loop:
+            case x86::Mnemonic::Loope:
+            case x86::Mnemonic::Loopne:
                 return true;
         }
         return false;
     }
 
-    InstrGenerator::InstrGenerator(ZydisMachineMode mode) noexcept
+    InstrGenerator::InstrGenerator(MachineMode mode) noexcept
         : _decoder(mode)
         , _mode(mode)
     {
     }
 
     InstrGenerator::Result InstrGenerator::generate(
-        Instruction::Attribs attribs, ZydisMnemonic mnemonic, size_t numOps, EncoderOperands&& operands) noexcept
+        Instruction::Attribs attribs, Instruction::Mnemonic id, size_t numOps, EncoderOperands&& operands) noexcept
     {
         EncoderResult buf{};
 
-        auto encodeResult = encodeEstimated(buf, _mode, attribs, mnemonic, numOps, operands);
+        auto encodeResult = encodeEstimated(
+            buf, _mode, static_cast<zasm::Instruction::Attribs>(attribs), static_cast<zasm::Instruction::Mnemonic>(id), numOps,
+            operands);
         if (encodeResult != Error::None)
         {
             return zasm::makeUnexpected(encodeResult);
@@ -79,31 +82,31 @@ namespace zasm
             {
                 newOps[i] = opSrc;
             }
-            else if (const auto* opMem = opSrc.getIf<operands::Mem>(); opMem != nullptr)
+            else if (const auto* opMem = opSrc.getIf<Mem>(); opMem != nullptr)
             {
                 // FIXME: Handle labels in memory operands.
-                auto& decodedMemOp = newOps[i].get<operands::Mem>();
+                auto& decodedMemOp = newOps[i].get<Mem>();
 
                 if (opMem->hasLabel())
                 {
-                    newOps[i] = operands::Mem(
+                    newOps[i] = Mem(
                         opMem->getBitSize(), decodedMemOp.getSegment(), opMem->getLabel(), opMem->getBase(), opMem->getIndex(),
                         opMem->getScale(), opMem->getDisplacement());
                 }
             }
-            if (opSrc.holds<operands::Imm>())
+            if (opSrc.holds<Imm>())
             {
-                if (i == 0 && isImmediateControlFlow(decodedInstr.getId()))
+                const auto id = decodedInstr.getMnemonic();
+                if (i == 0 && isImmediateControlFlow(id))
                 {
                     newOps[i] = opSrc;
                 }
             }
         }
 
-        return Instruction(
-            decodedInstr.getAttribs(), decodedInstr.getId(), opCount, newOps, decodedInstr.getAccess(), vis,
-            decodedInstr.getOperandsEncoding(), decodedInstr.getFlags(), decodedInstr.getEncoding(), decodedInstr.getCategory(),
-            decodedInstr.getLength());
+        return zasm::Instruction(
+            decodedInstr.getAttribs(), decodedInstr.getMnemonic(), opCount, newOps, decodedInstr.getAccess(), vis,
+            decodedInstr.getCPUFlags(), decodedInstr.getCategory(), decodedInstr.getLength());
     }
 
 } // namespace zasm

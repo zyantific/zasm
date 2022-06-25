@@ -7,7 +7,9 @@ namespace zasm::benchmarks
 {
     static void BM_Serialization(benchmark::State& state)
     {
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
+        using namespace zasm::x86;
+
+        Program program(MachineMode::AMD64);
         Assembler assembler(program);
         Serializer serializer;
 
@@ -31,7 +33,7 @@ namespace zasm::benchmarks
                 {
                     if (label.isValid())
                     {
-                        assembler.lea(operands::rax, operands::qword_ptr(label));
+                        assembler.lea(rax, qword_ptr(label));
                     }
                     label = assembler.createLabel();
                     assembler.bind(label);

@@ -130,7 +130,6 @@ namespace zasm
         /// <returns>Pointer to relocation info or null in case the index does not exist</returns>
         const RelocationInfo* getExternalRelocation(const size_t index) const noexcept;
 
-
         /// <summary>
         /// Clears the current serialized state.
         /// </summary>

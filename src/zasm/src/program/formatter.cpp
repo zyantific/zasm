@@ -1,11 +1,13 @@
+#include <Zydis/Register.h>
 #include <algorithm>
 #include <cinttypes>
 #include <cmath>
 #include <zasm/program/formatter.hpp>
 #include <zasm/program/instruction.hpp>
 #include <zasm/program/node.hpp>
-#include <zasm/program/register.hpp>
 #include <zasm/program/program.hpp>
+#include <zasm/program/register.hpp>
+#include <zasm/x86/instruction.hpp>
 
 namespace zasm::formatter
 {
@@ -42,23 +44,23 @@ namespace zasm::formatter
             }
         };
 
-        static void mnemonictoString(Context& ctx, const ZydisMnemonic mnemonic)
+        static void mnemonictoString(Context& ctx, const Instruction::Mnemonic mnemonic)
         {
-            const char* str = ZydisMnemonicGetString(mnemonic);
+            const char* str = ZydisMnemonicGetString(static_cast<ZydisMnemonic>(mnemonic));
             ctx.append(str);
         }
 
-        static void opToString(Context&, const operands::None&)
+        static void opToString(Context&, const Operand::None&)
         {
         }
 
-        static void opToString(Context& ctx, const operands::Reg& op)
+        static void opToString(Context& ctx, const Reg& op)
         {
-            const char* str = ZydisRegisterGetString(op.getId());
+            const char* str = ZydisRegisterGetString(static_cast<ZydisRegister>(op.getId()));
             ctx.append(str);
         }
 
-        static void opToString(Context& ctx, const operands::Imm& op)
+        static void opToString(Context& ctx, const Imm& op)
         {
             int64_t val = op.value<int64_t>();
             if (ctx.hasOption(Options::HexImmediates))
@@ -79,12 +81,12 @@ namespace zasm::formatter
             ctx.format("L%u", label.getId());
         }
 
-        static void opToString(Context& ctx, const operands::Label& op)
+        static void opToString(Context& ctx, const Label& op)
         {
             return labelToString(ctx, op);
         }
 
-        static void opToString(Context& ctx, const operands::Mem& op)
+        static void opToString(Context& ctx, const Mem& op)
         {
             if (op.getByteSize() == 1)
                 ctx.append("byte ptr ");
@@ -178,18 +180,18 @@ namespace zasm::formatter
         {
             switch (size)
             {
-            case BitSize::_8:
-                ctx.append("db ");
-                break;
-            case BitSize::_16:
-                ctx.append("dw ");
-                break;
-            case BitSize::_32:
-                ctx.append("dd ");
-                break;
-            case BitSize::_64:
-                ctx.append("dq ");
-                break;
+                case BitSize::_8:
+                    ctx.append("db ");
+                    break;
+                case BitSize::_16:
+                    ctx.append("dw ");
+                    break;
+                case BitSize::_32:
+                    ctx.append("dd ");
+                    break;
+                case BitSize::_64:
+                    ctx.append("dq ");
+                    break;
             }
         }
 
@@ -228,7 +230,7 @@ namespace zasm::formatter
                 {
                     if (bytesOnLine == 0)
                         dataPrefix(ctx, BitSize::_8);
-                    
+
                     if (bytesOnLine > 0)
                         ctx.append(", ");
 
@@ -269,21 +271,21 @@ namespace zasm::formatter
 
         static void nodeToString(Context& ctx, const Instruction& node)
         {
-            if (node.hasAttrib(Instruction::Attribs::Lock))
+            if (node.hasAttrib(x86::Attribs::Lock))
                 ctx.append("lock ");
-            if (node.hasAttrib(Instruction::Attribs::Rep))
+            if (node.hasAttrib(x86::Attribs::Rep))
                 ctx.append("rep ");
-            if (node.hasAttrib(Instruction::Attribs::Repe))
+            if (node.hasAttrib(x86::Attribs::Repe))
                 ctx.append("repe ");
-            if (node.hasAttrib(Instruction::Attribs::Repne))
+            if (node.hasAttrib(x86::Attribs::Repne))
                 ctx.append("repne ");
 
-            mnemonictoString(ctx, node.getId());
+            mnemonictoString(ctx, node.getMnemonic());
 
             size_t opIndex = 0;
             for (auto& op : node.getOperands())
             {
-                if (op.holds<operands::None>())
+                if (op.holds<Operand::None>())
                     break;
 
                 if (node.isOperandHidden(opIndex))
@@ -365,6 +367,5 @@ namespace zasm::formatter
 
         return { ctx.buf, ctx.size };
     }
-
 
 } // namespace zasm::formatter

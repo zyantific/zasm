@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <optional>
 #include <vector>
@@ -45,9 +46,17 @@ namespace zasm
 
         struct LabelLink
         {
+            static constexpr int32_t kUnboundOffset = -1;
+            static constexpr int64_t kUnboundVA = -1;
+
             Label::Id id{ Label::Id::Invalid };
-            int32_t boundOffset{ -1 };
-            int64_t boundVA{ -1 };
+            int32_t boundOffset{ kUnboundOffset };
+            int64_t boundVA{ kUnboundVA };
+
+            constexpr bool isBound() const noexcept
+            {
+                return boundOffset != kUnboundOffset;
+            }
         };
 
         struct Node
@@ -66,21 +75,31 @@ namespace zasm
 
         LabelLink& getOrCreateLabelLink(Label::Id id)
         {
+            assert(id != Label::Id::Invalid);
+
             const auto labelIdx = static_cast<size_t>(id);
             if (labelIdx >= labelLinks.size())
             {
+                const size_t resizeStartIndex = labelLinks.size();
                 labelLinks.resize(labelIdx + 1);
 
-                auto& entry = labelLinks[labelIdx];
-                entry.id = id;
+                // Ensure each entry has a valid id assigned.
+                for (size_t i = resizeStartIndex; i < labelLinks.size(); i++)
+                {
+                    labelLinks[i].id = static_cast<Label::Id>(i);
+                }
 
+                auto& entry = labelLinks[labelIdx];
                 return entry;
             }
+
             return labelLinks[labelIdx];
         }
 
         std::optional<int64_t> getLabelAddress(Label::Id id)
         {
+            assert(id != Label::Id::Invalid);
+
             const auto& entry = getOrCreateLabelLink(id);
             if (entry.boundVA == -1)
             {

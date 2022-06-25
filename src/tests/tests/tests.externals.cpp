@@ -7,15 +7,15 @@ namespace zasm::tests
 {
     TEST(ExternalLabelTests, BasicTestX64)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
-        Serializer serializer;
+        x86::Assembler assembler(program);
 
         auto externalLabel = program.createExternalLabel("external");
 
-        ASSERT_EQ(assembler.lea(rax, qword_ptr(externalLabel)), Error::None);
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(externalLabel)), Error::None);
+
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), Error::None);
 
         const std::array<uint8_t, 7> expected = {
@@ -41,19 +41,18 @@ namespace zasm::tests
 
     TEST(ExternalLabelTests, EmbeddedExternalLabelX64)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
-        Serializer serializer;
+        x86::Assembler assembler(program);
 
         auto externalLabel = program.createExternalLabel("external");
-
         auto labelData = assembler.createLabel("EmbeddedLabelPos");
-        ASSERT_EQ(assembler.lea(rax, qword_ptr(labelData)), Error::None);
-        ASSERT_EQ(assembler.mov(rdx, qword_ptr(rax)), Error::None);
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(labelData)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::rdx, x86::qword_ptr(x86::rax)), Error::None);
         ASSERT_EQ(assembler.bind(labelData), Error::None);
         ASSERT_EQ(assembler.embedLabel(externalLabel), Error::None);
+
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), Error::None);
 
         const std::array<uint8_t, 18> expected = {
@@ -79,19 +78,19 @@ namespace zasm::tests
 
     TEST(ExternalLabelTests, EmbeddedExternalLabelX86)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::I386);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_COMPAT_32);
-        Assembler assembler(program);
-        Serializer serializer;
+        x86::Assembler assembler(program);
 
         auto externalLabel = program.createExternalLabel("external");
 
         auto labelData = assembler.createLabel("EmbeddedLabelPos");
-        ASSERT_EQ(assembler.lea(eax, dword_ptr(labelData)), Error::None);
-        ASSERT_EQ(assembler.mov(edx, dword_ptr(eax)), Error::None);
+        ASSERT_EQ(assembler.lea(x86::eax, x86::dword_ptr(labelData)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::edx, x86::dword_ptr(x86::eax)), Error::None);
         ASSERT_EQ(assembler.bind(labelData), Error::None);
         ASSERT_EQ(assembler.embedLabel(externalLabel), Error::None);
+
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), Error::None);
 
         const std::array<uint8_t, 12> expected = {
@@ -126,19 +125,18 @@ namespace zasm::tests
 
     TEST(ExternalLabelTests, RelocateWithExternalLabelX86)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::I386);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_COMPAT_32);
-        Assembler assembler(program);
-        Serializer serializer;
+        x86::Assembler assembler(program);
 
         auto externalLabel = program.createExternalLabel("external");
-
         auto labelData = assembler.createLabel("EmbeddedLabelPos");
-        ASSERT_EQ(assembler.lea(eax, dword_ptr(labelData)), Error::None);
-        ASSERT_EQ(assembler.mov(edx, dword_ptr(eax)), Error::None);
+        ASSERT_EQ(assembler.lea(x86::eax, x86::dword_ptr(labelData)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::edx, x86::dword_ptr(x86::eax)), Error::None);
         ASSERT_EQ(assembler.bind(labelData), Error::None);
         ASSERT_EQ(assembler.embedLabel(externalLabel), Error::None);
+
+        Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), Error::None);
 
         {

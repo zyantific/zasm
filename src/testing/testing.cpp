@@ -21,10 +21,10 @@ static void measureSerializePerformance()
     using namespace zasm;
 
     // Program contains all the nodes and labels.
-    Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
+    Program program(zasm::MachineMode::AMD64);
 
     // Emitter
-    Assembler a(program);
+    x86::Assembler a(program);
 
     // Append to end, this is the default when instancing Assembler.
     a.setCursor(program.getTail());
@@ -34,7 +34,6 @@ static void measureSerializePerformance()
     constexpr auto kSerializationIterations = 1'000'000;
 
     {
-        using namespace operands;
         for (int i = 0; i < kNumInstrGenerations; i++)
         {
             // Label names are optional.
@@ -42,13 +41,13 @@ static void measureSerializePerformance()
             auto label2 = a.createLabel("testLabel2");
             auto labelInt3 = a.createLabel("int3");
 
-            a.mov(rax, rcx);
-            a.xor_(rax, Imm(1));
+            a.mov(x86::rax, x86::rcx);
+            a.xor_(x86::rax, Imm(1));
             a.jz(label1);
-            a.xor_(rcx, Imm(1));
+            a.xor_(x86::rcx, Imm(1));
             a.jmp(label2);
             // Reference label as absolute address.
-            a.mov(rax, labelInt3);
+            a.mov(x86::rax, labelInt3);
             a.bind(label1);
             a.nop();
             a.nop();
@@ -56,12 +55,12 @@ static void measureSerializePerformance()
             a.bind(labelInt3);
             a.int3();
             a.nop();
-            a.mov(rax, Imm(0xF00));
+            a.mov(x86::rax, Imm(0xF00));
             a.bind(label2);
             a.nop();
-            a.mov(rax, Imm(0xBAD));
+            a.mov(x86::rax, Imm(0xBAD));
 
-            a.lea(rsp, qword_ptr(rsp, 0x50));
+            a.lea(x86::rsp, x86::qword_ptr(x86::rsp, 0x50));
         }
 
         // Embedding data.
@@ -106,13 +105,12 @@ static void measureSerializePerformance()
 static void quickTest()
 {
     using namespace zasm;
-    using namespace zasm::operands;
 
     // Program contains all the nodes and labels.
-    Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
+    Program program(MachineMode::AMD64);
 
     // Emitter
-    Assembler a(program);
+    x86::Assembler a(program);
 
     a.push(Imm(0xC11));
 
@@ -126,17 +124,16 @@ static void quickTest()
 static void quickLeakTest()
 {
     using namespace zasm;
-    using namespace zasm::operands;
 
     constexpr uint8_t ConstData[128]{};
 
     for (int i = 0; i < 100000; i++)
     {
         // Program contains all the nodes and labels.
-        Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
+        Program program(MachineMode::AMD64);
 
         // Emitter
-        Assembler a(program);
+        x86::Assembler a(program);
 
         a.push(Imm(0xC11));
         a.embed(ConstData, sizeof(ConstData));
@@ -149,7 +146,6 @@ static void quickLeakTest()
 static void decodeToAssembler()
 {
     using namespace zasm;
-    using namespace zasm::operands;
 
     const uint64_t baseAddr = 0x00007FF6BC738ED4;
     const std::array<uint8_t, 24> code = {
@@ -163,10 +159,11 @@ static void decodeToAssembler()
         0x74, 0x13,             // je 0x00007FF6BC738EFF
     };
 
-    Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
-    Assembler assembler(program);
+    Program program(MachineMode::AMD64);
 
     Decoder decoder(program.getMode());
+
+    x86::Assembler assembler(program);
 
     size_t bytesDecoded = 0;
 
@@ -197,10 +194,10 @@ static void decodeToAssembler()
 static void sectionTest()
 {
     using namespace zasm;
-    using namespace zasm::operands;
 
-    Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
-    Assembler a(program);
+    Program program(MachineMode::AMD64);
+
+    x86::Assembler a(program);
 
     auto labelA = a.createLabel();
     auto labelB = a.createLabel();
@@ -208,9 +205,9 @@ static void sectionTest()
 
     a.section(".text");
     {
-        a.lea(rax, qword_ptr(labelA));
-        a.lea(rbx, qword_ptr(labelB));
-        a.lea(rdx, qword_ptr(labelC));
+        a.lea(x86::rax, x86::qword_ptr(labelA));
+        a.lea(x86::rbx, x86::qword_ptr(labelB));
+        a.lea(x86::rdx, x86::qword_ptr(labelC));
     }
 
     a.section(".data", Section::Attribs::Data);

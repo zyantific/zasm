@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace zasm::operands
+namespace zasm
 {
     class Imm
     {
@@ -40,7 +40,8 @@ namespace zasm::operands
         }
     };
 
-    namespace detail {
+    namespace detail
+    {
         template<typename T> class ImmT : public Imm
         {
         public:
@@ -50,7 +51,7 @@ namespace zasm::operands
             {
             }
         };
-    }
+    } // namespace detail
 
     /// <summary>
     /// Helpers to avoid casts.
@@ -60,4 +61,4 @@ namespace zasm::operands
     using Imm16 = detail::ImmT<int16_t>;
     using Imm8 = detail::ImmT<int8_t>;
 
-} // namespace zasm::operands
+} // namespace zasm

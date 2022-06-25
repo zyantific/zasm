@@ -6,12 +6,11 @@ namespace zasm::tests
 {
     TEST(FormatterTests, NodeInstr)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
 
-        ASSERT_EQ(assembler.mov(eax, edx), zasm::Error::None);
+        ASSERT_EQ(assembler.mov(x86::eax, x86::edx), zasm::Error::None);
 
         auto nodeStr = formatter::toString(program, program.getHead());
         ASSERT_EQ(nodeStr, std::string("mov eax, edx"));
@@ -19,12 +18,11 @@ namespace zasm::tests
 
     TEST(FormatterTests, NodeInstrLock)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
 
-        ASSERT_EQ(assembler.lock().inc(dword_ptr(eax)), zasm::Error::None);
+        ASSERT_EQ(assembler.lock().inc(x86::dword_ptr(x86::eax)), zasm::Error::None);
 
         auto nodeStr = formatter::toString(program, program.getHead());
         ASSERT_EQ(nodeStr, std::string("lock inc dword ptr ds:[eax]"));
@@ -32,13 +30,12 @@ namespace zasm::tests
 
     TEST(FormatterTests, NodeInstrMemLabel)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
 
         auto label = assembler.createLabel();
-        ASSERT_EQ(assembler.lock().inc(dword_ptr(label)), zasm::Error::None);
+        ASSERT_EQ(assembler.lock().inc(x86::dword_ptr(label)), zasm::Error::None);
         ASSERT_EQ(assembler.bind(label), zasm::Error::None);
 
         auto nodeStr = formatter::toString(program, program.getHead());
@@ -47,16 +44,15 @@ namespace zasm::tests
 
     TEST(FormatterTests, EntireProgram)
     {
-        using namespace zasm::operands;
+        Program program(MachineMode::AMD64);
 
-        Program program(ZYDIS_MACHINE_MODE_LONG_64);
-        Assembler assembler(program);
+        x86::Assembler assembler(program);
 
         auto label01 = assembler.createLabel();
         auto label02 = assembler.createLabel();
 
         ASSERT_EQ(assembler.jmp(label02), zasm::Error::None);
-        ASSERT_EQ(assembler.lock().inc(dword_ptr(label01)), zasm::Error::None);
+        ASSERT_EQ(assembler.lock().inc(x86::dword_ptr(label01)), zasm::Error::None);
         ASSERT_EQ(assembler.bind(label01), zasm::Error::None);
         ASSERT_EQ(assembler.dd(0), zasm::Error::None);
         ASSERT_EQ(assembler.bind(label02), zasm::Error::None);
