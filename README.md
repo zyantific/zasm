@@ -67,7 +67,6 @@ Decodes binary data into the Instruction object which can be either directly use
     
 ```cpp
 using namespace zasm;
-using namespace zasm::operands;
 
 const uint64_t address = 0x00007FF6BC738ED4;
 const std::array<uint8_t, 24> code = {
@@ -82,7 +81,7 @@ const std::array<uint8_t, 24> code = {
 };
 
 Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
-Assembler assembler(program);
+x86::Assembler assembler(program);
 Decoder decoder(program.getMode());
 Serializer serializer;
 
@@ -121,10 +120,9 @@ std::cout << codeDump << "\n";
     
 ```cpp
 using namespace zasm;
-using namespace zasm::operands;
 
 Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
-Assembler a(program);
+x86::Assembler a(program);
 Serializer serializer;
 
 auto labelA = a.createLabel();
@@ -134,9 +132,9 @@ auto labelC = a.createLabel();
 // First section
 a.section(".text");
 {
-	a.lea(rax, qword_ptr(labelA));
-	a.lea(rbx, qword_ptr(labelB));
-	a.lea(rdx, qword_ptr(labelC));
+	a.lea(x86::rax, x86::qword_ptr(labelA));
+	a.lea(x86::rbx, x86::qword_ptr(labelB));
+	a.lea(x86::rdx, x86::qword_ptr(labelC));
 }
 
 // Second section.
@@ -174,10 +172,9 @@ for (size_t i = 0; i < serializer.getSectionCount(); ++i)
     
 ```cpp
 using namespace zasm;
-using namespace zasm::operands;
 
 Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
-Assembler a(program);
+x86::Assembler a(program);
 Serializer serializer;
 
 auto labelA = a.createLabel();
