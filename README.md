@@ -80,7 +80,7 @@ const std::array<uint8_t, 24> code = {
 	0x74, 0x13,             // je 0x00007FF6BC738EFF
 };
 
-Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
+Program program(MachineMode::AMD64);
 x86::Assembler assembler(program);
 Decoder decoder(program.getMode());
 Serializer serializer;
@@ -121,7 +121,7 @@ std::cout << codeDump << "\n";
 ```cpp
 using namespace zasm;
 
-Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
+Program program(MachineMode::AMD64);
 x86::Assembler a(program);
 Serializer serializer;
 
@@ -173,7 +173,7 @@ for (size_t i = 0; i < serializer.getSectionCount(); ++i)
 ```cpp
 using namespace zasm;
 
-Program program(ZydisMachineMode::ZYDIS_MACHINE_MODE_LONG_64);
+Program program(MachineMode::AMD64);
 x86::Assembler a(program);
 Serializer serializer;
 
