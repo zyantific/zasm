@@ -25,40 +25,9 @@ namespace zasm
         const std::variant<NodePoint, Instruction, Label, EmbeddedLabel, Data, Section> _data{};
 
     protected:
-        constexpr Node(const NodePoint& val) noexcept
-            : _data{ val }
-        {
-        }
-        constexpr Node(NodePoint&& val) noexcept
-            : _data{ val }
-        {
-        }
-        constexpr Node(const Instruction& val) noexcept
-            : _data{ val }
-        {
-        }
-        constexpr Node(Instruction&& val) noexcept
-            : _data{ val }
-        {
-        }
-        constexpr Node(const Label& val) noexcept
-            : _data{ val }
-        {
-        }
-        constexpr Node(const Section& val) noexcept
-            : _data{ val }
-        {
-        }
-        constexpr Node(const Data& val) noexcept
-            : _data{ val }
-        {
-        }
-        constexpr Node(Data&& val) noexcept
-            : _data{ val }
-        {
-        }
-        constexpr Node(const EmbeddedLabel& val) noexcept
-            : _data{ val }
+        template<typename T>
+        constexpr Node(T&& val) noexcept
+            : _data{ std::forward<T>(val) }
         {
         }
 
@@ -95,7 +64,5 @@ namespace zasm
             return std::visit([f = std::move(f)](auto&& data) { return f(data); }, _data);
         }
     };
-
-    constexpr size_t SizeOfNode = sizeof(Node);
 
 } // namespace zasm
