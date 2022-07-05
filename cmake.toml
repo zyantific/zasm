@@ -4,8 +4,8 @@ name = "zasm"
 languages = ["CXX"]
 
 [options]
-ZASM_BUILD_TESTS = true
-ZASM_BUILD_BENCHMARKS = true
+ZASM_BUILD_TESTS = false
+ZASM_BUILD_BENCHMARKS = false
 
 [conditions]
 tests = "ZASM_BUILD_TESTS"

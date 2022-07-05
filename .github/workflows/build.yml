@@ -6,12 +6,14 @@ jobs:
   windows-msvc:
     # Skip building pull requests from the same repository
     if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
-    name: Windows (MSVC)
+    name: Windows (MSVC, ${{ matrix.buildtype }})
     runs-on: windows-latest
     strategy:
       fail-fast: false
+      matrix:
+        buildtype: [Debug, Release]
     env:
-      BUILD_TYPE: Release
+      BUILD_TYPE: ${{ matrix.buildtype }}
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -30,12 +32,14 @@ jobs:
   ubuntu-gcc:
     # Skip building pull requests from the same repository
     if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
-    name: Ubuntu (GCC)
+    name: Ubuntu (GCC, ${{ matrix.buildtype }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      matrix:
+        buildtype: [Debug, Release]
     env:
-      BUILD_TYPE: Release
+      BUILD_TYPE: ${{ matrix.buildtype }}
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -54,12 +58,14 @@ jobs:
   ubuntu-clang:
     # Skip building pull requests from the same repository
     if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
-    name: Ubuntu (Clang)
+    name: Ubuntu (Clang, ${{ matrix.buildtype }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      matrix:
+        buildtype: [Debug, Release]
     env:
-      BUILD_TYPE: Release
+      BUILD_TYPE: ${{ matrix.buildtype }}
     steps:
     - name: Set up Clang
       uses: egor-tensin/setup-clang@v1
