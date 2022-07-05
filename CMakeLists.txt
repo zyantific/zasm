@@ -221,6 +221,7 @@ if(ZASM_BUILD_TESTS) # tests
 		"src/tests/tests/tests.formatter.cpp"
 		"src/tests/tests/tests.imports.cpp"
 		"src/tests/tests/tests.instructions.x64.cpp"
+		"src/tests/tests/tests.packed.cpp"
 		"src/tests/tests/tests.program.cpp"
 		"src/tests/tests/tests.registers.cpp"
 		"src/tests/tests/tests.relocation.cpp"
