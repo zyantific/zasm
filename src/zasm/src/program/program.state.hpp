@@ -40,9 +40,14 @@ namespace zasm::detail
         const zasm::Node* node{};
     };
 
-    struct NodeList
+    struct NodeStorage
     {
         ObjectPool<Node, PoolSize> nodePool;
+        Node::Id nextNodeId{};
+    };
+
+    struct NodeList
+    {
         Node* head{};
         Node* tail{};
         size_t nodeCount{};
@@ -53,7 +58,7 @@ namespace zasm::detail
         StringPool symbolNames;
     };
 
-    struct ProgramState : NodeList, Symbols
+    struct ProgramState : NodeStorage, NodeList, Symbols
     {
         MachineMode mode{};
 

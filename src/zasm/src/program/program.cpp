@@ -218,35 +218,39 @@ namespace zasm
         return _state->entryPoint;
     }
 
-    template<typename TPool, typename... TArgs> const Node* createNode_(TPool& pool, TArgs&&... args)
+    template<typename... TArgs> const Node* createNode_(detail::ProgramState* state, TArgs&&... args)
     {
+        auto nextId = state->nextNodeId;
+        state->nextNodeId = static_cast<Node::Id>(static_cast<std::underlying_type_t<Node::Id>>(nextId) + 1u);
+
+        auto& pool = state->nodePool;
         auto* node = detail::toInternal(pool.allocate(1));
         if (node == nullptr)
             return nullptr;
 
-        ::new ((void*)node) detail::Node(std::forward<TArgs&&>(args)...);
+        ::new ((void*)node) detail::Node(nextId, std::forward<TArgs&&>(args)...);
 
         return node;
     }
 
     const Node* Program::createNode(const Instruction& instr)
     {
-        return createNode_(_state->nodePool, instr);
+        return createNode_(_state, instr);
     }
 
     const Node* Program::createNode(const Data& data)
     {
-        return createNode_(_state->nodePool, data);
+        return createNode_(_state, data);
     }
 
     const Node* Program::createNode(Data&& data)
     {
-        return createNode_(_state->nodePool, std::move(data));
+        return createNode_(_state, std::move(data));
     }
 
     const Node* Program::createNode(const EmbeddedLabel& value)
     {
-        return createNode_(_state->nodePool, value);
+        return createNode_(_state, value);
     }
 
     static StringPool::Id getStringId(detail::ProgramState* state, const char* str)
@@ -306,7 +310,7 @@ namespace zasm
             return makeUnexpected(Error::LabelAlreadyBound);
         }
 
-        const auto* node = createNode_(_state->nodePool, label);
+        const auto* node = createNode_(_state, label);
         entry.node = node;
 
         return node;
@@ -438,7 +442,7 @@ namespace zasm
             return makeUnexpected(Error::SectionAlreadyBound);
         }
 
-        const auto* node = createNode_(_state->nodePool, section);
+        const auto* node = createNode_(_state, section);
         entry->node = node;
 
         return node;

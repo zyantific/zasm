@@ -10,14 +10,11 @@ namespace zasm
         class Node : public zasm::Node
         {
         public:
-            constexpr Node()
-                : ::zasm::Node()
-            {
-            }
+            constexpr Node() = default;
 
             template<typename T>
-            constexpr Node(const T& val)
-                : ::zasm::Node(val)
+            constexpr Node(zasm::Node::Id id, T&& val)
+                : ::zasm::Node(id, std::forward<T>(val))
             {
             }
             void setPrev(const ::zasm::Node* node)

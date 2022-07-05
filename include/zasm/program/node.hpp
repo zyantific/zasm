@@ -6,6 +6,7 @@
 #include "label.hpp"
 #include "section.hpp"
 
+#include <climits>
 #include <variant>
 
 namespace zasm
@@ -19,15 +20,23 @@ namespace zasm
 
     class Node
     {
+    public:
+        enum class Id : uint32_t
+        {
+            Invalid = std::numeric_limits<uint32_t>::max(),
+        };
+
     protected:
+        const Id _id{ Id::Invalid };
         const Node* _prev{};
         const Node* _next{};
         const std::variant<NodePoint, Instruction, Label, EmbeddedLabel, Data, Section> _data{};
 
     protected:
         template<typename T>
-        constexpr Node(T&& val) noexcept
-            : _data{ std::forward<T>(val) }
+        constexpr Node(Id id, T&& val) noexcept
+            : _id{ id }
+            , _data{ std::forward<T>(val) }
         {
         }
 
@@ -44,24 +53,45 @@ namespace zasm
             return _next;
         }
 
-        template<typename T> bool holds() const noexcept
+        template<typename T> constexpr bool holds() const noexcept
         {
             return std::holds_alternative<T>(_data);
         }
 
-        template<typename T> const T& get() const
+        template<typename T> constexpr const T& get() const
         {
             return std::get<T>(_data);
         }
 
-        template<typename T> const T* getIf() const noexcept
+        template<typename T> constexpr const T* getIf() const noexcept
         {
             return std::get_if<T>(&_data);
         }
 
-        template<typename F> auto visit(F&& f) const
+        template<typename F> constexpr auto visit(F&& f) const
         {
             return std::visit([f = std::move(f)](auto&& data) { return f(data); }, _data);
+        }
+
+        /// <summary>
+        /// Returns a unique identifier for this node.
+        /// </summary>
+        /// <returns>Id of node or Id::Invalid if this node is not valid</returns>
+        constexpr Id getId() const noexcept
+        {
+            return _id;
+        }
+
+        constexpr bool operator<(const Node& other) const noexcept
+        {
+            return static_cast<std::underlying_type_t<Node::Id>>(_id)
+                < static_cast<std::underlying_type_t<Node::Id>>(other._id);
+        }
+
+        constexpr bool operator>(const Node& other) const noexcept
+        {
+            return static_cast<std::underlying_type_t<Node::Id>>(_id)
+                > static_cast<std::underlying_type_t<Node::Id>>(other._id);
         }
     };
 
