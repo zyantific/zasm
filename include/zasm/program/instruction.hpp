@@ -4,10 +4,10 @@
 
 #include <array>
 #include <zasm/core/enumflags.hpp>
+#include <zasm/core/packed.hpp>
 
 namespace zasm
 {
-#pragma pack(push, 1)
     class Instruction
     {
         static constexpr size_t kMaxOperands = 10;
@@ -21,8 +21,9 @@ namespace zasm
         using Length = uint8_t;
         using OperandCount = uint8_t;
         using Operands = std::array<Operand, kMaxOperands>;
-        using OperandsAccess = std::array<Operand::Access, kMaxOperands>;
-        using OperandsVisibility = std::array<Operand::Visibility, kMaxOperands>;
+
+        using OperandsAccess = Packed<uint32_t, Operand::Access, 3>;
+        using OperandsVisibility = Packed<uint32_t, Operand::Visibility, 3>;
 
         struct CPUFlags
         {
@@ -32,15 +33,15 @@ namespace zasm
         };
 
     private:
-        const Mnemonic _mnemonic{};
-        const Length _length{};
-        const OperandCount _opCount{};
-        const Operands _operands{};
         const OperandsAccess _access{};
         const OperandsVisibility _opsVisibility{};
+        const Operands _operands{};
         const CPUFlags _cpuFlags{};
-        const Category _category{};
+        const Mnemonic _mnemonic{};
         const Attribs _attribs{};
+        const OperandCount _opCount{};
+        const Category _category{};
+        const Length _length{};
 
     public:
         constexpr Instruction() noexcept = default;
@@ -139,30 +140,31 @@ namespace zasm
 
         constexpr const Operand::Visibility getOperandVisibility(size_t index) const noexcept
         {
-            if (index >= _opCount || index >= _opsVisibility.size())
+            if (index >= _opCount)
                 return Operand::Visibility::Invalid;
-            return _opsVisibility[index];
+
+            return _opsVisibility.get(index);
         }
 
         constexpr bool isOperandHidden(size_t index) const noexcept
         {
             if (index >= _opCount)
                 return true;
-            return _opsVisibility[index] == Operand::Visibility::Hidden;
+            return getOperandVisibility(index) == Operand::Visibility::Hidden;
         }
 
         constexpr bool isOperandExplicit(size_t index) const noexcept
         {
             if (index >= _opCount)
                 return false;
-            return _opsVisibility[index] == Operand::Visibility::Explicit;
+            return getOperandVisibility(index) == Operand::Visibility::Explicit;
         }
 
         constexpr bool isOperandImplicit(size_t index) const noexcept
         {
             if (index >= _opCount)
                 return false;
-            return _opsVisibility[index] == Operand::Visibility::Implicit;
+            return getOperandVisibility(index) == Operand::Visibility::Implicit;
         }
 
         constexpr const OperandsAccess& getAccess() const noexcept
@@ -175,6 +177,7 @@ namespace zasm
             return _cpuFlags;
         }
     };
-#pragma pack(pop)
+
+    static constexpr size_t InstrSize = sizeof(Instruction);
 
 } // namespace zasm

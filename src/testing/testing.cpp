@@ -2,6 +2,7 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <zasm/core/packed.hpp>
 #include <zasm/zasm.hpp>
 
 static std::string getHexDump(const uint8_t* buf, size_t len)
@@ -14,6 +15,50 @@ static std::string getHexDump(const uint8_t* buf, size_t len)
         res += temp;
     }
     return res;
+}
+
+static void testPacked()
+{
+    using namespace zasm;
+
+    {
+        using OperandAccessPack = Packed<uint32_t, Operand::Visibility, 3>;
+
+        OperandAccessPack pack{};
+
+        pack.set(0, Operand::Visibility::Explicit);
+        assert(pack.get(0) == Operand::Visibility::Explicit);
+        assert(pack.get(1) == Operand::Visibility::Invalid);
+        assert(pack.get(2) == Operand::Visibility::Invalid);
+        assert(pack.get(3) == Operand::Visibility::Invalid);
+        assert(pack.get(4) == Operand::Visibility::Invalid);
+        assert(pack.get(5) == Operand::Visibility::Invalid);
+        assert(pack.get(6) == Operand::Visibility::Invalid);
+        assert(pack.get(7) == Operand::Visibility::Invalid);
+        assert(pack.get(8) == Operand::Visibility::Invalid);
+        assert(pack.get(9) == Operand::Visibility::Invalid);
+
+        pack.set(4, Operand::Visibility::Explicit);
+        assert(pack.get(0) == Operand::Visibility::Explicit);
+        assert(pack.get(1) == Operand::Visibility::Invalid);
+        assert(pack.get(2) == Operand::Visibility::Invalid);
+        assert(pack.get(3) == Operand::Visibility::Invalid);
+        assert(pack.get(4) == Operand::Visibility::Explicit);
+        assert(pack.get(5) == Operand::Visibility::Invalid);
+        assert(pack.get(6) == Operand::Visibility::Invalid);
+        assert(pack.get(7) == Operand::Visibility::Invalid);
+        assert(pack.get(8) == Operand::Visibility::Invalid);
+        assert(pack.get(9) == Operand::Visibility::Invalid);
+    }
+
+    {
+        using RegisterPack = Packed<uint32_t, Reg::Id, 10>;
+
+        RegisterPack pack{ x86::rax.getId(), x86::rcx.getId() };
+
+        assert(pack.get(0) == x86::rax.getId());
+        assert(pack.get(1) == x86::rcx.getId());
+    }
 }
 
 static void measureSerializePerformance()
@@ -239,6 +284,7 @@ static void sectionTest()
 
 int main()
 {
+    testPacked();
     sectionTest();
     // quickLeakTest();
     // decodeToAssembler();

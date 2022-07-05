@@ -3,17 +3,18 @@
 #include "immediate.hpp"
 #include "label.hpp"
 #include "register.hpp"
-#include "zasm/core/bitsize.hpp"
+
+#include <zasm/core/bitsize.hpp>
+#include <zasm/core/packed.hpp>
 
 namespace zasm
 {
-#pragma pack(push, 1)
     class Mem
     {
+        using RegisterPack = Packed<uint32_t, Reg::Id, 10>;
+
+        RegisterPack _segBaseIndex{};
         BitSize _bitSize{};
-        Reg::Id _seg{};
-        Reg::Id _base{};
-        Reg::Id _index{};
         uint8_t _scale{};
         int64_t _disp{};
         Label::Id _label{ Label::Id::Invalid };
@@ -22,9 +23,7 @@ namespace zasm
         constexpr explicit Mem(
             BitSize bitSize, const Reg& seg, const Reg& base, const Reg& index, int32_t scale, int64_t disp) noexcept
             : _bitSize{ bitSize }
-            , _seg{ static_cast<Reg::Id>(seg.getId()) }
-            , _base{ static_cast<Reg::Id>(base.getId()) }
-            , _index{ static_cast<Reg::Id>(index.getId()) }
+            , _segBaseIndex{ seg.getId(), base.getId(), index.getId() }
             , _scale{ static_cast<uint8_t>(scale) }
             , _disp{ disp }
             , _label{ Label::Id::Invalid }
@@ -35,9 +34,7 @@ namespace zasm
             BitSize bitSize, const Reg& seg, const Label& label, const Reg& base, const Reg& index, int32_t scale,
             int64_t disp) noexcept
             : _bitSize{ bitSize }
-            , _seg{ static_cast<Reg::Id>(seg.getId()) }
-            , _base{ static_cast<Reg::Id>(base.getId()) }
-            , _index{ static_cast<Reg::Id>(index.getId()) }
+            , _segBaseIndex{ seg.getId(), base.getId(), index.getId() }
             , _scale{ static_cast<uint8_t>(scale) }
             , _disp{ disp }
             , _label{ label.getId() }
@@ -46,23 +43,23 @@ namespace zasm
 
         constexpr Reg getSegment() const noexcept
         {
-            return Reg{ _seg };
+            return Reg{ _segBaseIndex.get<0>() };
         }
 
         constexpr Reg getBase() const noexcept
         {
-            return Reg{ _base };
+            return Reg{ _segBaseIndex.get<1>() };
         }
 
         constexpr Reg getIndex() const noexcept
         {
-            return Reg{ _index };
+            return Reg{ _segBaseIndex.get<2>() };
         }
 
         constexpr uint8_t getScale() const noexcept
         {
             // In case no index is assigned scale has to be zero.
-            if (_index == Reg::Id::None)
+            if (_segBaseIndex.get<1>() == Reg::Id::None)
                 return 0;
 
             return _scale;
@@ -98,8 +95,5 @@ namespace zasm
             return _label != Label::Id::Invalid;
         }
     };
-    static constexpr auto size = sizeof(Mem);
-
-#pragma pack(pop)
 
 } // namespace zasm
