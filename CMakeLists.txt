@@ -28,8 +28,8 @@ if(CMKR_ROOT_PROJECT)
 endif()
 
 # Options
-option(ZASM_BUILD_TESTS "" ON)
-option(ZASM_BUILD_BENCHMARKS "" ON)
+option(ZASM_BUILD_TESTS "" OFF)
+option(ZASM_BUILD_BENCHMARKS "" OFF)
 
 project(zasm
 	LANGUAGES
