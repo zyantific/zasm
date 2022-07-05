@@ -96,6 +96,7 @@ list(APPEND zasm_SOURCES
 	"include/zasm/core/expected.hpp"
 	"include/zasm/core/math.hpp"
 	"include/zasm/core/objectpool.hpp"
+	"include/zasm/core/packed.hpp"
 	"include/zasm/core/stringpool.hpp"
 	"include/zasm/decoder/decoder.hpp"
 	"include/zasm/encoder/encoder.hpp"

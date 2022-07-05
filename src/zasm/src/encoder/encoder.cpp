@@ -556,7 +556,7 @@ namespace zasm
         size_t explicitOps = 0;
         for (size_t i = 0; i < countOpInputs; ++i)
         {
-            if (vis[i] == Operand::Visibility::Hidden)
+            if (vis.get(i) == Operand::Visibility::Hidden)
                 break;
 
             auto& op = operands[i];

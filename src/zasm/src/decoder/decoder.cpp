@@ -171,8 +171,8 @@ namespace zasm
 
             ops[i] = getOperand(instr, op, va);
 
-            access[i] = translateOperandAccess(op.actions);
-            vis[i] = translateOperandVisibility(op.visibility);
+            access.set(i, translateOperandAccess(op.actions));
+            vis.set(i, translateOperandVisibility(op.visibility));
         }
 
         const auto attribs = getAttribs(instr.attributes);
