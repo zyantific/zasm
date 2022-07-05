@@ -37,6 +37,8 @@ namespace zasm
             case x86::Mnemonic::Loope:
             case x86::Mnemonic::Loopne:
                 return true;
+            default:
+                break;
         }
         return false;
     }

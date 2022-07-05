@@ -192,6 +192,8 @@ namespace zasm::formatter
                 case BitSize::_64:
                     ctx.append("dq ");
                     break;
+                default:
+                    break;
             }
         }
 

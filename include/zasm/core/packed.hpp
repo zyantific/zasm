@@ -1,15 +1,15 @@
 #pragma once
 
 #include <cassert>
-#include <climits>
+#include <limits>
 
 namespace zasm
 {
     template<typename TUnderlying, typename TElement, size_t TElementBitSize> class Packed
     {
-        static constexpr auto kElementMask = (TUnderlying{ 1u } << TElementBitSize) - TUnderlying{ 1u };
-        static constexpr auto kStorageBitSize = std::numeric_limits<TUnderlying>::digits;
-        static constexpr auto kCapacity = kStorageBitSize / TElementBitSize;
+        static constexpr size_t kElementMask = (TUnderlying{ 1u } << TElementBitSize) - TUnderlying{ 1u };
+        static constexpr size_t kStorageBitSize = std::numeric_limits<TUnderlying>::digits;
+        static constexpr size_t kCapacity = kStorageBitSize / TElementBitSize;
 
         TUnderlying _data{};
 
