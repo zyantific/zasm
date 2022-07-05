@@ -1,0 +1,9 @@
+root = true
+
+# All files
+[*]
+indent_style = space
+
+[*.{c++,cc,cpp,cppm,cxx,h,h++,hh,hpp,hxx,inl,ipp,ixx,tlh,tli}]
+end_of_line = lf
+insert_final_newline = true
