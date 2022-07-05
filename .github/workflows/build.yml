@@ -3,17 +3,70 @@ name: CMake
 on: [push, pull_request]
 
 jobs:
-  build:
+  windows-msvc:
     # Skip building pull requests from the same repository
     if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
-    runs-on: ${{ matrix.os }}
+    name: Windows (MSVC)
+    runs-on: windows-latest
     strategy:
       fail-fast: false
-      matrix:
-        os: [windows-2019, ubuntu-20.04]
     env:
       BUILD_TYPE: Release
     steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DZASM_BUILD_TESTS=ON
+        cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+    - name: Test
+      run: |
+        ctest --version
+        cd build
+        ctest . -C ${{ env.BUILD_TYPE }} --verbose
+                
+  ubuntu-gcc:
+    # Skip building pull requests from the same repository
+    if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
+    name: Ubuntu (GCC)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    env:
+      BUILD_TYPE: Release
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DZASM_BUILD_TESTS=ON
+        cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+    - name: Test
+      run: |
+        ctest --version
+        cd build
+        ctest . -C ${{ env.BUILD_TYPE }} --verbose
+        
+  ubuntu-clang:
+    # Skip building pull requests from the same repository
+    if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
+    name: Ubuntu (Clang)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    env:
+      BUILD_TYPE: Release
+    steps:
+    - name: Set up Clang
+      uses: egor-tensin/setup-clang@v1
+      with:
+        version: 12
+        platform: x64
+        
     - name: Checkout
       uses: actions/checkout@v2
 

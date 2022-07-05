@@ -19,7 +19,13 @@ namespace zasm::tests::data
     }
 
     // clang-format off
-	inline constexpr InstrTest Instructions[] = {
+#if defined(__clang__)
+    // Clang seems to be failing to compile this as constexpr.
+	inline const InstrTest Instructions[] = {
+#else
+    // GCC struggles with a long compile time when this is not constexpr.
+    inline constexpr InstrTest Instructions[] = {
+#endif
 		INSTRUCTION_TEST(10BC1180000000              , adc(byte_ptr(rcx, rdx, 1, 128), bh)),
 		INSTRUCTION_TEST(668394118000000001          , adc(word_ptr(rcx, rdx, 1, 128), Imm(1))),
 		INSTRUCTION_TEST(66119C1180000000            , adc(word_ptr(rcx, rdx, 1, 128), bx)),
