@@ -32,7 +32,7 @@ namespace zasm
         {
         }
 
-        BitSize getSize(MachineMode mode) const noexcept;
+        BitSize getBitSize(MachineMode mode) const noexcept;
 
         Class getClass() const noexcept;
 

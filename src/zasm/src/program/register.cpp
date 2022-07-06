@@ -22,7 +22,7 @@ namespace zasm
         return ZYDIS_MACHINE_MODE_MAX_VALUE;
     }
 
-    BitSize Reg::getSize(MachineMode mode) const noexcept
+    BitSize Reg::getBitSize(MachineMode mode) const noexcept
     {
         const auto id = static_cast<ZydisRegister>(getId());
         return toBitSize(ZydisRegisterGetWidth(getMode(mode), id));

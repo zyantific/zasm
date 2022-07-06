@@ -4,6 +4,7 @@
 #include "label.hpp"
 #include "register.hpp"
 
+#include <zasm/base/mode.hpp>
 #include <zasm/core/bitsize.hpp>
 #include <zasm/core/packed.hpp>
 
@@ -70,12 +71,17 @@ namespace zasm
             return _disp;
         }
 
-        constexpr BitSize getBitSize() const noexcept
+        BitSize getBitSize() const noexcept
         {
             return _bitSize;
         }
 
-        constexpr int32_t getByteSize() const noexcept
+        BitSize getBitSize(MachineMode) const noexcept
+        {
+            return getBitSize();
+        }
+
+        int32_t getByteSize() const noexcept
         {
             return ::zasm::getBitSize(_bitSize) / 8;
         }

@@ -56,6 +56,10 @@ namespace zasm
     public:
         struct None
         {
+            BitSize getBitSize(MachineMode) const noexcept
+            {
+                return BitSize::_0;
+            }
         };
 
     private:
@@ -142,9 +146,14 @@ namespace zasm
             return false;
         }
 
-        template<typename F> auto visit(F&& f) const
+        template<typename F> constexpr auto visit(F&& f) const
         {
             return std::visit(std::forward<F>(f), _data);
+        }
+
+        BitSize getBitSize(MachineMode mode) const noexcept
+        {
+            return visit([mode](auto&& op) { return op.getBitSize(mode); });
         }
     };
 

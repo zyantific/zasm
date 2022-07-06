@@ -80,7 +80,7 @@ namespace zasm
                 continue;
 
             const auto& opSrc = operands[i];
-            if (opSrc.holds<operands::Label>())
+            if (opSrc.holds<Label>())
             {
                 newOps[i] = opSrc;
             }

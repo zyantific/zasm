@@ -1,9 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <zasm/base/mode.hpp>
+#include <zasm/core/bitsize.hpp>
 
 namespace zasm
 {
+
     class Label
     {
     public:
@@ -31,11 +34,16 @@ namespace zasm
         {
             return _id != Id::Invalid;
         }
-    };
 
-    namespace operands
-    {
-        using Label = ::zasm::Label;
-    }
+        BitSize getBitSize() const noexcept
+        {
+            return BitSize::_0;
+        }
+
+        BitSize getBitSize(MachineMode) const noexcept
+        {
+            return getBitSize();
+        }
+    };
 
 } // namespace zasm
