@@ -21,103 +21,103 @@ namespace zasm::x86
         Gp r64() const noexcept;
     };
 
-    class Gp8 : public Gp
+    class Gp8 final : public Gp
     {
     public:
         using Gp::Gp;
     };
 
-    class Gp16 : public Gp
+    class Gp16 final : public Gp
     {
     public:
         using Gp::Gp;
     };
 
-    class Gp32 : public Gp
+    class Gp32 final : public Gp
     {
     public:
         using Gp::Gp;
     };
 
-    class Gp64 : public Gp
+    class Gp64 final : public Gp
     {
     public:
         using Gp::Gp;
     };
 
-    class Rip : public Reg
+    class Rip final : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    class Seg : public Reg
+    class Seg final : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    class Mmx : public Reg
+    class Mmx final : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    class St : public Reg
+    class St final : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    class Tmm : public Reg
+    class Tmm final : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    class Xmm : public Reg
+    class Xmm final : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    class Ymm : public Reg
+    class Ymm final : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    class Zmm : public Reg
+    class Zmm final : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    class Cr : public Reg
+    class Cr final : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    class Dr : public Reg
+    class Dr final : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    class Tr : public Reg
+    class Tr final : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    class Mask : public Reg
+    class Mask final : public Reg
     {
     public:
         using Reg::Reg;
     };
 
-    class Bnd : public Reg
+    class Bnd final : public Reg
     {
     public:
         using Reg::Reg;
