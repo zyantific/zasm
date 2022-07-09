@@ -52,17 +52,14 @@ namespace zasm
     InstrGenerator::Result InstrGenerator::generate(
         Instruction::Attribs attribs, Instruction::Mnemonic id, size_t numOps, EncoderOperands&& operands) noexcept
     {
-        EncoderResult buf{};
-
-        auto encodeResult = encodeEstimated(
-            buf, _mode, static_cast<zasm::Instruction::Attribs>(attribs), static_cast<zasm::Instruction::Mnemonic>(id), numOps,
+        auto encodeResult = encode(_mode, static_cast<zasm::Instruction::Attribs>(attribs), static_cast<zasm::Instruction::Mnemonic>(id), numOps,
             operands);
-        if (encodeResult != Error::None)
+        if (!encodeResult)
         {
-            return zasm::makeUnexpected(encodeResult);
+            return zasm::makeUnexpected(encodeResult.error());
         }
 
-        auto decodeResult = _decoder.decode(buf.data.data(), buf.length, 0);
+        auto decodeResult = _decoder.decode(encodeResult->data.data(), encodeResult->length, 0);
         if (!decodeResult)
         {
             return zasm::makeUnexpected(decodeResult.error());
