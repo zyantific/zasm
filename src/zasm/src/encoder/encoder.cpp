@@ -505,24 +505,32 @@ namespace zasm
         return Error::None;
     }
 
-    Error encodeEstimated(
-        EncoderResult& res, MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic id, size_t numOps,
+    Expected<EncoderResult, Error> encode(
+        MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic id, size_t numOps,
         const EncoderOperands& operands) noexcept
     {
-        return encode_(res, nullptr, mode, static_cast<x86::Attribs>(attribs), id, numOps, operands.data());
+        EncoderResult res;
+        if (auto err = encode_(res, nullptr, mode, static_cast<x86::Attribs>(attribs), id, numOps, operands.data());
+            err != Error::None)
+        {
+            return makeUnexpected(err);
+        }
+        return res;
     }
 
-    static Error encodeFull_(
-        EncoderResult& res, EncoderContext& ctx, MachineMode mode, Instruction::Attribs prefixes, Instruction::Mnemonic id,
-        size_t numOps, const Operand* operands) noexcept
+    static Expected<EncoderResult, Error> encodeWithContext(
+        EncoderContext& ctx, MachineMode mode, Instruction::Attribs prefixes, Instruction::Mnemonic id, size_t numOps,
+        const Operand* operands) noexcept
     {
+        EncoderResult res;
+
         // encode_ will set this to kHintRequiresSize in case a length is required for correct encoding.
         ctx.instrSize = 0;
 
         if (auto encodeError = encode_(res, &ctx, mode, static_cast<x86::Attribs>(prefixes), id, numOps, operands);
             encodeError != Error::None)
         {
-            return encodeError;
+            return makeUnexpected(encodeError);
         }
 
         while (ctx.instrSize == kHintRequiresSize)
@@ -532,7 +540,7 @@ namespace zasm
             if (auto encodeError = encode_(res, &ctx, mode, static_cast<x86::Attribs>(prefixes), id, numOps, operands);
                 encodeError != Error::None)
             {
-                return encodeError;
+                return makeUnexpected(encodeError);
             }
 
             // If the instruction size does not match what we previously specified
@@ -544,29 +552,24 @@ namespace zasm
             }
         }
 
-        return Error::None;
+        return res;
     }
 
-    Error encodeFull(EncoderResult& buf, EncoderContext& ctx, MachineMode mode, const Instruction& instr) noexcept
+    Expected<EncoderResult, Error> encode(EncoderContext& ctx, MachineMode mode, const Instruction& instr) noexcept
     {
-        const auto& operands = instr.getOperands();
-        const auto& vis = instr.getOperandsVisibility();
         const auto countOpInputs = std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getOperandCount());
 
         size_t explicitOps = 0;
         for (size_t i = 0; i < countOpInputs; ++i)
         {
-            if (vis.get(i) == Operand::Visibility::Hidden)
-                break;
-
-            auto& op = operands[i];
-            if (op.holds<Operand::None>())
+            if (instr.isOperandHidden(i))
                 break;
 
             explicitOps++;
         }
 
-        return encodeFull_(buf, ctx, mode, instr.getAttribs(), instr.getMnemonic(), explicitOps, operands.data());
+        const auto& operands = instr.getOperands();
+        return encodeWithContext(ctx, mode, instr.getAttribs(), instr.getMnemonic(), explicitOps, operands.data());
     }
 
 } // namespace zasm

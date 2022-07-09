@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <zasm/base/mode.hpp>
 #include <zasm/core/errors.hpp>
+#include <zasm/core/expected.hpp>
 #include <zasm/program/instruction.hpp>
 
 namespace zasm
@@ -38,17 +39,15 @@ namespace zasm
 
     using EncoderOperands = std::array<Operand, 5 /* ZYDIS_ENCODER_MAX_OPERANDS */>;
 
-    // This function might change some operands internally in order to encode without a context.
-    // The purpose of this function is to generate instructions for the assembler before
-    // full serialization. This allows to query instruction meta data such as operand access
-    // and CPU flags, this can be also used to estimate the size.
-    Error encodeEstimated(
-        EncoderResult& buf, MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic id, size_t numOps,
+    // Encodes with the requested instruction without a context and will use temporary
+    // values for operands like labels and rip-rel addressing.
+    Expected<EncoderResult, Error> encode(
+        MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic id, size_t numOps,
         const EncoderOperands& operands) noexcept;
 
     // Encodes with full context. This function still allows labels to be unbound and will not error
     // instead a temporary value be usually encoded. It is expected for the serialization to handle this
     // with multiple passes.
-    Error encodeFull(EncoderResult& buf, EncoderContext& ctx, MachineMode mode, const Instruction& instr) noexcept;
+    Expected<EncoderResult, Error> encode(EncoderContext& ctx, MachineMode mode, const Instruction& instr) noexcept;
 
 } // namespace zasm

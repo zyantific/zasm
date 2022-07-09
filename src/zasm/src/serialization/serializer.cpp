@@ -76,45 +76,43 @@ namespace zasm
     {
         auto& ctx = state.ctx;
 
-        EncoderResult res{};
-
-        auto status = encodeFull(res, state.ctx, prog.mode, instr);
-        if (status != Error::None)
+        auto res = encode(state.ctx, prog.mode, instr);
+        if (!res)
         {
-            return status;
+            return res.error();
         }
 
         {
             auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
             if (nodeEntry.length != 0)
             {
-                if (res.length < nodeEntry.length)
+                if (res->length < nodeEntry.length)
                 {
-                    ctx.drift += nodeEntry.length - res.length;
+                    ctx.drift += nodeEntry.length - res->length;
                 }
-                else if (res.length > nodeEntry.length)
+                else if (res->length > nodeEntry.length)
                 {
-                    ctx.drift -= res.length - nodeEntry.length;
+                    ctx.drift -= res->length - nodeEntry.length;
                 }
             }
-            nodeEntry.length = res.length;
+            nodeEntry.length = res->length;
             nodeEntry.offset = ctx.offset;
             nodeEntry.address = ctx.va;
-            nodeEntry.relocKind = res.relocKind;
-            nodeEntry.relocData = res.relocData;
-            nodeEntry.relocLabel = res.relocLabel;
+            nodeEntry.relocKind = res->relocKind;
+            nodeEntry.relocData = res->relocData;
+            nodeEntry.relocLabel = res->relocLabel;
 
             ctx.nodeIndex++;
         }
 
         auto& sect = ctx.sections[ctx.sectionIndex];
-        sect.rawSize += res.length;
+        sect.rawSize += res->length;
 
-        ctx.va += res.length;
-        ctx.offset += res.length;
+        ctx.va += res->length;
+        ctx.offset += res->length;
 
         auto& buffer = state.buffer;
-        buffer.insert(buffer.end(), std::begin(res.data), std::begin(res.data) + res.length);
+        buffer.insert(buffer.end(), std::begin(res->data), std::begin(res->data) + res->length);
 
         return Error::None;
     }

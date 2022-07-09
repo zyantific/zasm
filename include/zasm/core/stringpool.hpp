@@ -38,22 +38,22 @@ namespace zasm
 
         Id aquire(const char* value)
         {
-            return aquire_(value, strlen(value) + 1);
+            return aquire_(value, strlen(value));
         }
 
         Id aquire(const std::string& val)
         {
-            return aquire_(val.c_str(), val.size() + 1);
+            return aquire_(val.c_str(), val.size());
         }
 
-        size_t release(Id id)
+        int32_t release(Id id)
         {
-            const auto idx = static_cast<size_t>(id);
-            if (idx >= _entries.size())
+            Entry* entry = getEntry(*this, id);
+            if (entry == nullptr)
                 return 0;
 
-            const auto oldRefCount = _entries[idx].refCount--;
-            return oldRefCount - 1;
+            const auto newRefCount = --entry->refCount;
+            return newRefCount;
         }
 
         template<size_t N> Id find(const char (&value)[N]) const noexcept
@@ -64,44 +64,36 @@ namespace zasm
 
         bool isValid(Id id) const noexcept
         {
-            const auto idx = static_cast<size_t>(id);
-            if (idx >= _entries.size())
-            {
+            auto* entry = getEntry(*this, id);
+            if (entry == nullptr)
                 return false;
-            }
             return true;
         }
 
         const char* get(Id id) const noexcept
         {
-            if (!isValid(id))
-            {
+            auto* entry = getEntry(*this, id);
+            if (entry == nullptr)
                 return nullptr;
-            }
-            const auto& entry = _entries[static_cast<size_t>(id)];
-            if (entry.refCount == 0)
-                return nullptr;
-            return _data.data() + entry.offset;
+
+            return _data.data() + entry->offset;
         }
 
         int32_t getLength(Id id) const noexcept
         {
-            if (!isValid(id))
-            {
+            auto* entry = getEntry(*this, id);
+            if (entry == nullptr)
                 return 0;
-            }
-            const auto& entry = _entries[static_cast<size_t>(id)];
-            return entry.len;
+            return entry->len;
         }
 
         int32_t getRefCount(Id id) const noexcept
         {
-            if (!isValid(id))
-            {
+            auto* entry = getEntry(*this, id);
+            if (entry == nullptr)
                 return 0;
-            }
-            const auto& entry = _entries[static_cast<size_t>(id)];
-            return entry.refCount;
+
+            return entry->refCount;
         }
 
         void clear() noexcept
@@ -111,6 +103,20 @@ namespace zasm
         }
 
     private:
+        template<typename TSelf>
+        static auto getEntry(TSelf&& self, Id id)
+            -> std::conditional_t<std::is_const_v<std::remove_reference_t<TSelf>>, const Entry*, Entry*>
+        {
+            const auto idx = static_cast<size_t>(id);
+            if (idx >= self._entries.size())
+                return nullptr;
+
+            if (self._entries[idx].refCount <= 0)
+                return nullptr;
+
+            return &self._entries[idx];
+        }
+
         Id find_(const char* buf, size_t len, size_t hash) const noexcept
         {
             auto it = std::find_if(std::begin(_entries), std::end(_entries), [&](const auto& entry) {
@@ -133,6 +139,8 @@ namespace zasm
 
         Id aquire_(const char* buf, size_t len)
         {
+            constexpr int32_t kTerminatorLength = 1;
+
             const auto hash = getHash(buf, len);
 
             auto id = find_(buf, len, hash);
@@ -146,8 +154,9 @@ namespace zasm
             const auto len2 = static_cast<int32_t>(len);
 
             // Use empty entry if any exist.
-            auto it = std::find_if(
-                _entries.begin(), _entries.end(), [&](auto&& entry) { return entry.refCount == 0 && entry.capacity >= len2; });
+            auto it = std::find_if(_entries.begin(), _entries.end(), [&](auto&& entry) {
+                return entry.refCount <= 0 && entry.capacity >= len2 + kTerminatorLength;
+            });
 
             if (it != _entries.end())
             {
@@ -157,20 +166,26 @@ namespace zasm
                 id = static_cast<Id>(std::distance(_entries.begin(), it));
                 std::memcpy(_data.data() + entry.offset, buf, len2);
 
+                // Ensure null termination.
+                _data[entry.offset + len2] = '\0';
+
                 entry.hash = hash;
                 entry.len = len2;
                 entry.refCount = 1;
-            }
-            else
-            {
-                // New entry.
-                const int32_t offset = static_cast<int32_t>(_data.size());
-                _data.insert(_data.end(), buf, buf + len);
 
-                id = static_cast<Id>(_entries.size());
-
-                _entries.push_back({ hash, offset, len2, len2, 1 });
+                return id;
             }
+
+            // New entry.
+            const int32_t offset = static_cast<int32_t>(_data.size());
+            _data.insert(_data.end(), buf, buf + len);
+
+            // Ensure null termination.
+            _data.push_back('\0');
+
+            id = static_cast<Id>(_entries.size());
+
+            _entries.push_back({ hash, offset, len2, len2 + kTerminatorLength, 1 });
 
             return id;
         }

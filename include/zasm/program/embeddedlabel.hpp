@@ -4,7 +4,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <limits>
 #include <zasm/core/bitsize.hpp>
 
 namespace zasm
