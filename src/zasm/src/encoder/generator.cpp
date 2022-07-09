@@ -86,7 +86,6 @@ namespace zasm
             }
             else if (const auto* opMem = opSrc.getIf<Mem>(); opMem != nullptr)
             {
-                // FIXME: Handle labels in memory operands.
                 auto& decodedMemOp = newOps[i].get<Mem>();
 
                 if (opMem->hasLabel())
@@ -107,7 +106,7 @@ namespace zasm
         }
 
         return zasm::Instruction(
-            decodedInstr.getAttribs(), decodedInstr.getMnemonic(), opCount, newOps, decodedInstr.getAccess(), vis,
+            decodedInstr.getAttribs(), decodedInstr.getMnemonic(), opCount, newOps, decodedInstr.getOperandsAccess(), vis,
             decodedInstr.getCPUFlags(), decodedInstr.getCategory(), decodedInstr.getLength());
     }
 

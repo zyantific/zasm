@@ -167,7 +167,15 @@ namespace zasm
             return getOperandVisibility(index) == Operand::Visibility::Implicit;
         }
 
-        constexpr const OperandsAccess& getAccess() const noexcept
+        constexpr const Operand::Access& getOperandAccess(size_t index) const noexcept
+        {
+            if (index >= _opCount)
+                return Operand::Access::None;
+            
+            return _access.get(index);
+        }
+
+        constexpr const OperandsAccess& getOperandsAccess() const noexcept
         {
             return _access;
         }
