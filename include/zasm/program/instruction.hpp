@@ -171,7 +171,7 @@ namespace zasm
         {
             if (index >= _opCount)
                 return Operand::Access::None;
-            
+
             return _access.get(index);
         }
 
@@ -185,7 +185,5 @@ namespace zasm
             return _cpuFlags;
         }
     };
-
-    static constexpr size_t InstrSize = sizeof(Instruction);
 
 } // namespace zasm
