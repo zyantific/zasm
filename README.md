@@ -61,6 +61,10 @@ Decodes binary data into the Instruction object which can be either directly use
 ---
 
 ## Examples
+<details>
+  <summary>Creating a PE from scratch with zasm</summary>
+  This requires zasm-modules, example: https://github.com/ZehMatt/zasm-modules/blob/master/src/example/main.cpp
+</details>
 
 <details>
   <summary>Decode binary to Program</summary>
@@ -210,8 +214,6 @@ const auto labelOffsetB = serializer.getLabelOffset(labelB.getId());
 assert(labelOffsetB == 0x1);
 ```
 </details>
-    
-More examples will follow over time.
     
 ---
 
