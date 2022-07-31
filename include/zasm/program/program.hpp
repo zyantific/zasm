@@ -19,7 +19,9 @@ namespace zasm
         struct ProgramState;
     }
 
-    class Program
+    class Observer;
+
+    class Program final
     {
         detail::ProgramState* _state;
 
@@ -33,6 +35,21 @@ namespace zasm
         /// This is primarily used by other components, this should not be directly used.
         /// </summary>
         detail::ProgramState& getState() const noexcept;
+
+        /// <summary>
+        /// Adds the observer to the program state, see the observer for the list of events.
+        /// The same instance can be only registered once.
+        /// </summary>
+        /// <param name="observer">The observer instance</param>
+        /// <returns>True if the observer was added</returns>
+        bool addObserver(Observer& observer);
+
+        /// <summary>
+        /// Removes the observer instance from the program state.
+        /// </summary>
+        /// <param name="observer">The observer instance</param>
+        /// <returns>True if the observer was removed</returns>
+        bool removeObserver(Observer& observer);
 
     public:
         /// <summary>

@@ -109,6 +109,7 @@ list(APPEND zasm_SOURCES
 	"include/zasm/program/labeldata.hpp"
 	"include/zasm/program/memory.hpp"
 	"include/zasm/program/node.hpp"
+	"include/zasm/program/observer.hpp"
 	"include/zasm/program/operand.hpp"
 	"include/zasm/program/program.hpp"
 	"include/zasm/program/register.hpp"
