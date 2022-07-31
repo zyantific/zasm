@@ -4,6 +4,7 @@
 #include <limits>
 #include <zasm/base/mode.hpp>
 #include <zasm/core/bitsize.hpp>
+#include <zasm/core/math.hpp>
 
 namespace zasm
 {
@@ -42,18 +43,18 @@ namespace zasm
             return static_cast<T>(s);
         }
 
-        BitSize getBitSize() const noexcept
+        constexpr BitSize getBitSize() const noexcept
         {
-            if (s > std::numeric_limits<int32_t>::max())
+            if (math::abs(s) > std::numeric_limits<int32_t>::max())
                 return BitSize::_64;
-            if (s > std::numeric_limits<int16_t>::max())
+            if (math::abs(s) > std::numeric_limits<int16_t>::max())
                 return BitSize::_32;
-            if (s > std::numeric_limits<int8_t>::max())
+            if (math::abs(s) > std::numeric_limits<int8_t>::max())
                 return BitSize::_16;
             return BitSize::_8;
         }
 
-        BitSize getBitSize(MachineMode) const noexcept
+        constexpr BitSize getBitSize(MachineMode) const noexcept
         {
             return getBitSize();
         }
