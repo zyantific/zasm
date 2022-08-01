@@ -4,6 +4,7 @@
 
 #include <zasm/core/errors.hpp>
 #include <zasm/program/instruction.hpp>
+#include <zasm/program/observer.hpp>
 #include <zasm/program/operand.hpp>
 #include <zasm/program/section.hpp>
 #include <zasm/x86/instruction.hpp>
@@ -17,7 +18,7 @@ namespace zasm
 
 namespace zasm::x86
 {
-    class Assembler : public Emitter<Assembler>
+    class Assembler final : public Emitter<Assembler>, public Observer
     {
         Program& _program;
         const Node* _cursor{};
@@ -117,6 +118,15 @@ namespace zasm::x86
 
     public:
         Error fromInstruction(const zasm::Instruction& instr);
+
+    private:
+        /// <summary>
+        /// Observer events, this ensures the cursor remains valid.
+        /// </summary>
+        /// <param name="node"></param>
+        void onNodeDetach(const Node* node) override;
+        void onNodeDestroy(const Node* node) override;
     };
+
 
 } // namespace zasm::x86

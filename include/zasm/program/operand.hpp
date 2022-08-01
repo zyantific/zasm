@@ -108,6 +108,11 @@ namespace zasm
             return *this;
         }
 
+        bool isEmpty() const noexcept
+        {
+            return std::holds_alternative<Operand::None>(_data);
+        }
+
         template<typename T> const T& get() const
         {
             if constexpr (std::is_same_v<T, Operand>)

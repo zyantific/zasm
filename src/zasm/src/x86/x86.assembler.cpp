@@ -9,10 +9,12 @@ namespace zasm::x86
         : _program(program)
         , _generator(new InstrGenerator(program.getMode()))
     {
+        _program.addObserver(*this);
     }
 
     Assembler::~Assembler()
     {
+        _program.removeObserver(*this);
         delete _generator;
     }
 
@@ -149,4 +151,20 @@ namespace zasm::x86
         return Error::None;
     }
 
+    void Assembler::onNodeDetach(const Node* node)
+    {
+        if (node != _cursor)
+            return;
+        
+        _cursor = node->getPrev();
+    }
+    
+    void Assembler::onNodeDestroy(const Node* node)
+    {
+        if (node != _cursor)
+            return;
+
+        _cursor = node->getPrev();
+    }
+    
 } // namespace zasm::x86

@@ -12,6 +12,12 @@
 #include "zasm/program/section.hpp"
 
 #include <Zydis/Zydis.h>
+#include <vector>
+
+namespace zasm
+{
+    class Observer;
+}
 
 namespace zasm::detail
 {
@@ -64,6 +70,7 @@ namespace zasm::detail
 
         std::vector<LabelData> labels;
         std::vector<SectionData> sections;
+        std::vector<Observer*> observer;
 
         Label entryPoint{ Label::Id::Invalid };
 

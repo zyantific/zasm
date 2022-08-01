@@ -3,6 +3,7 @@
 #include "../encoder/encoder.context.hpp"
 #include "program.node.hpp"
 #include "program.state.hpp"
+#include "zasm/program/observer.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -37,6 +38,39 @@ namespace zasm
         return *_state;
     }
 
+    bool Program::addObserver(Observer& observer)
+    {
+        auto it = std::find(_state->observer.begin(), _state->observer.end(), &observer);
+        if (it == _state->observer.end())
+        {
+            _state->observer.push_back(&observer);
+            return true;
+        }
+        return false;
+    }
+
+    bool Program::removeObserver(Observer& observer)
+    {
+        auto it = std::find(_state->observer.begin(), _state->observer.end(), &observer);
+        if (it == _state->observer.end())
+            return false;
+
+        _state->observer.erase(it);
+        return true;
+    }
+
+    template<bool TNotify, typename F, typename... TArgs>
+    static void notifyObservers(const F&& f, const std::vector<Observer*>& observers, TArgs&&... args)
+    {
+        if constexpr (TNotify)
+        {
+            for (auto* observer : observers)
+            {
+                std::invoke(f, *observer, std::forward<TArgs>(args)...);
+            }
+        }
+    }
+
     const Node* Program::getHead() const noexcept
     {
         return _state->head;
@@ -47,56 +81,70 @@ namespace zasm
         return _state->tail;
     }
 
-    const Node* Program::prepend(const Node* n) noexcept
+    template<bool TNotify> const Node* prepend_(const Node* n, detail::ProgramState* state) noexcept
     {
-        auto* head = detail::toInternal(_state->head);
-        auto* tail = detail::toInternal(_state->tail);
+        auto* head = detail::toInternal(state->head);
+        auto* tail = detail::toInternal(state->tail);
 
         auto* node = detail::toInternal(n);
-        node->setNext(_state->head);
+        node->setNext(state->head);
         node->setPrev(nullptr);
 
         if (head != nullptr)
             head->setPrev(node);
         else
-            _state->tail = node;
+            state->tail = node;
 
-        _state->head = node;
-        _state->nodeCount++;
+        state->head = node;
+        state->nodeCount++;
 
-        return _state->head;
+        notifyObservers<TNotify>(&Observer::onNodeInserted, state->observer, node);
+
+        return state->head;
     }
 
-    const Node* Program::append(const Node* n) noexcept
+    const Node* Program::prepend(const Node* n) noexcept
     {
-        auto* tail = detail::toInternal(_state->tail);
+        return prepend_<true>(n, _state);
+    }
+
+    template<bool TNotify> const Node* append_(const Node* n, detail::ProgramState* state) noexcept
+    {
+        auto* tail = detail::toInternal(state->tail);
         auto* node = detail::toInternal(n);
 
         node->setNext(nullptr);
         if (tail == nullptr)
         {
             node->setPrev(nullptr);
-            _state->head = _state->tail = node;
+            state->head = state->tail = node;
         }
         else
         {
             tail->setNext(node);
             node->setPrev(tail);
-            _state->tail = node;
+            state->tail = node;
         }
 
-        _state->nodeCount++;
+        state->nodeCount++;
+
+        notifyObservers<TNotify>(&Observer::onNodeInserted, state->observer, node);
 
         return node;
     }
 
-    const Node* Program::insertBefore(const Node* p, const Node* n) noexcept
+    const Node* Program::append(const Node* n) noexcept
+    {
+        return append_<true>(n, _state);
+    }
+
+    template<bool TNotify> const Node* insertBefore_(const Node* p, const Node* n, detail::ProgramState* state) noexcept
     {
         auto* pos = detail::toInternal(p);
         if (pos == nullptr)
             return nullptr; // Impossible placement.
-        if (pos == _state->head)
-            return prepend(n);
+        if (pos == state->head)
+            return prepend_<TNotify>(n, state);
 
         auto* pre = detail::toInternal(pos->getPrev());
         auto* node = detail::toInternal(n);
@@ -107,18 +155,25 @@ namespace zasm
         pre->setNext(node);
         pos->setPrev(node);
 
-        _state->nodeCount++;
+        state->nodeCount++;
+
+        notifyObservers<TNotify>(&Observer::onNodeInserted, state->observer, node);
 
         return node;
     }
 
-    const Node* Program::insertAfter(const Node* p, const Node* n) noexcept
+    const Node* Program::insertBefore(const Node* p, const Node* n) noexcept
+    {
+        return insertBefore_<true>(p, n, _state);
+    }
+
+    template<bool TNotify> const Node* insertAfter_(const Node* p, const Node* n, detail::ProgramState* state) noexcept
     {
         auto* pos = detail::toInternal(p);
         if (pos == nullptr)
-            return prepend(n);
-        if (pos == _state->tail)
-            return append(n);
+            return prepend_<TNotify>(n, state);
+        if (pos == state->tail)
+            return append_<TNotify>(n, state);
 
         auto* next = detail::toInternal(pos->getNext());
         auto* node = detail::toInternal(n);
@@ -133,13 +188,22 @@ namespace zasm
         node->setPrev(pos);
         node->setNext(next);
 
-        _state->nodeCount++;
+        state->nodeCount++;
+
+        notifyObservers<TNotify>(&Observer::onNodeInserted, state->observer, node);
 
         return node;
     }
 
-    const Node* Program::detach(const Node* node) noexcept
+    const Node* Program::insertAfter(const Node* p, const Node* n) noexcept
     {
+        return insertAfter_<true>(p, n, _state);
+    }
+
+    template<bool TNotify> static Node* detach_(const Node* node, detail::ProgramState* state)
+    {
+        notifyObservers<TNotify>(&Observer::onNodeDetach, state->observer, node);
+
         auto* n = detail::toInternal(node);
         auto* pre = detail::toInternal(n->getPrev());
         auto* post = detail::toInternal(n->getNext());
@@ -150,38 +214,45 @@ namespace zasm
         if (post != nullptr)
             post->setPrev(pre);
 
-        if (n == _state->head)
-            _state->head = post;
+        if (n == state->head)
+            state->head = post;
 
-        if (n == _state->tail)
-            _state->tail = pre;
+        if (n == state->tail)
+            state->tail = pre;
 
         n->setPrev(nullptr);
         n->setNext(nullptr);
 
-        _state->nodeCount--;
+        state->nodeCount--;
 
         return post;
     }
 
+    const Node* Program::detach(const Node* node) noexcept
+    {
+        return detach_<true>(node, _state);
+    }
+
     const Node* Program::moveAfter(const Node* pos, const Node* node) noexcept
     {
-        detach(node);
-        return insertAfter(pos, node);
+        detach_<false>(node, _state);
+        return insertAfter_<false>(pos, node, _state);
     }
 
     const Node* Program::moveBefore(const Node* pos, const Node* node) noexcept
     {
-        detach(node);
-        return insertBefore(pos, node);
+        detach_<false>(node, _state);
+        return insertBefore_<false>(pos, node, _state);
     }
 
     void Program::destroy(const Node* node)
     {
+        notifyObservers<true>(&Observer::onNodeDestroy, _state->observer, node);
+
         auto* n = detail::toInternal(node);
 
         // Ensure node is not in the list anymore.
-        detach(node);
+        detach_<false>(node, _state);
 
         // Release.
         _state->nodePool.destroy(n);
@@ -229,6 +300,8 @@ namespace zasm
             return nullptr;
 
         ::new ((void*)node) detail::Node(nextId, std::forward<TArgs&&>(args)...);
+
+        notifyObservers<true>(&Observer::onNodeCreated, state->observer, node);
 
         return node;
     }
