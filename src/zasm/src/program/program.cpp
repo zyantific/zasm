@@ -59,12 +59,15 @@ namespace zasm
         return true;
     }
 
-    template<typename F, typename... TArgs>
+    template<bool TNotify, typename F, typename... TArgs>
     static void notifyObservers(const F&& f, const std::vector<Observer*>& observers, TArgs&&... args)
     {
-        for (auto& observer : observers)
+        if constexpr (TNotify)
         {
-            std::invoke(f, *observer, std::forward<TArgs>(args)...);
+            for (auto* observer : observers)
+            {
+                std::invoke(f, *observer, std::forward<TArgs>(args)...);
+            }
         }
     }
 
@@ -95,10 +98,7 @@ namespace zasm
         state->head = node;
         state->nodeCount++;
 
-        if constexpr (TNotify)
-        {
-            notifyObservers(&Observer::onNodeInserted, state->observer, node);
-        }
+        notifyObservers<TNotify>(&Observer::onNodeInserted, state->observer, node);
 
         return state->head;
     }
@@ -127,11 +127,8 @@ namespace zasm
         }
 
         state->nodeCount++;
-        
-        if constexpr (TNotify)
-        {
-            notifyObservers(&Observer::onNodeInserted, state->observer, node);
-        }
+
+        notifyObservers<TNotify>(&Observer::onNodeInserted, state->observer, node);
 
         return node;
     }
@@ -160,10 +157,7 @@ namespace zasm
 
         state->nodeCount++;
 
-        if constexpr (TNotify)
-        {
-            notifyObservers(&Observer::onNodeInserted, state->observer, node);
-        }
+        notifyObservers<TNotify>(&Observer::onNodeInserted, state->observer, node);
 
         return node;
     }
@@ -196,10 +190,7 @@ namespace zasm
 
         state->nodeCount++;
 
-        if constexpr (TNotify)
-        {
-            notifyObservers(&Observer::onNodeInserted, state->observer, node);
-        }
+        notifyObservers<TNotify>(&Observer::onNodeInserted, state->observer, node);
 
         return node;
     }
@@ -211,10 +202,7 @@ namespace zasm
 
     template<bool TNotify> static Node* detach_(const Node* node, detail::ProgramState* state)
     {
-        if constexpr (TNotify)
-        {
-            notifyObservers(&Observer::onNodeDetach, state->observer, node);
-        }
+        notifyObservers<TNotify>(&Observer::onNodeDetach, state->observer, node);
 
         auto* n = detail::toInternal(node);
         auto* pre = detail::toInternal(n->getPrev());
@@ -259,7 +247,7 @@ namespace zasm
 
     void Program::destroy(const Node* node)
     {
-        notifyObservers(&Observer::onNodeDestroy, _state->observer, node);
+        notifyObservers<true>(&Observer::onNodeDestroy, _state->observer, node);
 
         auto* n = detail::toInternal(node);
 
@@ -313,7 +301,7 @@ namespace zasm
 
         ::new ((void*)node) detail::Node(nextId, std::forward<TArgs&&>(args)...);
 
-        notifyObservers(&Observer::onNodeCreated, state->observer, node);
+        notifyObservers<true>(&Observer::onNodeCreated, state->observer, node);
 
         return node;
     }
