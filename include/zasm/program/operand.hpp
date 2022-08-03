@@ -75,24 +75,24 @@ namespace zasm
             : _data{ None{} }
         {
         }
-        constexpr Operand(Operand&& other) noexcept
-            : _data{ std::move(other._data) }
-        {
-        }
+
         constexpr Operand(const Operand& other) noexcept
             : _data{ other._data }
         {
         }
 
-        template<typename T>
-        constexpr Operand(const T& val) noexcept
-            : _data{ val }
+        constexpr Operand(Operand&& other) noexcept
+            : _data{ std::move(other._data) }
         {
         }
 
-        template<typename T>
-        constexpr Operand(T&& val) noexcept
-            : _data{ std::move(val) }
+        constexpr Operand(Variant&& other) noexcept
+            : _data{ std::move(other) }
+        {
+        }
+
+        constexpr Operand(const Variant& other) noexcept
+            : _data{ other }
         {
         }
 
@@ -105,6 +105,18 @@ namespace zasm
         Operand& operator=(const Operand& other) noexcept
         {
             _data = other._data;
+            return *this;
+        }
+
+        Operand& operator=(Variant&& other) noexcept
+        {
+            _data = std::move(other);
+            return *this;
+        }
+
+        Operand& operator=(const Variant& other) noexcept
+        {
+            _data = other;
             return *this;
         }
 
