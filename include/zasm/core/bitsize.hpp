@@ -92,7 +92,7 @@ namespace zasm
     }
 
     // gtest support.
-    inline std::ostream& operator<<(std::ostream& os, const BitSize& s)
+    static std::ostream& operator<<(std::ostream& os, const BitSize& s)
     {
         return os << getBitSize(s) << "_bit";
     }
