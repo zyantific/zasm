@@ -97,7 +97,7 @@ namespace zasm::x86
         return Error::None;
     }
 
-    Error Assembler::emit_(
+    Error Assembler::emit(
         Attribs attribs, Mnemonic id, size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops)
     {
         auto genResult = _generator->generate(
@@ -113,9 +113,9 @@ namespace zasm::x86
         return Error::None;
     }
 
-    Error Assembler::fromInstruction(const zasm::Instruction& instr)
+    Error Assembler::emit(const Instruction& instr)
     {
-        auto* instrNode = _program.createNode(static_cast<const zasm::Instruction&>(instr));
+        auto* instrNode = _program.createNode(instr);
         _cursor = _program.insertAfter(_cursor, instrNode);
 
         return Error::None;

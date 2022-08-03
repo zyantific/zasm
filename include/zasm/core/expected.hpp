@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <variant>
 
 namespace zasm
@@ -38,45 +39,61 @@ namespace zasm
             : data{ std::move(val) }
         {
         }
+        
         constexpr operator bool() const noexcept
         {
             return hasValue();
         }
+        
         constexpr bool hasValue() const noexcept
         {
             return std::holds_alternative<TSuccess>(data);
         }
+        
         constexpr const TFailure& error() const
         {
+            assert(!hasValue());
             return std::get<::zasm::detail::Unexpected<TFailure>>(data).failure;
         }
+        
         constexpr TSuccess& value()
         {
+            assert(hasValue());
             return std::get<TSuccess>(data);
         }
+        
         constexpr const TSuccess& value() const
         {
+            assert(hasValue());
             return std::get<TSuccess>(data);
         }
+
         constexpr TSuccess& operator*()
         {
+            assert(hasValue());
             return std::get<TSuccess>(data);
         }
+        
         constexpr const TSuccess& operator*() const
         {
+            assert(hasValue());
             return std::get<TSuccess>(data);
         }
+        
         constexpr TSuccess* operator->()
         {
+            assert(hasValue());
             return &std::get<TSuccess>(data);
         }
+        
         constexpr const TSuccess* operator->() const
         {
+            assert(hasValue());
             return &std::get<TSuccess>(data);
         }
     };
 
-    template<typename T> constexpr ::zasm::detail::Unexpected<T> makeUnexpected(const T& val) noexcept
+    template<typename T> inline constexpr ::zasm::detail::Unexpected<T> makeUnexpected(const T& val) noexcept
     {
         return ::zasm::detail::Unexpected<T>(val);
     }

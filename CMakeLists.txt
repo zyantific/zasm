@@ -76,8 +76,8 @@ list(APPEND zasm_SOURCES
 	"src/zasm/src/decoder/decoder.cpp"
 	"src/zasm/src/encoder/encoder.cpp"
 	"src/zasm/src/encoder/generator.cpp"
+	"src/zasm/src/formatter/formatter.cpp"
 	"src/zasm/src/program/data.cpp"
-	"src/zasm/src/program/formatter.cpp"
 	"src/zasm/src/program/instruction.cpp"
 	"src/zasm/src/program/program.cpp"
 	"src/zasm/src/program/register.cpp"
@@ -100,9 +100,9 @@ list(APPEND zasm_SOURCES
 	"include/zasm/core/stringpool.hpp"
 	"include/zasm/decoder/decoder.hpp"
 	"include/zasm/encoder/encoder.hpp"
+	"include/zasm/formatter/formatter.hpp"
 	"include/zasm/program/data.hpp"
 	"include/zasm/program/embeddedlabel.hpp"
-	"include/zasm/program/formatter.hpp"
 	"include/zasm/program/immediate.hpp"
 	"include/zasm/program/instruction.hpp"
 	"include/zasm/program/label.hpp"
@@ -271,6 +271,7 @@ if(ZASM_BUILD_TESTS) # tests
 
 	list(APPEND benchmarks_SOURCES
 		"src/benchmark/benchmarks/benchmark.assembler.cpp"
+		"src/benchmark/benchmarks/benchmark.formatter.cpp"
 		"src/benchmark/benchmarks/benchmark.serialization.cpp"
 		"src/benchmark/benchmarks/benchmark.stringpool.cpp"
 		"src/benchmark/main.cpp"

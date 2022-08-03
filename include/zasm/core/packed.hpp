@@ -2,11 +2,14 @@
 
 #include <cassert>
 #include <limits>
+#include <type_traits>
 
 namespace zasm
 {
     template<typename TUnderlying, typename TElement, size_t TElementBitSize> class Packed
     {
+        static_assert(std::is_signed_v<TUnderlying> == false, "Underlying type must be unsigned");
+
         static constexpr size_t kElementMask = (TUnderlying{ 1u } << TElementBitSize) - TUnderlying{ 1u };
         static constexpr size_t kStorageBitSize = std::numeric_limits<TUnderlying>::digits;
         static constexpr size_t kCapacity = kStorageBitSize / TElementBitSize;

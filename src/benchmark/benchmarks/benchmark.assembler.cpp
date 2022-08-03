@@ -113,10 +113,9 @@ namespace zasm::benchmarks
             }
 
             state.counters["Instructions"] = benchmark::Counter(
-                std::size(zasm::tests::data::Instructions), benchmark::Counter::kIsIterationInvariantRate,
-                benchmark::Counter::OneK::kIs1000);
+                program.size(), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
         }
     }
-    BENCHMARK(BM_Assembler_EmitAll)->Unit(benchmark::kMicrosecond);
+    BENCHMARK(BM_Assembler_EmitAll)->Unit(benchmark::kMillisecond);
 
 } // namespace zasm::benchmarks
