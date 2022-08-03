@@ -26,6 +26,7 @@ namespace zasm
             else
             {
                 // TODO: Handle out of memory.
+                _storage.ptr = nullptr;
                 _size = 0;
             }
         }
@@ -95,6 +96,7 @@ namespace zasm
             else
             {
                 // TODO: Handle out of memory.
+                _storage.ptr = nullptr;
                 _size = 0;
             }
         }
