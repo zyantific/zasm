@@ -86,12 +86,52 @@ namespace zasm
         {
         }
 
-        constexpr Operand(Variant&& other) noexcept
+        constexpr Operand(None&& other) noexcept
             : _data{ std::move(other) }
         {
         }
 
-        constexpr Operand(const Variant& other) noexcept
+        constexpr Operand(const None& other) noexcept
+            : _data{ other }
+        {
+        }
+
+        constexpr Operand(Reg&& other) noexcept
+            : _data{ std::move(other) }
+        {
+        }
+
+        constexpr Operand(const Reg& other) noexcept
+            : _data{ other }
+        {
+        }
+
+        constexpr Operand(Mem&& other) noexcept
+            : _data{ std::move(other) }
+        {
+        }
+
+        constexpr Operand(const Mem& other) noexcept
+            : _data{ other }
+        {
+        }
+
+        constexpr Operand(Imm&& other) noexcept
+            : _data{ std::move(other) }
+        {
+        }
+
+        constexpr Operand(const Imm& other) noexcept
+            : _data{ other }
+        {
+        }
+
+        constexpr Operand(Label&& other) noexcept
+            : _data{ std::move(other) }
+        {
+        }
+
+        constexpr Operand(const Label& other) noexcept
             : _data{ other }
         {
         }
@@ -108,18 +148,66 @@ namespace zasm
             return *this;
         }
 
-        Operand& operator=(Variant&& other) noexcept
+        Operand& operator=(None&& other) noexcept
         {
             _data = std::move(other);
             return *this;
         }
 
-        Operand& operator=(const Variant& other) noexcept
+        Operand& operator=(const None& other) noexcept
+        {
+            _data = other;
+            return *this;
+        }
+        
+        Operand& operator=(Reg&& other) noexcept
+        {
+            _data = std::move(other);
+            return *this;
+        }
+
+        Operand& operator=(const Reg& other) noexcept
         {
             _data = other;
             return *this;
         }
 
+        Operand& operator=(Mem&& other) noexcept
+        {
+            _data = std::move(other);
+            return *this;
+        }
+
+        Operand& operator=(const Mem& other) noexcept
+        {
+            _data = other;
+            return *this;
+        }
+
+        Operand& operator=(Imm&& other) noexcept
+        {
+            _data = std::move(other);
+            return *this;
+        }
+
+        Operand& operator=(const Imm& other) noexcept
+        {
+            _data = other;
+            return *this;
+        }
+
+        Operand& operator=(Label&& other) noexcept
+        {
+            _data = std::move(other);
+            return *this;
+        }
+
+        Operand& operator=(const Label& other) noexcept
+        {
+            _data = other;
+            return *this;
+        }
+        
         bool isEmpty() const noexcept
         {
             return std::holds_alternative<Operand::None>(_data);
