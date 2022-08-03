@@ -132,9 +132,9 @@ namespace zasm::formatter
             if (ctx.hasOption(Options::HexImmediates))
             {
                 if (val < 0)
-                    ctx.format("-%" PRId64 "X", -val);
+                    ctx.format("-0x%08" PRIx64, -val);
                 else
-                    ctx.format("%" PRId64 "X", val);
+                    ctx.format("0x%08" PRIx64, val);
             }
             else
             {

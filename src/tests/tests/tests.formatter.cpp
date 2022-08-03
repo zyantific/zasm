@@ -42,6 +42,19 @@ namespace zasm::tests
         ASSERT_EQ(nodeStr, std::string("lock inc dword ptr ds:[L0]"));
     }
 
+    TEST(FormatterTests, HexImmediates)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto label = assembler.createLabel();
+        ASSERT_EQ(assembler.mov(x86::eax, Imm(0x12345678)), zasm::Error::None);
+
+        auto nodeStr = formatter::toString(program, program.getHead(), formatter::Options::HexImmediates);
+        ASSERT_EQ(nodeStr, std::string("mov eax, 0x12345678"));
+    }
+
     TEST(FormatterTests, EntireProgram)
     {
         Program program(MachineMode::AMD64);
