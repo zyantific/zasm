@@ -29,7 +29,16 @@ namespace zasm::x86
         Assembler(Program& _program);
         ~Assembler();
 
+        /// <summary>
+        /// Sets the node at where the next node will be inserted after.
+        /// </summary>
+        /// <param name="pos">The position to insert the next node after</param>
         void setCursor(const Node* pos);
+
+        /// <summary>
+        /// Returns the current node, this is typically the last node created.
+        /// </summary>
+        /// <returns>Position in Program</returns>
         const Node* getCursor() const;
 
     public:
@@ -43,10 +52,24 @@ namespace zasm::x86
         /// </summary>
         Label getOrCreateImportLabel(const char* moduleName, const char* entryName);
 
+        /// <summary>
+        /// Binds the label to a node and inserts it at the current position.
+        /// </summary>
+        /// <param name="label">The label to bind</param>
+        /// <returns>Error</returns>
         Error bind(const Label& label);
 
     public:
-        Error section(const char* name, Section::Attribs attribs = Section::Attribs::Code, int32_t align = 0x1000);
+        /// <summary>
+        /// Inserts a new section at the current cursor.
+        /// </summary>
+        /// <param name="name">Name of the section</param>
+        /// <param name="attribs">Section attributes</param>
+        /// <param name="align">Section alignment</param>
+        /// <returns>Error</returns>
+        Error section(
+            const char* name, Section::Attribs attribs = Section::Attribs::Code | Section::Attribs::Exec,
+            int32_t align = 0x1000);
 
     public:
         // Data emitter.
@@ -54,6 +77,14 @@ namespace zasm::x86
         Error dw(uint16_t val);
         Error dd(uint32_t val);
         Error dq(uint64_t val);
+
+        /// <summary>
+        /// Creates a data node which stores the binary data passed by arguments.
+        /// The data will be copied and will not store the pointer.
+        /// </summary>
+        /// <param name="data">Pointer to the data</param>
+        /// <param name="len">Size in bytes of the data</param>
+        /// <returns>Error</returns>
         Error embed(const void* data, size_t len);
 
         template<size_t N> Error embed(const char (&str)[N])
@@ -74,12 +105,13 @@ namespace zasm::x86
         {
             const auto attribs = _attribState;
             _attribState = Attribs::None;
-            return emit_(attribs, id, sizeof...(TArgs), { args... });
+            return emit(attribs, id, sizeof...(TArgs), { args... });
         }
 
-    private:
-        Error emit_(Attribs attribs, Mnemonic id, size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops);
+        Error emit(Attribs attribs, Mnemonic id, size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops);
+        Error emit(const Instruction& instr);
 
+    private:
         void addAttrib(Attribs attrib) noexcept
         {
             _attribState = _attribState | attrib;
@@ -116,9 +148,6 @@ namespace zasm::x86
             return *this;
         }
 
-    public:
-        Error fromInstruction(const zasm::Instruction& instr);
-
     private:
         /// <summary>
         /// Observer events, this ensures the cursor remains valid.
@@ -127,6 +156,5 @@ namespace zasm::x86
         void onNodeDetach(const Node* node) override;
         void onNodeDestroy(const Node* node) override;
     };
-
 
 } // namespace zasm::x86

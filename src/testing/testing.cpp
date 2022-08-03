@@ -224,7 +224,7 @@ static void decodeToAssembler()
         }
 
         const auto& instr = decoderRes.value();
-        assembler.fromInstruction(instr);
+        assembler.emit(instr);
 
         bytesDecoded += instr.getLength();
     }
