@@ -271,6 +271,7 @@ if(ZASM_BUILD_TESTS) # tests
 
 	list(APPEND benchmarks_SOURCES
 		"src/benchmark/benchmarks/benchmark.assembler.cpp"
+		"src/benchmark/benchmarks/benchmark.formatter.cpp"
 		"src/benchmark/benchmarks/benchmark.serialization.cpp"
 		"src/benchmark/benchmarks/benchmark.stringpool.cpp"
 		"src/benchmark/main.cpp"
