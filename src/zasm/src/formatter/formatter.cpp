@@ -144,7 +144,18 @@ namespace zasm::formatter
 
         static void labelToString(Context& ctx, const Label& label)
         {
-            ctx.format("L%u", label.getId());
+            auto labelData = ctx.program.getLabelData(label);
+            if (labelData.hasValue())
+            {
+                if (labelData->name != nullptr)
+                    ctx.format("%s", labelData->name);
+                else
+                    ctx.format("L%u", label.getId());
+            }
+            else
+            {
+                ctx.format("L%u", label.getId());
+            }
         }
 
         static void opToString(Context& ctx, const Label& op)
@@ -220,10 +231,20 @@ namespace zasm::formatter
                     else
                         ctx.append("+");
                 }
-                if (disp < 0)
-                    ctx.format("%" PRId64, -disp);
+                if (ctx.hasOption(Options::HexOffsets))
+                {
+                    if (disp < 0)
+                        ctx.format("0x%" PRIx64, -disp);
+                    else
+                        ctx.format("0x%" PRIx64, disp);
+                }
                 else
-                    ctx.format("%" PRId64, disp);
+                {
+                    if (disp < 0)
+                        ctx.format("%" PRId64, -disp);
+                    else
+                        ctx.format("%" PRId64, disp);
+                }
                 hasDisp = true;
             }
             else
