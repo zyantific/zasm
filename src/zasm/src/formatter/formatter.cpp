@@ -1,8 +1,10 @@
 #include <Zydis/Register.h>
 #include <algorithm>
+#include <cassert>
 #include <cinttypes>
 #include <cmath>
-#include <zasm/program/formatter.hpp>
+#include <cstring>
+#include <zasm/formatter/formatter.hpp>
 #include <zasm/program/instruction.hpp>
 #include <zasm/program/node.hpp>
 #include <zasm/program/program.hpp>
@@ -15,10 +17,19 @@ namespace zasm::formatter
     {
         struct Context
         {
+            static constexpr size_t kInlineCapacity = 128;
+
             Program& program;
             Options options{};
-            char buf[256]{};
+
+            union
+            {
+                char* ptr;
+                char buf[kInlineCapacity];
+            } _data{};
+
             size_t size{};
+            size_t capacity{ kInlineCapacity };
 
             constexpr Context(Program& p, Options o)
                 : program(p)
@@ -26,21 +37,76 @@ namespace zasm::formatter
             {
             }
 
+            ~Context()
+            {
+                if (capacity > kInlineCapacity)
+                    std::free(_data.ptr);
+            }
+
             void append(const char* str)
             {
-                int len = snprintf(buf + size, std::size(buf) - size, "%s", str);
-                size += len;
+                format("%s", str);
             }
 
             template<typename TFmt, typename... TArgs> void format(TFmt&& fmt, TArgs&&... args)
             {
-                int len = snprintf(buf + size, std::size(buf) - size, std::forward<TFmt>(fmt), std::forward<TArgs>(args)...);
+                size_t spaceLeft = capacity - size;
+
+                int len = snprintf(data() + size, spaceLeft, std::forward<TFmt>(fmt), std::forward<TArgs>(args)...);
+                if (len >= spaceLeft)
+                {
+                    growBuffer(len);
+
+                    spaceLeft = capacity - size;
+                    len = snprintf(data() + size, spaceLeft, std::forward<TFmt>(fmt), std::forward<TArgs>(args)...);
+                }
+
                 size += len;
+            }
+
+            bool empty() const
+            {
+                return size == 0;
             }
 
             bool hasOption(Options opt) const noexcept
             {
                 return (options & opt) != Options::None;
+            }
+
+            char* data()
+            {
+                if (capacity <= kInlineCapacity)
+                    return _data.buf;
+
+                return _data.ptr;
+            }
+
+            void growBuffer(size_t extraLen)
+            {
+                assert(extraLen > 0);
+
+                const size_t newCapacity = (capacity + extraLen) << 1;
+
+                char* ptr = nullptr;
+                if (capacity > kInlineCapacity)
+                {
+                    ptr = reinterpret_cast<char*>(std::realloc(_data.ptr, newCapacity));
+                }
+                else
+                {
+                    ptr = reinterpret_cast<char*>(std::malloc(newCapacity));
+                    std::memcpy(ptr, _data.buf, size);
+                }
+
+                if (ptr == nullptr)
+                {
+                    assert(ptr != nullptr);
+                    return;
+                }
+
+                _data.ptr = ptr;
+                capacity = newCapacity;
             }
         };
 
@@ -310,24 +376,20 @@ namespace zasm::formatter
 
     std::string toString(Program& program, Options options /*= {}*/)
     {
-        std::string res;
+        auto ctx = detail::Context(program, options);
 
         auto* node = program.getHead();
         while (node != nullptr)
         {
-            if (!res.empty())
-                res.append("\n");
-
-            auto ctx = detail::Context(program, options);
+            if (!ctx.empty())
+                ctx.append("\n");
 
             node->visit([&](auto&& n) { detail::nodeToString(ctx, n); });
-
-            res.append(ctx.buf, ctx.size);
 
             node = node->getNext();
         }
 
-        return res;
+        return { ctx.data(), ctx.size };
     }
 
     std::string toString(Program& program, const Node* node, Options options /*= {}*/)
@@ -336,7 +398,7 @@ namespace zasm::formatter
 
         node->visit([&](auto&& n) { detail::nodeToString(ctx, n); });
 
-        return { ctx.buf, ctx.size };
+        return { ctx.data(), ctx.size };
     }
 
     std::string toString(Program& program, const Node* from, const Node* to, Options options /*= {}*/)
@@ -353,7 +415,7 @@ namespace zasm::formatter
 
             node->visit([&](auto&& n) { detail::nodeToString(ctx, n); });
 
-            res.append(ctx.buf, ctx.size);
+            res.append(ctx.data(), ctx.size);
 
             node = node->getNext();
         }
@@ -367,7 +429,7 @@ namespace zasm::formatter
 
         detail::nodeToString(ctx, *instr);
 
-        return { ctx.buf, ctx.size };
+        return { ctx.data(), ctx.size };
     }
 
 } // namespace zasm::formatter

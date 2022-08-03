@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <zasm/program/formatter.hpp>
+#include <zasm/formatter/formatter.hpp>
 #include <zasm/zasm.hpp>
 
 namespace zasm::tests
