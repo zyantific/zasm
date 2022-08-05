@@ -26,6 +26,9 @@ namespace zasm
 
     // NOTE: This value has to be at least larger than 0xFFFF to be used with imm32/rel32 displacement.
     static constexpr int32_t kTemporaryRel32Value = 0x123456;
+
+    static constexpr int32_t kTemporaryRel8Value = 0x44;
+    
     static constexpr int32_t kHintRequiresSize = -1;
 
     struct EncodeVariantsInfo
@@ -54,10 +57,11 @@ namespace zasm
 
         data[ZYDIS_MNEMONIC_JB] = EncodeVariantsInfo{ true, 2, 6 };
         data[ZYDIS_MNEMONIC_JBE] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JCXZ] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JECXZ] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JKNZD] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JKZD] = EncodeVariantsInfo{ true, 2, 6 };
+        data[ZYDIS_MNEMONIC_JCXZ] = EncodeVariantsInfo{ true, 2, -1 };
+        data[ZYDIS_MNEMONIC_JECXZ] = EncodeVariantsInfo{ true, 2, -1 };
+        data[ZYDIS_MNEMONIC_JKNZD] = EncodeVariantsInfo{ true, 2, -1 };
+        data[ZYDIS_MNEMONIC_JKZD] = EncodeVariantsInfo{ true, 2, -1 };
+        data[ZYDIS_MNEMONIC_JRCXZ] = EncodeVariantsInfo{ true, 2, -1 };
         data[ZYDIS_MNEMONIC_JL] = EncodeVariantsInfo{ true, 2, 6 };
         data[ZYDIS_MNEMONIC_JLE] = EncodeVariantsInfo{ true, 2, 6 };
         data[ZYDIS_MNEMONIC_JNB] = EncodeVariantsInfo{ true, 2, 6 };
@@ -70,7 +74,6 @@ namespace zasm
         data[ZYDIS_MNEMONIC_JNZ] = EncodeVariantsInfo{ true, 2, 6 };
         data[ZYDIS_MNEMONIC_JO] = EncodeVariantsInfo{ true, 2, 6 };
         data[ZYDIS_MNEMONIC_JP] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JRCXZ] = EncodeVariantsInfo{ true, 2, 6 };
         data[ZYDIS_MNEMONIC_JS] = EncodeVariantsInfo{ true, 2, 6 };
         data[ZYDIS_MNEMONIC_JZ] = EncodeVariantsInfo{ true, 2, 6 };
 
@@ -176,6 +179,23 @@ namespace zasm
         return Error::None;
     }
 
+    static int64_t getTemporaryRel(EncoderState& state)
+    {
+        auto* ctx = state.ctx;
+
+        int64_t kTempRel = kTemporaryRel32Value;
+
+        // NOTE: Workaround for some instructions that only accept rel8
+        if (state.req.mnemonic == ZYDIS_MNEMONIC_JCXZ || state.req.mnemonic == ZYDIS_MNEMONIC_JECXZ
+            || state.req.mnemonic == ZYDIS_MNEMONIC_JKNZD)
+        {
+            kTempRel = kTemporaryRel8Value;
+        }
+
+        int64_t immValue = ctx != nullptr ? ctx->va + kTempRel : kTempRel;
+        return immValue;
+    }
+
     static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Label& op) noexcept
     {
         auto* ctx = state.ctx;
@@ -183,7 +203,7 @@ namespace zasm
 
         // Initially a temporary placeholder. Make sure this is within rel32 if a
         // context is provided.
-        int64_t immValue = ctx != nullptr ? ctx->va + kTemporaryRel32Value : kTemporaryRel32Value;
+        int64_t immValue = getTemporaryRel(state);
 
         std::optional<int64_t> labelVA;
         if (ctx != nullptr && !isLabelExternal(ctx->program, op.getId()))
