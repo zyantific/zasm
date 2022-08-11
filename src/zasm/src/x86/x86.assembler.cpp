@@ -97,8 +97,7 @@ namespace zasm::x86
         return Error::None;
     }
 
-    Error Assembler::emit(
-        Attribs attribs, Mnemonic id, size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops)
+    Error Assembler::emit(Attribs attribs, Mnemonic id, size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops)
     {
         auto genResult = _generator->generate(
             static_cast<Instruction::Attribs>(attribs), static_cast<Instruction::Mnemonic>(id), numOps, std::move(ops));
@@ -115,10 +114,17 @@ namespace zasm::x86
 
     Error Assembler::emit(const Instruction& instr)
     {
-        auto* instrNode = _program.createNode(instr);
-        _cursor = _program.insertAfter(_cursor, instrNode);
+        std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS> ops;
 
-        return Error::None;
+        const auto numOps = std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getOperandCount());
+        for (size_t i = 0; i < numOps; i++)
+        {
+            ops[i] = instr.getOperand(i);
+        }
+
+        return emit(
+            static_cast<x86::Attribs>(instr.getAttribs()), static_cast<x86::Mnemonic>(instr.getMnemonic()), numOps,
+            std::move(ops));
     }
 
     Error Assembler::embedLabel(Label label)
@@ -155,10 +161,10 @@ namespace zasm::x86
     {
         if (node != _cursor)
             return;
-        
+
         _cursor = node->getPrev();
     }
-    
+
     void Assembler::onNodeDestroy(const Node* node)
     {
         if (node != _cursor)
@@ -166,5 +172,5 @@ namespace zasm::x86
 
         _cursor = node->getPrev();
     }
-    
+
 } // namespace zasm::x86

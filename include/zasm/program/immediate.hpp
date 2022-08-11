@@ -43,6 +43,13 @@ namespace zasm
             return static_cast<T>(s);
         }
 
+        template<typename T> Imm& setValue(const T val)
+        {
+            s = static_cast<int64_t>(val);
+
+            return *this;
+        }
+
         constexpr BitSize getBitSize() const noexcept
         {
             if (math::abs(s) > std::numeric_limits<int32_t>::max())

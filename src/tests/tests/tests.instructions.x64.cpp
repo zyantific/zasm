@@ -6,11 +6,11 @@
 
 namespace zasm::tests
 {
-    class InstructionTestsFixture : public ::testing::TestWithParam<data::InstrTest>
+    class InstructionEmitterTestsFixture : public ::testing::TestWithParam<data::InstrTest>
     {
     };
 
-    TEST_P(InstructionTestsFixture, EncodeTestx64)
+    TEST_P(InstructionEmitterTestsFixture, EncodeTestx64)
     {
         const auto& instrTest = GetParam();
 
@@ -28,11 +28,11 @@ namespace zasm::tests
     }
 
     INSTANTIATE_TEST_SUITE_P(
-        InstructionTests, InstructionTestsFixture,
+        InstructionEmitterTests, InstructionEmitterTestsFixture,
         ::testing::ValuesIn(std::begin(data::Instructions), std::end(data::Instructions)),
         [](const ::testing::TestParamInfo<data::InstrTest>& info) { return std::string{ info.param.instrBytes }; });
 
-    TEST(InstructionTests, Combined)
+    TEST(InstructionEmitterTests, Combined)
     {
         Program program(MachineMode::AMD64);
 
