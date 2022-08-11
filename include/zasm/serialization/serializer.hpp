@@ -51,6 +51,17 @@ namespace zasm
         Error serialize(const Program& program, int64_t newBase);
 
         /// <summary>
+        /// Serializes the specified range in the Program to the encoder and
+        /// resolves the address of each label.
+        /// </summary>
+        /// <param name="program"></param>
+        /// <param name="newBase">Virtual base address at where the code starts</param>
+        /// <param name="first">First node to encode</param>
+        /// <param name="last">Last node to encode</param>
+        /// <returns>If successful returns Error::None otherwise check Error value.</returns>
+        Error serialize(const Program& program, int64_t newBase, const Node* from, const Node* to);
+
+        /// <summary>
         /// Attempts to relocate the current serialized code to the new specified base address.
         /// </summary>
         /// <param name="newBase">Virtual base address at where the code starts</param>
