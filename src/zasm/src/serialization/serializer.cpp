@@ -349,11 +349,31 @@ namespace zasm
 
     Error Serializer::serialize(const Program& program, int64_t newBase)
     {
+        return serialize(program, newBase, program.getHead(), program.getTail());
+    }
+
+    Error Serializer::serialize(const Program& program, int64_t newBase, const Node* first, const Node* last)
+    {
         detail::ProgramState& programState = program.getState();
+
+        const auto* lastNode = last != nullptr ? last->getNext() : nullptr;
+
+        const auto nodeCount = [&]() -> size_t {
+            // If the entire program is serialized the size is known.
+            if (first == program.getHead() && last == program.getTail())
+                return program.size();
+            // else count nodes in range.
+            size_t count = 0;
+            for (auto* node = first; node != lastNode; node = node->getNext())
+            {
+                count++;
+            }
+            return count;
+        }();
 
         EncoderContext encoderCtx{};
         encoderCtx.program = &program.getState();
-        encoderCtx.nodes.resize(program.size());
+        encoderCtx.nodes.resize(nodeCount);
         encoderCtx.baseVA = newBase;
 
         SerializeContext state{ encoderCtx, {} };
@@ -383,7 +403,7 @@ namespace zasm
             encoderCtx.sections.clear();
             encoderCtx.sections.push_back(defaultSect);
 
-            for (const auto* node = program.getHead(); node != nullptr; node = node->getNext())
+            for (const auto* node = first; node != lastNode; node = node->getNext())
             {
                 auto status = node->visit([&](auto&& n) { return serializeNode(programState, state, n); });
                 if (status != Error::None)

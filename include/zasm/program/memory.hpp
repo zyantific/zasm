@@ -47,14 +47,32 @@ namespace zasm
             return Reg{ _segBaseIndex.get<0>() };
         }
 
+        Mem& setSegment(const Reg& reg)
+        {
+            _segBaseIndex.set<0>(reg.getId());
+            return *this;
+        }
+
         constexpr Reg getBase() const noexcept
         {
             return Reg{ _segBaseIndex.get<1>() };
         }
 
+        Mem& setBase(const Reg& reg)
+        {
+            _segBaseIndex.set<1>(reg.getId());
+            return *this;
+        }
+
         constexpr Reg getIndex() const noexcept
         {
             return Reg{ _segBaseIndex.get<2>() };
+        }
+
+        Mem& setIndex(const Reg& reg)
+        {
+            _segBaseIndex.set<2>(reg.getId());
+            return *this;
         }
 
         constexpr uint8_t getScale() const noexcept
@@ -66,14 +84,32 @@ namespace zasm
             return _scale;
         }
 
+        Mem& setScale(uint8_t scale)
+        {
+            _scale = scale;
+            return *this;
+        }
+
         constexpr int64_t getDisplacement() const noexcept
         {
             return _disp;
         }
 
+        Mem& setDisplacement(int64_t disp)
+        {
+            _disp = disp;
+            return *this;
+        }
+
         BitSize getBitSize() const noexcept
         {
             return _bitSize;
+        }
+
+        Mem& setBitSize(BitSize bitSize)
+        {
+            _bitSize = bitSize;
+            return *this;
         }
 
         BitSize getBitSize(MachineMode) const noexcept
@@ -89,6 +125,12 @@ namespace zasm
         constexpr Label getLabel() const noexcept
         {
             return Label{ _label };
+        }
+
+        Mem& setLabel(const Label& label)
+        {
+            _label = label.getId();
+            return *this;
         }
 
         constexpr Label::Id getLabelId() const noexcept
