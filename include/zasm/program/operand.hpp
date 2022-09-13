@@ -159,7 +159,7 @@ namespace zasm
             _data = other;
             return *this;
         }
-        
+
         Operand& operator=(Reg&& other) noexcept
         {
             _data = std::move(other);
@@ -207,7 +207,7 @@ namespace zasm
             _data = other;
             return *this;
         }
-        
+
         bool isEmpty() const noexcept
         {
             return std::holds_alternative<Operand::None>(_data);
@@ -249,6 +249,11 @@ namespace zasm
                 return std::holds_alternative<T>(_data);
             }
             return false;
+        }
+
+        constexpr size_t getTypeIndex() const noexcept
+        {
+            return _data.index();
         }
 
         template<typename F> constexpr auto visit(F&& f) const
