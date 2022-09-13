@@ -359,7 +359,7 @@ namespace zasm
         return (entry.flags & flags) != LabelFlags::None;
     }
 
-    const Label Program::createLabel(const char* name /*= nullptr*/)
+    Label Program::createLabel(const char* name /*= nullptr*/)
     {
         return createLabel_(_state, getStringId(_state, name), StringPool::Id::Invalid, LabelFlags::None);
     }
@@ -389,7 +389,7 @@ namespace zasm
         return node;
     }
 
-    const Label Program::createExternalLabel(const char* name /*= nullptr*/)
+    Label Program::createExternalLabel(const char* name /*= nullptr*/)
     {
         return createLabel_(_state, getStringId(_state, name), StringPool::Id::Invalid, LabelFlags::External);
     }
@@ -402,11 +402,11 @@ namespace zasm
         return hasLabelFlags(_state, label.getId(), LabelFlags::External);
     }
 
-    const Label Program::getOrCreateImportLabel(const char* moduleName, const char* importName)
+    Label Program::getOrCreateImportLabel(const char* moduleName, const char* importName)
     {
         if (moduleName == nullptr || importName == nullptr)
         {
-            return Label{};
+            return kInvalidLabel;
         }
 
         // Allow imports only once.

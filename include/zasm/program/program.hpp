@@ -166,7 +166,7 @@ namespace zasm
         /// </summary>
         /// <param name="name">Optional label name, pass null for none.</param>
         /// <returns>Label</returns>
-        const Label createLabel(const char* name = nullptr);
+        Label createLabel(const char* name = nullptr);
 
         /// <summary>
         /// Binds the label to a new unlinked node. A label can be only bound once.
@@ -181,7 +181,7 @@ namespace zasm
         /// </summary>
         /// <param name="name">Optional label name, pass null for none.</param>
         /// <returns>Label</returns>
-        const Label createExternalLabel(const char* name = nullptr);
+        Label createExternalLabel(const char* name = nullptr);
 
         /// <summary>
         /// Returns if the specified label is an external label.
@@ -198,7 +198,7 @@ namespace zasm
         /// </summary>
         /// <param name="moduleName">Name of the module to import.</param>
         /// <returns>Label</returns>
-        const Label getOrCreateImportLabel(const char* moduleName, const char* importName);
+        Label getOrCreateImportLabel(const char* moduleName, const char* importName);
 
         /// <summary>
         /// Returns if the specified label is an import label.
