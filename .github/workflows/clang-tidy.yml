@@ -1,0 +1,19 @@
+name: clang-tidy-review
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: ZedThree/clang-tidy-review@v0.9.0
+      id: review
+      with:
+        build_dir: build
+        clang_tidy_version: 11
+        apt_packages: liblapack-dev
+        cmake_command: cmake . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=on
+        lgtm_comment_body: ''
+   
