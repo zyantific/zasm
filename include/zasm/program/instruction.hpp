@@ -166,9 +166,20 @@ namespace zasm
             return _category;
         }
 
+        /// <summary>
+        /// Returns the length of the instruction.
+        /// Depending on the origin of the Instruction object this value can be one of three things
+        /// 1. From decoder this is the length of the decoded data for this instruction.
+        /// 2. From assembler this is the approximate length when encoded, this is not always accurate.
+        /// 3. Temporary or mutated instructions will have undefined length in this case it will return 0.
+        /// </summary>
+        /// <returns>Length of instruction if available</returns>
         constexpr Length getLength() const noexcept
         {
             assert(_metaDataValid == true);
+
+            if (!_metaDataValid)
+                return 0;
 
             return _length;
         }
@@ -196,6 +207,19 @@ namespace zasm
             }
         }
 
+        template<size_t TIndex, typename T = Operand> constexpr T& getOperand()
+        {
+            if constexpr (std::is_same_v<T, Operand>)
+            {
+                return std::get<TIndex>(_operands);
+            }
+            else
+            {
+                auto& op = std::get<TIndex>(_operands);
+                return op.template get<T>();
+            }
+        }
+
         template<typename T = Operand> constexpr const T& getOperand(size_t index) const
         {
             if constexpr (std::is_same_v<T, Operand>)
@@ -209,7 +233,29 @@ namespace zasm
             }
         }
 
+        template<typename T = Operand> constexpr T& getOperand(size_t index)
+        {
+            if constexpr (std::is_same_v<T, Operand>)
+            {
+                return _operands[index];
+            }
+            else
+            {
+                auto& op = _operands[index];
+                return op.template get<T>();
+            }
+        }
+
         template<typename T> constexpr const T* getOperandIf(size_t index) const noexcept
+        {
+            if (index >= _opCount || index >= _operands.size())
+                return nullptr;
+
+            auto& op = _operands[index];
+            return op.template getIf<T>();
+        }
+
+        template<typename T> constexpr T* getOperandIf(size_t index) noexcept
         {
             if (index >= _opCount || index >= _operands.size())
                 return nullptr;
@@ -238,7 +284,11 @@ namespace zasm
 
             if (index < _opCount)
             {
-                _metaDataValid = false;
+                // Allow to keep the meta data valid if the operand type is the same.
+                if (val.getTypeIndex() != _operands[index].getTypeIndex())
+                {
+                    _metaDataValid = false;
+                }
                 _operands[index] = val;
             }
 
@@ -254,7 +304,7 @@ namespace zasm
         {
             assert(_metaDataValid == true);
 
-            if (index >= _opCount)
+            if (index >= _opCount || !_metaDataValid)
                 return Operand::Visibility::Invalid;
 
             return _opsVisibility.get(index);
@@ -266,6 +316,7 @@ namespace zasm
 
             if (index >= _opCount)
                 return true;
+
             return getOperandVisibility(index) == Operand::Visibility::Hidden;
         }
 
@@ -275,6 +326,7 @@ namespace zasm
 
             if (index >= _opCount)
                 return false;
+
             return getOperandVisibility(index) == Operand::Visibility::Explicit;
         }
 
@@ -284,6 +336,7 @@ namespace zasm
 
             if (index >= _opCount)
                 return false;
+
             return getOperandVisibility(index) == Operand::Visibility::Implicit;
         }
 
@@ -291,7 +344,7 @@ namespace zasm
         {
             assert(_metaDataValid == true);
 
-            if (index >= _opCount)
+            if (index >= _opCount || !_metaDataValid)
                 return Operand::Access::None;
 
             return _access.get(index);
