@@ -46,4 +46,9 @@ namespace zasm
         }
     };
 
+    /// <summary>
+    /// Constant for an empty/invalid label.
+    /// </summary>
+    constexpr Label kInvalidLabel{};
+
 } // namespace zasm
