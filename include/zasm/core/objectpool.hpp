@@ -5,10 +5,16 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <cstddef>
 
 namespace zasm
 {
-    template<typename _Ty, size_t _TBlockSize = 0xFFFF> class ObjectPool
+    namespace detail
+    {
+        constexpr size_t kDefaultBlockCount = 0xFFFF;
+    }
+
+    template<typename T, size_t TBlockCount = detail::kDefaultBlockCount> class ObjectPool
     {
         using BlockId = uint16_t;
 
@@ -23,25 +29,25 @@ namespace zasm
 
         struct Entry : EntryHead
         {
-            std::byte data[sizeof(_Ty)];
+            std::array<std::byte, sizeof(T)> data;
         };
 #pragma pack(pop)
 
         struct Block
         {
-            Entry storage[_TBlockSize];
+            Entry storage[TBlockCount];
             BlockId id;
-            size_t slot;
-            size_t used;
+            std::size_t slot;
+            std::size_t used;
         };
 
         std::vector<std::unique_ptr<Block>> _blocks;
         Entry* _freeItem = nullptr;
 
     public:
-        typedef ObjectPool<_Ty> other;
+        typedef ObjectPool<T> other;
 
-        typedef _Ty value_type;
+        typedef T value_type;
 
         typedef value_type* pointer;
         typedef const value_type* const_pointer;
@@ -51,9 +57,9 @@ namespace zasm
         typedef value_type& reference;
         typedef const value_type& const_reference;
 
-        typedef size_t size_type;
+        typedef std::size_t size_type;
 
-        ObjectPool<_Ty> select_on_container_copy_construction() const
+        ObjectPool<T> select_on_container_copy_construction() const
         {
             return (*this);
         }
@@ -78,18 +84,18 @@ namespace zasm
             return std::addressof(_Val);
         }
 
-        template<class _Other> ObjectPool(const ObjectPool<_Other>&)
+        template<class TOther> ObjectPool(const ObjectPool<TOther>&)
         {
         }
 
-        template<class _Other> ObjectPool<_Ty>& operator=(const ObjectPool<_Other>&)
+        template<class TOther> ObjectPool<T>& operator=(const ObjectPool<TOther>&)
         {
             return (*this);
         }
 
-        void deallocate(pointer _Ptr, size_type)
+        void deallocate(pointer ptr, [[maybe_unused]] size_type count)
         {
-            Entry* entry = reinterpret_cast<Entry*>(reinterpret_cast<std::byte*>(_Ptr) - sizeof(EntryHead));
+            Entry* entry = reinterpret_cast<Entry*>(reinterpret_cast<std::byte*>(ptr) - sizeof(EntryHead));
             entry->prev = _freeItem;
 
             auto* block = _blocks[entry->blockId].get();
@@ -98,9 +104,9 @@ namespace zasm
             _freeItem = entry;
         }
 
-        pointer allocate([[maybe_unused]] size_type _Count)
+        pointer allocate([[maybe_unused]] size_type count)
         {
-            assert(_Count == 1);
+            assert(count == 1);
 
             if (_freeItem != nullptr)
             {
@@ -110,11 +116,11 @@ namespace zasm
                 auto* block = _blocks[entry->blockId].get();
                 block->used++;
 
-                return reinterpret_cast<pointer>(entry->data);
+                return reinterpret_cast<pointer>(entry->data.data());
             }
 
             auto* block = _blocks.back().get();
-            if (block->slot >= _TBlockSize)
+            if (block->slot >= TBlockCount)
             {
                 const BlockId id = static_cast<BlockId>(_blocks.size());
 
@@ -130,38 +136,37 @@ namespace zasm
             block->slot++;
             block->used++;
 
-            return reinterpret_cast<pointer>(entry.data);
+            return reinterpret_cast<pointer>(entry.data.data());
         }
 
-        pointer allocate(size_type _Count, const void*)
+        pointer allocate(size_type count, [[maybe_unused]] const void* hint)
         {
-            return (allocate(_Count));
+            return (allocate(count));
         }
 
-        void construct(_Ty* _Ptr)
+        void construct(T* ptr)
         {
-            ::new ((void*)_Ptr) _Ty();
+            ::new ((void*)ptr) T();
         }
 
-        void construct(_Ty* _Ptr, const _Ty& _Val)
+        void construct(T* ptr, const T& val)
         {
-            ::new ((void*)_Ptr) _Ty(_Val);
+            ::new ((void*)ptr) T(val);
         }
 
-        template<class _Objty, class... _Types> void construct(_Objty* _Ptr, _Types&&... _Args)
+        template<class TObjty, class... TArgs> void construct(TObjty* ptr, TArgs&&... args)
         {
-            ::new ((void*)_Ptr) _Objty(std::forward<_Types>(_Args)...);
+            ::new ((void*)ptr) TObjty(std::forward<TArgs>(args)...);
         }
 
-        template<class _Uty> void destroy(_Uty* _Ptr)
+        template<class TUty> void destroy(TUty* ptr)
         {
-            _Ptr->~_Uty();
+            ptr->~TUty();
         }
 
         size_t max_size() const noexcept
         {
-            return ((size_t)(-1) / sizeof(_Ty));
+            return (~static_cast<size_t>(0U) / sizeof(T));
         }
-
     };
 } // namespace zasm
