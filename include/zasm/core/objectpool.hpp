@@ -2,46 +2,47 @@
 
 #include <array>
 #include <cassert>
-#include <cstdint>
+#include <cstddef>
 #include <memory>
 #include <vector>
 
 namespace zasm
 {
-    template<typename _Ty, size_t _TBlockSize = 0xFFFF> class ObjectPool
+    namespace detail
     {
-        using BlockId = uint16_t;
+        constexpr size_t kDefaultBlockCount = 0xFFFF;
+    }
 
+    template<typename T, std::size_t TBlockCount = detail::kDefaultBlockCount> class ObjectPool
+    {
 #pragma pack(push, 1)
-        struct Entry;
-
-        struct EntryHead
+        union Entry
         {
-            BlockId blockId;
             Entry* prev;
-        };
 
-        struct Entry : EntryHead
-        {
-            std::byte data[sizeof(_Ty)];
+            alignas(alignof(T)) std::array<std::byte, sizeof(T)> object;
+
+            T* data() noexcept
+            {
+                // NOLINTNEXTLINE
+                return reinterpret_cast<T*>(object.data());
+            }
         };
 #pragma pack(pop)
 
         struct Block
         {
-            Entry storage[_TBlockSize];
-            BlockId id;
-            size_t slot;
-            size_t used;
+            std::array<Entry, TBlockCount> storage;
+            std::size_t slot;
         };
 
         std::vector<std::unique_ptr<Block>> _blocks;
         Entry* _freeItem = nullptr;
 
     public:
-        typedef ObjectPool<_Ty> other;
+        typedef ObjectPool<T> other;
 
-        typedef _Ty value_type;
+        typedef T value_type;
 
         typedef value_type* pointer;
         typedef const value_type* const_pointer;
@@ -51,9 +52,9 @@ namespace zasm
         typedef value_type& reference;
         typedef const value_type& const_reference;
 
-        typedef size_t size_type;
+        typedef std::size_t size_type;
 
-        ObjectPool<_Ty> select_on_container_copy_construction() const
+        ObjectPool<T> select_on_container_copy_construction() const
         {
             return (*this);
         }
@@ -78,90 +79,76 @@ namespace zasm
             return std::addressof(_Val);
         }
 
-        template<class _Other> ObjectPool(const ObjectPool<_Other>&)
+        template<class TOther> ObjectPool([[maybe_unused]] const ObjectPool<TOther>& other)
         {
         }
 
-        template<class _Other> ObjectPool<_Ty>& operator=(const ObjectPool<_Other>&)
+        template<class TOther> ObjectPool& operator=([[maybe_unused]] const ObjectPool<TOther>& other)
         {
             return (*this);
         }
 
-        void deallocate(pointer _Ptr, size_type)
+        void deallocate(pointer ptr, [[maybe_unused]] size_type count)
         {
-            Entry* entry = reinterpret_cast<Entry*>(reinterpret_cast<std::byte*>(_Ptr) - sizeof(EntryHead));
+            // NOLINTNEXTLINE
+            Entry* entry = reinterpret_cast<Entry*>(ptr);
             entry->prev = _freeItem;
-
-            auto* block = _blocks[entry->blockId].get();
-            block->used--;
 
             _freeItem = entry;
         }
 
-        pointer allocate([[maybe_unused]] size_type _Count)
+        pointer allocate([[maybe_unused]] size_type count)
         {
-            assert(_Count == 1);
+            assert(count == 1);
 
             if (_freeItem != nullptr)
             {
                 auto* entry = _freeItem;
                 _freeItem = entry->prev;
 
-                auto* block = _blocks[entry->blockId].get();
-                block->used++;
-
-                return reinterpret_cast<pointer>(entry->data);
+                return entry->data();
             }
 
             auto* block = _blocks.back().get();
-            if (block->slot >= _TBlockSize)
+            if (block->slot >= TBlockCount)
             {
-                const BlockId id = static_cast<BlockId>(_blocks.size());
-
-                _blocks.push_back(std::make_unique<Block>());
-
-                block = _blocks.back().get();
-                block->id = id;
+                block = _blocks.emplace_back(std::make_unique<Block>()).get();
             }
 
             auto& entry = block->storage[block->slot];
-            entry.blockId = block->id;
-
             block->slot++;
-            block->used++;
 
-            return reinterpret_cast<pointer>(entry.data);
+            return entry.data();
         }
 
-        pointer allocate(size_type _Count, const void*)
+        pointer allocate(size_type count, [[maybe_unused]] const void* hint)
         {
-            return (allocate(_Count));
+            return (allocate(count));
         }
 
-        void construct(_Ty* _Ptr)
+        void construct(T* ptr)
         {
-            ::new ((void*)_Ptr) _Ty();
+            ::new (static_cast<void*>(ptr)) T();
         }
 
-        void construct(_Ty* _Ptr, const _Ty& _Val)
+        void construct(T* ptr, const T& val)
         {
-            ::new ((void*)_Ptr) _Ty(_Val);
+            ::new (static_cast<void*>(ptr)) T(val);
         }
 
-        template<class _Objty, class... _Types> void construct(_Objty* _Ptr, _Types&&... _Args)
+        template<class TObjty, class... TArgs> void construct(TObjty* ptr, TArgs&&... args)
         {
-            ::new ((void*)_Ptr) _Objty(std::forward<_Types>(_Args)...);
+            ::new (static_cast<void*>(ptr)) TObjty(std::forward<TArgs>(args)...);
         }
 
-        template<class _Uty> void destroy(_Uty* _Ptr)
+        template<class TUty> void destroy(TUty* ptr)
         {
-            _Ptr->~_Uty();
+            ptr->~TUty();
         }
 
-        size_t max_size() const noexcept
+        std::size_t max_size() const noexcept
         {
-            return ((size_t)(-1) / sizeof(_Ty));
+            return (~static_cast<std::size_t>(0U) / sizeof(T));
         }
-
     };
 } // namespace zasm
