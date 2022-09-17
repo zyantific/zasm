@@ -218,9 +218,11 @@ if(ZASM_BUILD_TESTS) # tests
 	list(APPEND tests_SOURCES
 		"src/tests/main.cpp"
 		"src/tests/tests/tests.assembler.cpp"
+		"src/tests/tests/tests.decoder.cpp"
 		"src/tests/tests/tests.externals.cpp"
 		"src/tests/tests/tests.formatter.cpp"
 		"src/tests/tests/tests.imports.cpp"
+		"src/tests/tests/tests.instruction.cpp"
 		"src/tests/tests/tests.instructions.x64.cpp"
 		"src/tests/tests/tests.observer.cpp"
 		"src/tests/tests/tests.packed.cpp"
