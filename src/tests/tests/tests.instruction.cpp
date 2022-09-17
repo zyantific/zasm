@@ -55,7 +55,7 @@ namespace zasm::tests
 
         // Modify operand.
         instr.setOperand(1, zasm::Imm(1));
-        ASSERT_EQ(instr.isMetaDataValid(), false);
+        ASSERT_EQ(instr.isMetaDataValid(), true);
 
         // Emit modified
         ASSERT_EQ(assembler.emit(instr), Error::None);
