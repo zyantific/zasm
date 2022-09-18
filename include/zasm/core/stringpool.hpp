@@ -31,6 +31,7 @@ namespace zasm
         };
 
     public:
+        // NOLINTNEXTLINE
         template<size_t N> Id aquire(const char (&value)[N])
         {
             return aquire_(value, N);
@@ -50,7 +51,9 @@ namespace zasm
         {
             Entry* entry = getEntry(*this, id);
             if (entry == nullptr)
+            {
                 return 0;
+            }
 
             const auto newRefCount = --entry->refCount;
             return newRefCount;
@@ -66,7 +69,9 @@ namespace zasm
         {
             auto* entry = getEntry(*this, id);
             if (entry == nullptr)
+            {
                 return false;
+            }
             return true;
         }
 
@@ -74,7 +79,9 @@ namespace zasm
         {
             auto* entry = getEntry(*this, id);
             if (entry == nullptr)
+            {
                 return nullptr;
+            }
 
             return _data.data() + entry->offset;
         }
@@ -83,7 +90,9 @@ namespace zasm
         {
             auto* entry = getEntry(*this, id);
             if (entry == nullptr)
+            {
                 return 0;
+            }
             return entry->len;
         }
 
@@ -91,7 +100,9 @@ namespace zasm
         {
             auto* entry = getEntry(*this, id);
             if (entry == nullptr)
+            {
                 return 0;
+            }
 
             return entry->refCount;
         }
@@ -109,10 +120,13 @@ namespace zasm
         {
             const auto idx = static_cast<size_t>(id);
             if (idx >= self._entries.size())
+            {
                 return nullptr;
-
+            }
             if (self._entries[idx].refCount <= 0)
+            {
                 return nullptr;
+            }
 
             return &self._entries[idx];
         }
@@ -120,12 +134,10 @@ namespace zasm
         Id find_(const char* buf, size_t len, size_t hash) const noexcept
         {
             auto it = std::find_if(std::begin(_entries), std::end(_entries), [&](const auto& entry) {
-                if (entry.refCount == 0)
+                if (entry.refCount == 0 || entry.hash != hash || entry.len != len)
+                {
                     return false;
-                if (entry.hash != hash)
-                    return false;
-                if (entry.len != len)
-                    return false;
+                }
                 const char* str = _data.data() + entry.offset;
                 return memcmp(buf, str, len) == 0;
             });
