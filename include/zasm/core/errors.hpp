@@ -2,7 +2,6 @@
 
 #include <cassert>
 #include <cstdint>
-#include <ostream>
 
 namespace zasm
 {
@@ -62,12 +61,6 @@ namespace zasm
         }
 #undef ERROR_STRING
         return nullptr;
-    }
-
-    // gtest support.
-    static std::ostream& operator<<(std::ostream& os, const Error& err)
-    {
-        return os << zasm::getErrorName(err);
     }
 
 } // namespace zasm

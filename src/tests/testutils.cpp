@@ -37,4 +37,13 @@ namespace zasm::tests
         return res;
     }
 
+    std::ostream& operator<<(std::ostream& os, const BitSize& s)
+    {
+        return os << getBitSize(s) << "_bit";
+    }
+
+    std::ostream& operator<<(std::ostream& os, const Error& err)
+    {
+        return os << zasm::getErrorName(err);
+    }
 }

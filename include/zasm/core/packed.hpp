@@ -1,18 +1,20 @@
 #pragma once
 
 #include <cassert>
+#include <cstddef>
+#include <initializer_list>
 #include <limits>
 #include <type_traits>
 
 namespace zasm
 {
-    template<typename TUnderlying, typename TElement, size_t TElementBitSize> class Packed
+    template<typename TUnderlying, typename TElement, std::size_t TElementBitSize> class Packed
     {
         static_assert(std::is_signed_v<TUnderlying> == false, "Underlying type must be unsigned");
 
-        static constexpr size_t kElementMask = (TUnderlying{ 1u } << TElementBitSize) - TUnderlying{ 1u };
-        static constexpr size_t kStorageBitSize = std::numeric_limits<TUnderlying>::digits;
-        static constexpr size_t kCapacity = kStorageBitSize / TElementBitSize;
+        static constexpr std::size_t kElementMask = (TUnderlying{ 1U } << TElementBitSize) - TUnderlying{ 1U };
+        static constexpr std::size_t kStorageBitSize = std::numeric_limits<TUnderlying>::digits;
+        static constexpr std::size_t kCapacity = kStorageBitSize / TElementBitSize;
 
         TUnderlying _data{};
 
@@ -21,7 +23,7 @@ namespace zasm
 
         constexpr Packed(std::initializer_list<TElement>&& elements) noexcept
         {
-            size_t idx = 0;
+            std::size_t idx = 0;
             for (auto&& elem : elements)
             {
                 set(idx, elem);
@@ -29,7 +31,7 @@ namespace zasm
             }
         }
 
-        template<size_t TIndex> constexpr void set(const TElement& val) noexcept
+        template<std::size_t TIndex> constexpr void set(const TElement& val) noexcept
         {
             constexpr auto bitIndex = (TIndex * TElementBitSize);
             static_assert(bitIndex + TElementBitSize < kStorageBitSize);
@@ -40,7 +42,7 @@ namespace zasm
             _data |= newVal;
         }
 
-        constexpr void set(size_t index, const TElement& val) noexcept
+        constexpr void set(std::size_t index, const TElement& val) noexcept
         {
             const auto bitIndex = (index * TElementBitSize);
 
@@ -54,7 +56,7 @@ namespace zasm
             _data |= newVal;
         }
 
-        template<size_t TIndex> constexpr TElement get() const noexcept
+        template<std::size_t TIndex> constexpr TElement get() const noexcept
         {
             constexpr auto bitIndex = (TIndex * TElementBitSize);
             static_assert(bitIndex + TElementBitSize < kStorageBitSize);
@@ -63,7 +65,7 @@ namespace zasm
             return static_cast<TElement>(res);
         }
 
-        constexpr TElement get(size_t index) const noexcept
+        constexpr TElement get(std::size_t index) const noexcept
         {
             const auto bitIndex = (index * TElementBitSize);
 
@@ -75,12 +77,12 @@ namespace zasm
             return static_cast<TElement>(res);
         }
 
-        constexpr size_t capacity() const noexcept
+        constexpr std::size_t capacity() const noexcept
         {
             return kCapacity;
         }
 
-        constexpr size_t size() const noexcept
+        constexpr std::size_t size() const noexcept
         {
             return capacity();
         }

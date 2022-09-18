@@ -219,7 +219,7 @@ static void decodeToAssembler()
         auto decoderRes = decoder.decode(code.data() + bytesDecoded, code.size() - bytesDecoded, curAddress);
         if (!decoderRes)
         {
-            std::cout << "Failed to decode at " << std::hex << curAddress << ", " << decoderRes.error() << "\n";
+            std::cout << "Failed to decode at " << std::hex << curAddress << ", " << getErrorName(decoderRes.error()) << "\n";
             return;
         }
 
