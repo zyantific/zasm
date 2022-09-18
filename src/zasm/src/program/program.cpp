@@ -6,6 +6,7 @@
 #include "zasm/program/observer.hpp"
 
 #include <algorithm>
+#include <functional>
 #include <cstring>
 
 namespace zasm
