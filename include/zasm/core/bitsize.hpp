@@ -2,7 +2,6 @@
 
 #include <cassert>
 #include <cstdint>
-#include <ostream>
 
 namespace zasm
 {
@@ -89,12 +88,6 @@ namespace zasm
         }
 #undef SWITCH_BIT
         return 0;
-    }
-
-    // gtest support.
-    static std::ostream& operator<<(std::ostream& os, const BitSize& s)
-    {
-        return os << getBitSize(s) << "_bit";
     }
 
 } // namespace zasm
