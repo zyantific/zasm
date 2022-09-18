@@ -213,16 +213,7 @@ namespace zasm
         /// <param name="label">The label to query the data for</param>
         /// <returns>Returns LabelData on success, Error on failure.</returns>
         Expected<LabelData, Error> getLabelData(const Label& label) const noexcept;
-
-        /// <summary>
-        /// Creates a Data object that can be stored in a Node. The data object
-        /// can hold up to 32 bytes of data before it will use the heap.
-        /// </summary>
-        /// <param name="ptr">A pointer to the input data</param>
-        /// <param name="len">Size of the data in bytes</param>
-        /// <returns>Data object containing a copy of the specified data</returns>
-        const Data createData(const void* ptr, size_t len);
-
+        
     public:
         /// <summary>
         /// Creates a new section that can be used to segment code and data.

@@ -52,7 +52,7 @@ namespace zasm::x86
     }
 
     Error Assembler::section(
-        const char* name, Section::Attribs attribs /*= Section::Attribs::Code*/, int32_t align /*= 0x1000*/)
+        const char* name, Section::Attribs attribs /*= Section::Attribs::Code*/, std::int32_t align /*= 0x1000*/)
     {
         auto newSect = _program.createSection(name, attribs, align);
 
@@ -67,29 +67,9 @@ namespace zasm::x86
         return Error::None;
     }
 
-    Error Assembler::db(uint8_t val)
+    Error Assembler::db(std::uint8_t val, std::size_t repeatCount /*= 1*/)
     {
-        return embed(&val, sizeof(val));
-    }
-
-    Error Assembler::dw(uint16_t val)
-    {
-        return embed(&val, sizeof(val));
-    }
-
-    Error Assembler::dd(uint32_t val)
-    {
-        return embed(&val, sizeof(val));
-    }
-
-    Error Assembler::dq(uint64_t val)
-    {
-        return embed(&val, sizeof(val));
-    }
-
-    Error Assembler::embed(const void* ptr, size_t len)
-    {
-        auto data = _program.createData(ptr, len);
+        Data data(val, repeatCount);
 
         auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
@@ -97,7 +77,48 @@ namespace zasm::x86
         return Error::None;
     }
 
-    Error Assembler::emit(Attribs attribs, Mnemonic id, size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops)
+    Error Assembler::dw(std::uint16_t val, std::size_t repeatCount /*= 1*/)
+    {
+        Data data(val, repeatCount);
+
+        auto* dataNode = _program.createNode(std::move(data));
+        _cursor = _program.insertAfter(_cursor, dataNode);
+
+        return Error::None;
+    }
+
+    Error Assembler::dd(std::uint32_t val, std::size_t repeatCount /*= 1*/)
+    {
+        Data data(val, repeatCount);
+
+        auto* dataNode = _program.createNode(std::move(data));
+        _cursor = _program.insertAfter(_cursor, dataNode);
+
+        return Error::None;
+    }
+
+    Error Assembler::dq(std::uint64_t val, std::size_t repeatCount /*= 1*/)
+    {
+        Data data(val, repeatCount);
+
+        auto* dataNode = _program.createNode(std::move(data));
+        _cursor = _program.insertAfter(_cursor, dataNode);
+
+        return Error::None;
+    }
+
+    Error Assembler::embed(const void* ptr, std::size_t len)
+    {
+        Data data(ptr, len);
+
+        auto* dataNode = _program.createNode(std::move(data));
+        _cursor = _program.insertAfter(_cursor, dataNode);
+
+        return Error::None;
+    }
+
+    Error Assembler::emit(
+        Attribs attribs, Mnemonic id, std::size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops)
     {
         auto genResult = _generator->generate(
             static_cast<Instruction::Attribs>(attribs), static_cast<Instruction::Mnemonic>(id), numOps, std::move(ops));
@@ -116,7 +137,7 @@ namespace zasm::x86
     {
         std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS> ops;
 
-        const auto numOps = std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getOperandCount());
+        const auto numOps = std::min<std::size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getOperandCount());
         for (size_t i = 0; i < numOps; i++)
         {
             ops[i] = instr.getOperand(i);

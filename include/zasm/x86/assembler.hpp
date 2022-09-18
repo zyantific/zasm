@@ -2,6 +2,7 @@
 
 #include "emitter.hpp"
 
+#include <cstddef>
 #include <zasm/core/errors.hpp>
 #include <zasm/program/instruction.hpp>
 #include <zasm/program/observer.hpp>
@@ -69,14 +70,14 @@ namespace zasm::x86
         /// <returns>Error</returns>
         Error section(
             const char* name, Section::Attribs attribs = Section::Attribs::Code | Section::Attribs::Exec,
-            int32_t align = 0x1000);
+            std::int32_t align = 0x1000);
 
     public:
         // Data emitter.
-        Error db(uint8_t val);
-        Error dw(uint16_t val);
-        Error dd(uint32_t val);
-        Error dq(uint64_t val);
+        Error db(std::uint8_t val, std::size_t repeatCount = 1);
+        Error dw(std::uint16_t val, std::size_t repeatCount = 1);
+        Error dd(std::uint32_t val, std::size_t repeatCount = 1);
+        Error dq(std::uint64_t val, std::size_t repeatCount = 1);
 
         /// <summary>
         /// Creates a data node which stores the binary data passed by arguments.
@@ -85,14 +86,14 @@ namespace zasm::x86
         /// <param name="data">Pointer to the data</param>
         /// <param name="len">Size in bytes of the data</param>
         /// <returns>Error</returns>
-        Error embed(const void* data, size_t len);
+        Error embed(const void* data, std::size_t len);
 
-        template<size_t N> Error embed(const char (&str)[N])
+        template<std::size_t N> Error embed(const char (&str)[N])
         {
             return embed(str, N);
         }
 
-        template<size_t N> Error embed(const wchar_t (&str)[N])
+        template<std::size_t N> Error embed(const wchar_t (&str)[N])
         {
             return embed(str, N * sizeof(wchar_t));
         }
@@ -108,7 +109,7 @@ namespace zasm::x86
             return emit(attribs, id, sizeof...(TArgs), { args... });
         }
 
-        Error emit(Attribs attribs, Mnemonic id, size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops);
+        Error emit(Attribs attribs, Mnemonic id, std::size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops);
         Error emit(const Instruction& instr);
 
     private:
