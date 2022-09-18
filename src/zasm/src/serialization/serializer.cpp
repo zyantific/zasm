@@ -7,6 +7,7 @@
 
 #include <Zydis/Decoder.h>
 #include <cassert>
+#include <iterator>
 
 namespace zasm
 {
@@ -231,11 +232,11 @@ namespace zasm
 
         auto& buffer = state.buffer;
         buffer.reserve(buffer.size() + totalSize);
-        
+
         const auto dataSize = data.getSize();
         for (std::size_t i = 0; i < data.getRepeatCount(); ++i)
         {
-            buffer.insert(buffer.end(), ptr, ptr + dataSize);
+            std::copy_n(ptr, dataSize, std::back_inserter(buffer));
         }
 
         return Error::None;

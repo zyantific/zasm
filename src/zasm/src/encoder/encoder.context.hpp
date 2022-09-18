@@ -22,6 +22,7 @@ namespace zasm
     // Encoder context used for serialization by the Program.
     struct EncoderSection
     {
+    public:
         StringPool::Id nameId{};
         std::int32_t index{};
         std::int32_t offset{};
@@ -34,6 +35,7 @@ namespace zasm
 
     struct EncoderContext
     {
+    public:
         detail::ProgramState* program{};
         bool needsExtraPass{};
         std::size_t nodeIndex{};
@@ -47,6 +49,7 @@ namespace zasm
 
         struct LabelLink
         {
+        public:
             static constexpr std::int32_t kUnboundOffset = -1;
             static constexpr std::int64_t kUnboundVA = -1;
 
@@ -62,6 +65,7 @@ namespace zasm
 
         struct Node
         {
+        public:
             std::int64_t address{};
             std::size_t offset{};
             std::size_t length{};

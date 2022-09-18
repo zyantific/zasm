@@ -40,7 +40,7 @@ namespace zasm::x86
 
     Error Assembler::bind(const Label& label)
     {
-        auto labelNode = _program.bindLabel(label);
+        const auto labelNode = _program.bindLabel(label);
         if (!labelNode)
         {
             return labelNode.error();
@@ -54,9 +54,9 @@ namespace zasm::x86
     Error Assembler::section(
         const char* name, Section::Attribs attribs /*= Section::Attribs::Code*/, std::int32_t align /*= 0x1000*/)
     {
-        auto newSect = _program.createSection(name, attribs, align);
+        const auto newSect = _program.createSection(name, attribs, align);
 
-        auto sectNode = _program.bindSection(newSect);
+        const auto sectNode = _program.bindSection(newSect);
         if (!sectNode.hasValue())
         {
             return sectNode.error();
@@ -71,7 +71,7 @@ namespace zasm::x86
     {
         Data data(val, repeatCount);
 
-        auto* dataNode = _program.createNode(std::move(data));
+        const auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -81,7 +81,7 @@ namespace zasm::x86
     {
         Data data(val, repeatCount);
 
-        auto* dataNode = _program.createNode(std::move(data));
+        const auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -91,7 +91,7 @@ namespace zasm::x86
     {
         Data data(val, repeatCount);
 
-        auto* dataNode = _program.createNode(std::move(data));
+        const auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -101,7 +101,7 @@ namespace zasm::x86
     {
         Data data(val, repeatCount);
 
-        auto* dataNode = _program.createNode(std::move(data));
+        const auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -111,7 +111,7 @@ namespace zasm::x86
     {
         Data data(ptr, len);
 
-        auto* dataNode = _program.createNode(std::move(data));
+        const auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -127,8 +127,8 @@ namespace zasm::x86
             return genResult.error();
         }
 
-        auto* instrNode = _program.createNode(std::move(*genResult));
-        _cursor = _program.insertAfter(_cursor, instrNode);
+        const auto* node = _program.createNode(std::move(*genResult));
+        _cursor = _program.insertAfter(_cursor, node);
 
         return Error::None;
     }
@@ -164,7 +164,7 @@ namespace zasm::x86
             return Error::InvalidMode;
         }
 
-        auto* node = _program.createNode(EmbeddedLabel(label, size));
+        const auto* node = _program.createNode(EmbeddedLabel(label, size));
         _cursor = _program.insertAfter(_cursor, node);
 
         return Error::None;
@@ -172,7 +172,7 @@ namespace zasm::x86
 
     Error Assembler::embedLabelRel(Label label, Label relativeTo, BitSize size)
     {
-        auto* node = _program.createNode(EmbeddedLabel(label, relativeTo, size));
+        const auto* node = _program.createNode(EmbeddedLabel(label, relativeTo, size));
         _cursor = _program.insertAfter(_cursor, node);
 
         return Error::None;
