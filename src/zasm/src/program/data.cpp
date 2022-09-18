@@ -7,7 +7,7 @@
 
 namespace zasm
 {
-    Data::Data(const void* ptr, size_t len)
+    Data::Data(const void* ptr, std::size_t len)
     {
         if (len <= kInlineStorageSize)
         {
@@ -30,6 +30,7 @@ namespace zasm
                 _size = 0;
             }
         }
+        _repeatCount = 1;
     }
 
     Data::Data(Data&& other) noexcept
@@ -65,15 +66,20 @@ namespace zasm
         return _storage.ptr;
     }
 
-    size_t Data::getSize() const noexcept
+    std::size_t Data::getSize() const noexcept
     {
         return (_size & ~kInlineDataFlag);
+    }
+
+    std::size_t Data::getTotalSize() const noexcept
+    {
+        return getSize() * _repeatCount;
     }
 
     // When kInlineDataFlag is set this function is used to copy the data.
     // Copying the entire buffer is done on purpose since the size is known the compiler
     // can generate specific code instead of calling the external memcpy function.
-    template<size_t N> static void copyInlineData(uint8_t (&buf)[N], const uint8_t (&src)[N])
+    template<std::size_t N> static void copyInlineData(uint8_t (&buf)[N], const uint8_t (&src)[N])
     {
         std::memcpy(buf, src, N);
     }
@@ -81,6 +87,7 @@ namespace zasm
     Data& Data::operator=(const Data& other)
     {
         _size = other._size;
+        _repeatCount = other._repeatCount;
         if (_size & kInlineDataFlag)
         {
             copyInlineData(_storage.bytes, other._storage.bytes);
@@ -106,6 +113,7 @@ namespace zasm
     Data& Data::operator=(Data&& other) noexcept
     {
         _size = other._size;
+        _repeatCount = other._repeatCount;
         if (_size & kInlineDataFlag)
         {
             copyInlineData(_storage.bytes, other._storage.bytes);
@@ -116,6 +124,7 @@ namespace zasm
         }
 
         other._size = 0;
+        other._repeatCount = 1;
         other._storage.ptr = nullptr;
 
         return *this;

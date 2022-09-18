@@ -307,21 +307,33 @@ namespace zasm::formatter
 
             if (node.isU8())
             {
+                if (node.getRepeatCount() > 1)
+                    ctx.format("times %zu ", node.getRepeatCount());
+                
                 dataPrefix(ctx, BitSize::_8);
                 ctx.format("0x%02" PRIx8, node.valueAsU8());
             }
             else if (node.isU16())
             {
+                if (node.getRepeatCount() > 1)
+                    ctx.format("times %zu ", node.getRepeatCount());
+                
                 dataPrefix(ctx, BitSize::_16);
                 ctx.format("0x%04" PRIx16, node.valueAsU16());
             }
             else if (node.isU32())
             {
+                if (node.getRepeatCount() > 1)
+                    ctx.format("times %zu ", node.getRepeatCount());
+                
                 dataPrefix(ctx, BitSize::_32);
                 ctx.format("0x%08" PRIx32, node.valueAsU32());
             }
             else if (node.isU64())
             {
+                if (node.getRepeatCount() > 1)
+                    ctx.format("times %zu ", node.getRepeatCount());
+                
                 dataPrefix(ctx, BitSize::_64);
                 ctx.format("0x%016" PRIx64, node.valueAsU64());
             }
