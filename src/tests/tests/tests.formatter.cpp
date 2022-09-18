@@ -201,7 +201,7 @@ namespace zasm::tests
 
         x86::Assembler assembler(program);
 
-        assembler.dw(0xF3FCF199);
+        assembler.dd(0xF3FCF199);
 
         auto nodeStr = formatter::toString(program);
         ASSERT_EQ(nodeStr, std::string("dd 0xf3fcf199"));
@@ -225,7 +225,7 @@ namespace zasm::tests
 
         x86::Assembler assembler(program);
 
-        assembler.dw(0xF3FCF199F3FCF199);
+        assembler.dq(0xF3FCF199F3FCF199);
 
         auto nodeStr = formatter::toString(program);
         ASSERT_EQ(nodeStr, std::string("dq 0xf3fcf199f3fcf199"));
