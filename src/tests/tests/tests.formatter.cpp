@@ -237,7 +237,7 @@ namespace zasm::tests
 
         x86::Assembler assembler(program);
 
-        assembler.dd(0xF3FCF199F3FCF199, 15);
+        assembler.dq(0xF3FCF199F3FCF199, 15);
 
         auto nodeStr = formatter::toString(program);
         ASSERT_EQ(nodeStr, std::string("times 15 dq 0xf3fcf199f3fcf199"));
