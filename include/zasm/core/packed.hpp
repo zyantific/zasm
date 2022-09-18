@@ -12,7 +12,7 @@ namespace zasm
     {
         static_assert(std::is_signed_v<TUnderlying> == false, "Underlying type must be unsigned");
 
-        static constexpr std::size_t kElementMask = (TUnderlying{ 1u } << TElementBitSize) - TUnderlying{ 1u };
+        static constexpr std::size_t kElementMask = (TUnderlying{ 1U } << TElementBitSize) - TUnderlying{ 1U };
         static constexpr std::size_t kStorageBitSize = std::numeric_limits<TUnderlying>::digits;
         static constexpr std::size_t kCapacity = kStorageBitSize / TElementBitSize;
 
