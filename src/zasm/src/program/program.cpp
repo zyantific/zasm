@@ -311,6 +311,11 @@ namespace zasm
         return createNode_(_state, instr);
     }
 
+    const Node* Program::createNode(Instruction&& instr)
+    {
+        return createNode_(_state, std::move(instr));
+    }
+
     const Node* Program::createNode(const Data& data)
     {
         return createNode_(_state, data);

@@ -155,6 +155,7 @@ namespace zasm
         /// <param name="value">The data to place inside the node</param>
         /// <returns>Newly allocated node containing value</returns>
         const Node* createNode(const Instruction& value);
+        const Node* createNode(Instruction&& value);
         const Node* createNode(const Data& value);
         const Node* createNode(Data&& value);
         const Node* createNode(const EmbeddedLabel& value);
