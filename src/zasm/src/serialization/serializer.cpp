@@ -213,24 +213,30 @@ namespace zasm
         auto& ctx = state.ctx;
 
         const uint8_t* ptr = reinterpret_cast<const uint8_t*>(data.getData());
-        const auto len = static_cast<int32_t>(data.getSize());
+        const auto totalSize = data.getTotalSize();
 
         {
             auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
             nodeEntry.offset = ctx.offset;
             nodeEntry.address = ctx.va;
-            nodeEntry.length = static_cast<int32_t>(len);
+            nodeEntry.length = totalSize;
             ctx.nodeIndex++;
         }
 
-        ctx.va += len;
-        ctx.offset += len;
+        ctx.va += totalSize;
+        ctx.offset += totalSize;
 
         auto& sect = ctx.sections[ctx.sectionIndex];
-        sect.rawSize += len;
+        sect.rawSize += totalSize;
 
         auto& buffer = state.buffer;
-        buffer.insert(buffer.end(), ptr, ptr + len);
+        buffer.reserve(buffer.size() + totalSize);
+        
+        const auto dataSize = data.getSize();
+        for (std::size_t i = 0; i < data.getRepeatCount(); ++i)
+        {
+            buffer.insert(buffer.end(), ptr, ptr + dataSize);
+        }
 
         return Error::None;
     }

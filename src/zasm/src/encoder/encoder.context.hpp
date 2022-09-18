@@ -62,8 +62,8 @@ namespace zasm
         struct Node
         {
             int64_t address{};
-            int32_t offset{};
-            int32_t length{};
+            std::size_t offset{};
+            std::size_t length{};
             RelocationType relocKind{};
             RelocationData relocData{};
             Label::Id relocLabel{ Label::Id::Invalid };

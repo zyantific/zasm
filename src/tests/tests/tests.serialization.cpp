@@ -681,4 +681,120 @@ namespace zasm::tests
         }
     }
 
+    TEST(SerializationTests, EmbedDbRepeat)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto label01 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.db(0xCC, 16), Error::None);
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.embedLabel(label01), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<uint8_t, 24> expected = {
+            0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+            0xCC, 0xCC, 0xCC, 0xCC, 0x10, 0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
+    TEST(SerializationTests, EmbedDwRepeat)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto label01 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.dw(0x1234, 8), Error::None);
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.embedLabel(label01), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<uint8_t, 24> expected = {
+            0x34, 0x12, 0x34, 0x12, 0x34, 0x12, 0x34, 0x12, 0x34, 0x12, 0x34, 0x12,
+            0x34, 0x12, 0x34, 0x12, 0x10, 0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
+    TEST(SerializationTests, EmbedDdRepeat)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto label01 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.dd(0x12345678, 4), Error::None);
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.embedLabel(label01), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<uint8_t, 24> expected = {
+            0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12,
+            0x78, 0x56, 0x34, 0x12, 0x10, 0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
+    TEST(SerializationTests, EmbedDqRepeat)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto label01 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.dq(0x12345678AABBCCEE, 2), Error::None);
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.embedLabel(label01), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<uint8_t, 24> expected = {
+            0xEE, 0xCC, 0xBB, 0xAA, 0x78, 0x56, 0x34, 0x12, 0xEE, 0xCC, 0xBB, 0xAA,
+            0x78, 0x56, 0x34, 0x12, 0x10, 0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
 } // namespace zasm::tests
