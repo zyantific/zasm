@@ -37,6 +37,9 @@ namespace zasm
 
         using Attribs = detail::SectionAttribs;
 
+        static constexpr Attribs kDefaultAttribs = Section::Attribs::Code | Section::Attribs::Exec;
+        static constexpr int32_t kDefaultAlign = 0x1000;
+
     private:
         Id _id{ Id::Invalid };
 

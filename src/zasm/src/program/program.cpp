@@ -312,6 +312,11 @@ namespace zasm
         return createNode_(_state, instr);
     }
 
+    const Node* Program::createNode(Instruction&& instr)
+    {
+        return createNode_(_state, std::move(instr));
+    }
+
     const Node* Program::createNode(const Data& data)
     {
         return createNode_(_state, data);
@@ -453,26 +458,6 @@ namespace zasm
         res.node = entry.node;
 
         return res;
-    }
-
-    template<typename T> Data createDataInline(const void* ptr)
-    {
-        T temp;
-        std::memcpy(&temp, ptr, sizeof(T));
-        return Data(temp);
-    }
-
-    const Data Program::createData(const void* ptr, size_t len)
-    {
-        if (len == 1)
-            return createDataInline<uint8_t>(ptr);
-        if (len == 2)
-            return createDataInline<uint16_t>(ptr);
-        if (len == 4)
-            return createDataInline<uint32_t>(ptr);
-        if (len == 8)
-            return createDataInline<uint64_t>(ptr);
-        return Data(ptr, len);
     }
 
     const Section Program::createSection(const char* name, Section::Attribs attribs, int32_t align)

@@ -7,11 +7,11 @@
 
 namespace zasm
 {
-    Data::Data(const void* ptr, size_t len)
+    Data::Data(const void* ptr, std::size_t len)
     {
         if (len <= kInlineStorageSize)
         {
-            std::memcpy(_storage.bytes, ptr, len);
+            std::memcpy(_storage.bytes.data(), ptr, len);
             _size = kInlineDataFlag | len;
         }
         else
@@ -30,6 +30,7 @@ namespace zasm
                 _size = 0;
             }
         }
+        _repeatCount = 1;
     }
 
     Data::Data(Data&& other) noexcept
@@ -60,30 +61,28 @@ namespace zasm
             return nullptr;
 
         if (_size & kInlineDataFlag)
-            return _storage.bytes;
+            return _storage.bytes.data();
 
         return _storage.ptr;
     }
 
-    size_t Data::getSize() const noexcept
+    std::size_t Data::getSize() const noexcept
     {
         return (_size & ~kInlineDataFlag);
     }
 
-    // When kInlineDataFlag is set this function is used to copy the data.
-    // Copying the entire buffer is done on purpose since the size is known the compiler
-    // can generate specific code instead of calling the external memcpy function.
-    template<size_t N> static void copyInlineData(uint8_t (&buf)[N], const uint8_t (&src)[N])
+    std::size_t Data::getTotalSize() const noexcept
     {
-        std::memcpy(buf, src, N);
+        return getSize() * _repeatCount;
     }
 
     Data& Data::operator=(const Data& other)
     {
         _size = other._size;
+        _repeatCount = other._repeatCount;
         if (_size & kInlineDataFlag)
         {
-            copyInlineData(_storage.bytes, other._storage.bytes);
+            _storage.bytes = other._storage.bytes;
         }
         else
         {
@@ -106,9 +105,10 @@ namespace zasm
     Data& Data::operator=(Data&& other) noexcept
     {
         _size = other._size;
+        _repeatCount = other._repeatCount;
         if (_size & kInlineDataFlag)
         {
-            copyInlineData(_storage.bytes, other._storage.bytes);
+            _storage.bytes = other._storage.bytes;
         }
         else
         {
@@ -116,6 +116,7 @@ namespace zasm
         }
 
         other._size = 0;
+        other._repeatCount = 1;
         other._storage.ptr = nullptr;
 
         return *this;
