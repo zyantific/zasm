@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <vector>
@@ -10,8 +11,8 @@
 
 namespace zasm
 {
-    enum class RelocationType : uint8_t;
-    enum class RelocationData : uint8_t;
+    enum class RelocationType : std::uint8_t;
+    enum class RelocationData : std::uint8_t;
 
     namespace detail
     {
@@ -22,12 +23,12 @@ namespace zasm
     struct EncoderSection
     {
         StringPool::Id nameId{};
-        int32_t index{};
-        int32_t offset{};
-        int64_t address{};
-        int32_t rawSize{};
-        int32_t virtualSize{};
-        int32_t align{};
+        std::int32_t index{};
+        std::int32_t offset{};
+        std::int64_t address{};
+        std::int32_t rawSize{};
+        std::int32_t virtualSize{};
+        std::int32_t align{};
         Section::Attribs attribs{};
     };
 
@@ -35,23 +36,23 @@ namespace zasm
     {
         detail::ProgramState* program{};
         bool needsExtraPass{};
-        size_t nodeIndex{};
-        size_t sectionIndex{};
-        int32_t pass{};
-        int64_t baseVA{};
-        int64_t va{};
-        int32_t offset{};
-        int32_t instrSize{};
-        int32_t drift{};
+        std::size_t nodeIndex{};
+        std::size_t sectionIndex{};
+        std::int32_t pass{};
+        std::int64_t baseVA{};
+        std::int64_t va{};
+        std::int32_t offset{};
+        std::int32_t instrSize{};
+        std::int32_t drift{};
 
         struct LabelLink
         {
-            static constexpr int32_t kUnboundOffset = -1;
-            static constexpr int64_t kUnboundVA = -1;
+            static constexpr std::int32_t kUnboundOffset = -1;
+            static constexpr std::int64_t kUnboundVA = -1;
 
             Label::Id id{ Label::Id::Invalid };
-            int32_t boundOffset{ kUnboundOffset };
-            int64_t boundVA{ kUnboundVA };
+            std::int32_t boundOffset{ kUnboundOffset };
+            std::int64_t boundVA{ kUnboundVA };
 
             constexpr bool isBound() const noexcept
             {
@@ -61,7 +62,7 @@ namespace zasm
 
         struct Node
         {
-            int64_t address{};
+            std::int64_t address{};
             std::size_t offset{};
             std::size_t length{};
             RelocationType relocKind{};
@@ -80,11 +81,11 @@ namespace zasm
             const auto labelIdx = static_cast<size_t>(id);
             if (labelIdx >= labelLinks.size())
             {
-                const size_t resizeStartIndex = labelLinks.size();
+                const auto resizeStartIndex = labelLinks.size();
                 labelLinks.resize(labelIdx + 1);
 
                 // Ensure each entry has a valid id assigned.
-                for (size_t i = resizeStartIndex; i < labelLinks.size(); i++)
+                for (std::size_t i = resizeStartIndex; i < labelLinks.size(); i++)
                 {
                     labelLinks[i].id = static_cast<Label::Id>(i);
                 }
@@ -96,7 +97,7 @@ namespace zasm
             return labelLinks[labelIdx];
         }
 
-        std::optional<int64_t> getLabelAddress(Label::Id id)
+        std::optional<std::int64_t> getLabelAddress(Label::Id id)
         {
             assert(id != Label::Id::Invalid);
 

@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <gtest/gtest.h>
 #include <zasm/zasm.hpp>
 
@@ -14,14 +15,14 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 8> expected = {
+        const std::array<std::uint8_t, 8> expected = {
             0x48, 0x8D, 0x04, 0x25, 0x00, 0x00, 0x00, 0x00,
         };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -38,14 +39,14 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 6> expected = {
+        const std::array<std::uint8_t, 6> expected = {
             0x8D, 0x05, 0x00, 0x00, 0x00, 0x00,
         };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -66,14 +67,14 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 15> expected = {
+        const std::array<std::uint8_t, 15> expected = {
             0x48, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0x31, 0x9F, 0x32, 0x21, 0x2F, 0x31, 0x3C, 0x12,
         };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -94,13 +95,13 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 14> expected = { 0x8D, 0x05, 0x06, 0x10, 0x40, 0x00, 0x31,
-                                                   0x9F, 0x32, 0x21, 0x2F, 0x31, 0x3C, 0x12 };
+        const std::array<std::uint8_t, 14> expected = { 0x8D, 0x05, 0x06, 0x10, 0x40, 0x00, 0x31,
+                                                        0x9F, 0x32, 0x21, 0x2F, 0x31, 0x3C, 0x12 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -123,7 +124,7 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 127> expected = {
+        const std::array<std::uint8_t, 127> expected = {
             0xEB, 0x7C, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -136,7 +137,7 @@ namespace zasm::tests
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -159,7 +160,7 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 127> expected = {
+        const std::array<std::uint8_t, 127> expected = {
             0xEB, 0x7C, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -173,7 +174,7 @@ namespace zasm::tests
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -196,7 +197,7 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 127> expected = {
+        const std::array<std::uint8_t, 127> expected = {
             0xCC, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -209,7 +210,7 @@ namespace zasm::tests
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -232,7 +233,7 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 127> expected = {
+        const std::array<std::uint8_t, 127> expected = {
             0xCC, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -245,7 +246,7 @@ namespace zasm::tests
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -268,7 +269,7 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 131> expected = {
+        const std::array<std::uint8_t, 131> expected = {
             0xCC, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -281,7 +282,7 @@ namespace zasm::tests
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -304,7 +305,7 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 131> expected = {
+        const std::array<std::uint8_t, 131> expected = {
             0xCC, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -317,7 +318,7 @@ namespace zasm::tests
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -440,12 +441,12 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 10> expected = { 0x90, 0x90, 0x00, 0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        const std::array<std::uint8_t, 10> expected = { 0x90, 0x90, 0x00, 0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -467,12 +468,12 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 6> expected = { 0x90, 0x90, 0x00, 0x10, 0x40, 0x00 };
+        const std::array<std::uint8_t, 6> expected = { 0x90, 0x90, 0x00, 0x10, 0x40, 0x00 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -496,12 +497,12 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 3> expected = { 0x90, 0x90, 0x01 };
+        const std::array<std::uint8_t, 3> expected = { 0x90, 0x90, 0x01 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -525,12 +526,12 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 3> expected = { 0x02, 0x90, 0x90 };
+        const std::array<std::uint8_t, 3> expected = { 0x02, 0x90, 0x90 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -554,12 +555,12 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 3> expected = { 0xFE, 0x90, 0x90 };
+        const std::array<std::uint8_t, 3> expected = { 0xFE, 0x90, 0x90 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -583,12 +584,12 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 4> expected = { 0x03, 0x00, 0x90, 0x90 };
+        const std::array<std::uint8_t, 4> expected = { 0x03, 0x00, 0x90, 0x90 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -612,12 +613,12 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 4> expected = { 0xFD, 0xFF, 0x90, 0x90 };
+        const std::array<std::uint8_t, 4> expected = { 0xFD, 0xFF, 0x90, 0x90 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -641,12 +642,12 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 6> expected = { 0x05, 0x00, 0x00, 0x00, 0x90, 0x90 };
+        const std::array<std::uint8_t, 6> expected = { 0x05, 0x00, 0x00, 0x00, 0x90, 0x90 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -670,12 +671,12 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 6> expected = { 0xFB, 0xFF, 0xFF, 0xFF, 0x90, 0x90 };
+        const std::array<std::uint8_t, 6> expected = { 0xFB, 0xFF, 0xFF, 0xFF, 0x90, 0x90 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -696,7 +697,7 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 24> expected = {
+        const std::array<std::uint8_t, 24> expected = {
             0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
             0xCC, 0xCC, 0xCC, 0xCC, 0x10, 0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
         };
@@ -704,7 +705,7 @@ namespace zasm::tests
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -725,7 +726,7 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 24> expected = {
+        const std::array<std::uint8_t, 24> expected = {
             0x34, 0x12, 0x34, 0x12, 0x34, 0x12, 0x34, 0x12, 0x34, 0x12, 0x34, 0x12,
             0x34, 0x12, 0x34, 0x12, 0x10, 0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
         };
@@ -733,7 +734,7 @@ namespace zasm::tests
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -754,7 +755,7 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 24> expected = {
+        const std::array<std::uint8_t, 24> expected = {
             0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12,
             0x78, 0x56, 0x34, 0x12, 0x10, 0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
         };
@@ -762,7 +763,7 @@ namespace zasm::tests
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }
@@ -783,7 +784,7 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<uint8_t, 24> expected = {
+        const std::array<std::uint8_t, 24> expected = {
             0xEE, 0xCC, 0xBB, 0xAA, 0x78, 0x56, 0x34, 0x12, 0xEE, 0xCC, 0xBB, 0xAA,
             0x78, 0x56, 0x34, 0x12, 0x10, 0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
         };
@@ -791,7 +792,7 @@ namespace zasm::tests
 
         const auto* data = serializer.getCode();
         ASSERT_NE(data, nullptr);
-        for (size_t i = 0; i < expected.size(); i++)
+        for (std::size_t i = 0; i < expected.size(); i++)
         {
             ASSERT_EQ(data[i], expected[i]);
         }

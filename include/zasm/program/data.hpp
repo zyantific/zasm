@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -25,7 +26,7 @@ namespace zasm
             std::uint16_t u16;
             std::uint32_t u32;
             std::uint64_t u64;
-            std::uint8_t bytes[kInlineStorageSize];
+            std::array<std::uint8_t, kInlineStorageSize> bytes;
 
         } _storage{};
 #pragma pack(pop)

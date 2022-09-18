@@ -11,7 +11,7 @@ namespace zasm
     {
         if (len <= kInlineStorageSize)
         {
-            std::memcpy(_storage.bytes, ptr, len);
+            std::memcpy(_storage.bytes.data(), ptr, len);
             _size = kInlineDataFlag | len;
         }
         else
@@ -61,7 +61,7 @@ namespace zasm
             return nullptr;
 
         if (_size & kInlineDataFlag)
-            return _storage.bytes;
+            return _storage.bytes.data();
 
         return _storage.ptr;
     }
@@ -76,21 +76,13 @@ namespace zasm
         return getSize() * _repeatCount;
     }
 
-    // When kInlineDataFlag is set this function is used to copy the data.
-    // Copying the entire buffer is done on purpose since the size is known the compiler
-    // can generate specific code instead of calling the external memcpy function.
-    template<std::size_t N> static void copyInlineData(uint8_t (&buf)[N], const uint8_t (&src)[N])
-    {
-        std::memcpy(buf, src, N);
-    }
-
     Data& Data::operator=(const Data& other)
     {
         _size = other._size;
         _repeatCount = other._repeatCount;
         if (_size & kInlineDataFlag)
         {
-            copyInlineData(_storage.bytes, other._storage.bytes);
+            _storage.bytes = other._storage.bytes;
         }
         else
         {
@@ -116,7 +108,7 @@ namespace zasm
         _repeatCount = other._repeatCount;
         if (_size & kInlineDataFlag)
         {
-            copyInlineData(_storage.bytes, other._storage.bytes);
+            _storage.bytes = other._storage.bytes;
         }
         else
         {

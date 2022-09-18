@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <zasm/base/mode.hpp>
 #include <zasm/core/errors.hpp>
@@ -12,14 +13,14 @@ namespace zasm
     // Encoder context used for serialization by the Program.
     struct EncoderContext;
 
-    enum class RelocationType : uint8_t
+    enum class RelocationType : std::uint8_t
     {
         None = 0,
         Abs,
         Rel32,
     };
 
-    enum class RelocationData : uint8_t
+    enum class RelocationData : std::uint8_t
     {
         None = 0,
         Immediate,
@@ -30,8 +31,10 @@ namespace zasm
     // A small buffer which holds the bytes of a single encoded instruction and the length.
     struct EncoderResult
     {
-        std::array<uint8_t, 15> data{};
-        uint8_t length{};
+        static constexpr std::size_t kMaxInstructionSize = 15;
+
+        std::array<std::uint8_t, kMaxInstructionSize> data{};
+        std::uint8_t length{};
         RelocationType relocKind{};
         RelocationData relocData{};
         Label::Id relocLabel{ Label::Id::Invalid };

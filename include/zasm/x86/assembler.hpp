@@ -69,8 +69,7 @@ namespace zasm::x86
         /// <param name="align">Section alignment</param>
         /// <returns>Error</returns>
         Error section(
-            const char* name, Section::Attribs attribs = Section::Attribs::Code | Section::Attribs::Exec,
-            std::int32_t align = 0x1000);
+            const char* name, Section::Attribs attribs = Section::kDefaultAttribs, std::int32_t align = Section::kDefaultAlign);
 
     public:
         // Data emitter.
@@ -86,13 +85,15 @@ namespace zasm::x86
         /// <param name="data">Pointer to the data</param>
         /// <param name="len">Size in bytes of the data</param>
         /// <returns>Error</returns>
-        Error embed(const void* data, std::size_t len);
+        Error embed(const void* ptr, std::size_t len);
 
+        // NOLINTNEXTLINE
         template<std::size_t N> Error embed(const char (&str)[N])
         {
             return embed(str, N);
         }
 
+        // NOLINTNEXTLINE
         template<std::size_t N> Error embed(const wchar_t (&str)[N])
         {
             return embed(str, N * sizeof(wchar_t));
