@@ -13,9 +13,9 @@ namespace zasm
         // Normal label.
         None = 0,
         // Label is used for externals.
-        External = (1u << 0),
+        External = (1U << 0),
         // Label is used for imports, this is typically accompanied with External.
-        Import = (1u << 1),
+        Import = (1U << 1),
     };
     ZASM_ENABLE_ENUM_OPERATORS(LabelFlags);
 

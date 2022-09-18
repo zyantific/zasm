@@ -13,57 +13,55 @@ namespace zasm
         return Reg{ static_cast<Reg::Id>(reg) };
     }
 
-    static Operand getOperand(const ZydisDecodedInstruction& instr, const ZydisDecodedOperand& srcOp, uint64_t va) noexcept
+    static Operand getOperand(
+        const ZydisDecodedInstruction& instr, const ZydisDecodedOperand& srcOp, std::uint64_t address) noexcept
     {
         if (srcOp.type == ZydisOperandType::ZYDIS_OPERAND_TYPE_UNUSED)
         {
             return Operand::None{};
         }
-        else if (srcOp.type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER)
+        if (srcOp.type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER)
         {
             return Reg{ static_cast<Reg::Id>(srcOp.reg.value) };
         }
-        else if (srcOp.type == ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY)
+        if (srcOp.type == ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY)
         {
             return Mem{ toBitSize(srcOp.size),   getReg(srcOp.mem.segment), getReg(srcOp.mem.base),
                         getReg(srcOp.mem.index), srcOp.mem.scale,           srcOp.mem.disp.value };
         }
-        else if (srcOp.type == ZydisOperandType::ZYDIS_OPERAND_TYPE_IMMEDIATE)
+        if (srcOp.type == ZydisOperandType::ZYDIS_OPERAND_TYPE_IMMEDIATE)
         {
-            auto& imm = srcOp.imm;
-            if (imm.is_relative)
+            const auto& imm = srcOp.imm;
+            if (imm.is_relative != 0)
             {
-                uint64_t val;
-                ZydisCalcAbsoluteAddress(&instr, &srcOp, va, &val);
+                std::uint64_t val{};
+                ZydisCalcAbsoluteAddress(&instr, &srcOp, address, &val);
                 return Imm{ val };
             }
-            else if (imm.is_signed)
+            if (imm.is_signed != 0)
             {
                 return Imm{ imm.value.s };
             }
-            else
-            {
-                return Imm{ imm.value.u };
-            }
+
+            return Imm{ imm.value.u };
         }
         return Operand::None{};
     }
 
-    static bool hasAttrib(ZydisInstructionAttributes attribs, ZydisInstructionAttributes b)
+    static constexpr bool hasAttrib(ZydisInstructionAttributes attribs, ZydisInstructionAttributes test) noexcept
     {
-        if (attribs & b)
-            return true;
-        return false;
+        return (attribs & test) != 0;
     }
 
-    static Instruction::Attribs getAttribs(ZydisInstructionAttributes attribs)
+    static constexpr Instruction::Attribs getAttribs(ZydisInstructionAttributes attribs) noexcept
     {
         Instruction::Attribs res{};
-        const auto translateAttrib = [&](ZydisInstructionAttributes a, x86::Attribs b) {
-            if (!hasAttrib(attribs, a))
+        const auto translateAttrib = [&](ZydisInstructionAttributes test, x86::Attribs newAttrib) {
+            if (!hasAttrib(attribs, test))
+            {
                 return;
-
-            res = static_cast<Instruction::Attribs>(static_cast<uint32_t>(res) | static_cast<uint32_t>(b));
+            }
+            res = static_cast<Instruction::Attribs>(static_cast<std::uint32_t>(res) | static_cast<std::uint32_t>(newAttrib));
         };
         translateAttrib(ZYDIS_ATTRIB_HAS_LOCK, x86::Attribs::Lock);
         translateAttrib(ZYDIS_ATTRIB_HAS_REP, x86::Attribs::Rep);
@@ -76,7 +74,7 @@ namespace zasm
         return res;
     }
 
-    static Instruction::Category getCategory(ZydisInstructionCategory category)
+    static constexpr Instruction::Category getCategory(ZydisInstructionCategory category) noexcept
     {
         return static_cast<Instruction::Category>(category);
     }
@@ -103,7 +101,7 @@ namespace zasm
         }
     }
 
-    static Operand::Visibility translateOperandVisibility(ZydisOperandVisibility vis)
+    static constexpr Operand::Visibility translateOperandVisibility(ZydisOperandVisibility vis)
     {
         switch (vis)
         {
@@ -121,21 +119,29 @@ namespace zasm
         return Operand::Visibility::Invalid;
     }
 
-    static Operand::Access translateOperandAccess(ZydisOperandActions action)
+    static constexpr Operand::Access translateOperandAccess(ZydisOperandActions action)
     {
         Operand::Access res{};
-        if (action & ZYDIS_OPERAND_ACTION_READ)
+        if ((action & ZYDIS_OPERAND_ACTION_READ) != 0)
+        {
             res = res | Operand::Access::Read;
-        if (action & ZYDIS_OPERAND_ACTION_WRITE)
+        }
+        if ((action & ZYDIS_OPERAND_ACTION_WRITE) != 0)
+        {
             res = res | Operand::Access::Write;
-        if (action & ZYDIS_OPERAND_ACTION_CONDREAD)
+        }
+        if ((action & ZYDIS_OPERAND_ACTION_CONDREAD) != 0)
+        {
             res = res | Operand::Access::CondRead;
-        if (action & ZYDIS_OPERAND_ACTION_CONDWRITE)
+        }
+        if ((action & ZYDIS_OPERAND_ACTION_CONDWRITE) != 0)
+        {
             res = res | Operand::Access::CondWrite;
+        }
         return res;
     }
 
-    Decoder::Result Decoder::decode(const void* data, const size_t len, uint64_t va) noexcept
+    Decoder::Result Decoder::decode(const void* data, const std::size_t len, std::uint64_t address) noexcept
     {
         if (_status != Error::None)
         {
@@ -143,10 +149,10 @@ namespace zasm
         }
 
         ZydisDecodedInstruction instr;
-        ZydisDecodedOperand instrOps[ZYDIS_MAX_OPERAND_COUNT];
+        std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT> instrOps{};
 
         ZyanStatus status = ZydisDecoderDecodeFull(
-            &_decoder, data, len, &instr, instrOps, static_cast<ZyanU8>(std::size(instrOps)), 0);
+            &_decoder, data, len, &instr, instrOps.data(), static_cast<ZyanU8>(std::size(instrOps)), 0);
         if (status != ZYAN_STATUS_SUCCESS)
         {
             // TODO: Translate proper error.
@@ -165,11 +171,12 @@ namespace zasm
         Instruction::OperandsVisibility vis;
         Instruction::OperandsAccess access;
 
-        for (auto i = 0; i < instr.operand_count; ++i)
+        for (int i = 0; i < instr.operand_count; ++i)
         {
+            // NOLINTNEXTLINE
             const auto& op = instrOps[i];
 
-            ops[i] = getOperand(instr, op, va);
+            ops[i] = getOperand(instr, op, address);
 
             access.set(i, translateOperandAccess(op.actions));
             vis.set(i, translateOperandVisibility(op.visibility));

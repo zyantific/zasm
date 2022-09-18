@@ -15,11 +15,11 @@ namespace zasm::formatter
 {
     namespace detail
     {
-        enum class FormatOptions : uint32_t
+        enum class FormatOptions : std::uint32_t
         {
             None = 0,
-            HexOffsets = (1u << 0),
-            HexImmediates = (1u << 1),
+            HexOffsets = (1U << 0),
+            HexImmediates = (1U << 1),
         };
         ZASM_ENABLE_ENUM_OPERATORS(FormatOptions);
 
@@ -46,10 +46,10 @@ namespace zasm::formatter
     /// Formats the specified range, 'to' is not inclusive.
     /// </summary>
     /// <param name="program">The program to print as text</param>
-    /// <param name="from">First node</param>
-    /// <param name="to">Last node</param>
+    /// <param name="nodeFrom">First node</param>
+    /// <param name="nodeTo">Last node</param>
     /// <param name="options">Format options</param>
-    std::string toString(Program& program, const Node* from, const Node* to, Options options = {});
+    std::string toString(Program& program, const Node* nodeFrom, const Node* nodeTo, Options options = {});
 
     /// <summary>
     /// Formats a single instruction and results the text.

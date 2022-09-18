@@ -34,8 +34,8 @@ namespace zasm
 
     protected:
         template<typename T>
-        constexpr Node(Id id, T&& val) noexcept
-            : _id{ id }
+        constexpr Node(Id nodeId, T&& val) noexcept
+            : _id{ nodeId }
             , _data{ std::forward<T>(val) }
         {
         }
@@ -68,9 +68,9 @@ namespace zasm
             return std::get_if<T>(&_data);
         }
 
-        template<typename F> constexpr auto visit(F&& f) const
+        template<typename F> constexpr auto visit(F&& func) const
         {
-            return std::visit([f = std::move(f)](auto&& data) { return f(data); }, _data);
+            return std::visit(std::forward<F>(func), _data);
         }
 
         /// <summary>

@@ -10,7 +10,7 @@ namespace zasm
 {
     namespace detail
     {
-        constexpr size_t kDefaultBlockCount = 0xFFFF;
+        constexpr std::size_t kDefaultBlockCount = 0xFFFF;
     }
 
     template<typename T, std::size_t TBlockCount = detail::kDefaultBlockCount> class ObjectPool
@@ -141,7 +141,7 @@ namespace zasm
             ::new (static_cast<void*>(ptr)) TObjty(std::forward<TArgs>(args)...);
         }
 
-        template<class TUty> void destroy(TUty* ptr)
+        template<class TUty> void destroy(TUty* ptr) noexcept
         {
             ptr->~TUty();
         }

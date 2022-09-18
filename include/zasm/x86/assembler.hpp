@@ -3,6 +3,7 @@
 #include "emitter.hpp"
 
 #include <cstddef>
+#include <memory>
 #include <zasm/core/errors.hpp>
 #include <zasm/program/instruction.hpp>
 #include <zasm/program/observer.hpp>
@@ -24,7 +25,7 @@ namespace zasm::x86
         Program& _program;
         const Node* _cursor{};
         Attribs _attribState{};
-        InstrGenerator* _generator{};
+        std::unique_ptr<InstrGenerator> _generator{};
 
     public:
         Assembler(Program& _program);
@@ -34,13 +35,13 @@ namespace zasm::x86
         /// Sets the node at where the next node will be inserted after.
         /// </summary>
         /// <param name="pos">The position to insert the next node after</param>
-        void setCursor(const Node* pos);
+        void setCursor(const Node* pos) noexcept;
 
         /// <summary>
         /// Returns the current node, this is typically the last node created.
         /// </summary>
         /// <returns>Position in Program</returns>
-        const Node* getCursor() const;
+        const Node* getCursor() const noexcept;
 
     public:
         /// <summary>
@@ -103,14 +104,15 @@ namespace zasm::x86
         Error embedLabelRel(Label label, Label relativeTo, BitSize size);
 
     public:
-        template<typename... TArgs> Error emit(Mnemonic id, TArgs&&... args)
+        template<typename... TArgs> Error emit(Mnemonic mnemonic, TArgs&&... args)
         {
             const auto attribs = _attribState;
             _attribState = Attribs::None;
-            return emit(attribs, id, sizeof...(TArgs), { args... });
+            return emit(attribs, mnemonic, sizeof...(TArgs), { args... });
         }
 
-        Error emit(Attribs attribs, Mnemonic id, std::size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops);
+        Error emit(
+            Attribs attribs, Mnemonic mnemonic, std::size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops);
         Error emit(const Instruction& instr);
 
     private:
@@ -120,31 +122,31 @@ namespace zasm::x86
         }
 
     public: // Attribs/State modifier.
-        Assembler& o8()
+        Assembler& o8() noexcept
         {
             addAttrib(Attribs::OperandSize8);
             return *this;
         }
 
-        Assembler& o16()
+        Assembler& o16() noexcept
         {
             addAttrib(Attribs::OperandSize16);
             return *this;
         }
 
-        Assembler& o32()
+        Assembler& o32() noexcept
         {
             addAttrib(Attribs::OperandSize32);
             return *this;
         }
 
-        Assembler& o64()
+        Assembler& o64() noexcept
         {
             addAttrib(Attribs::OperandSize64);
             return *this;
         }
 
-        Assembler& lock()
+        Assembler& lock() noexcept
         {
             addAttrib(Attribs::Lock);
             return *this;
@@ -155,8 +157,8 @@ namespace zasm::x86
         /// Observer events, this ensures the cursor remains valid.
         /// </summary>
         /// <param name="node"></param>
-        void onNodeDetach(const Node* node) override;
-        void onNodeDestroy(const Node* node) override;
+        void onNodeDetach(const Node* node) noexcept override;
+        void onNodeDestroy(const Node* node) noexcept override;
     };
 
 } // namespace zasm::x86

@@ -6,6 +6,7 @@
 
 #include <Zydis/Decoder.h>
 #include <Zydis/Encoder.h>
+#include <cstddef>
 #include <limits>
 #include <optional>
 
@@ -18,24 +19,24 @@ namespace zasm
     {
         EncoderContext* ctx{};
         ZydisEncoderRequest req{};
-        size_t operandIndex{};
+        std::size_t operandIndex{};
         RelocationType relocKind{};
         RelocationData relocData{};
         Label::Id relocLabel{ Label::Id::Invalid };
     };
 
     // NOTE: This value has to be at least larger than 0xFFFF to be used with imm32/rel32 displacement.
-    static constexpr int32_t kTemporaryRel32Value = 0x123456;
+    static constexpr std::int32_t kTemporaryRel32Value = 0x123456;
 
-    static constexpr int32_t kTemporaryRel8Value = 0x44;
-    
-    static constexpr int32_t kHintRequiresSize = -1;
+    static constexpr std::int32_t kTemporaryRel8Value = 0x44;
+
+    static constexpr std::int32_t kHintRequiresSize = -1;
 
     struct EncodeVariantsInfo
     {
         bool isControlFlow{};
-        int8_t encodeSizeRel8{ -1 };
-        int8_t encodeSizeRel32{ -1 };
+        std::int8_t encodeSizeRel8{ -1 };
+        std::int8_t encodeSizeRel32{ -1 };
 
         constexpr bool canEncodeRel8() const noexcept
         {
@@ -52,9 +53,8 @@ namespace zasm
     {
         std::array<EncodeVariantsInfo, ZydisMnemonic::ZYDIS_MNEMONIC_MAX_VALUE> data{};
 
-        // Control-flow specific data.
+        // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
         data[ZYDIS_MNEMONIC_JMP] = EncodeVariantsInfo{ true, 2, 5 };
-
         data[ZYDIS_MNEMONIC_JB] = EncodeVariantsInfo{ true, 2, 6 };
         data[ZYDIS_MNEMONIC_JBE] = EncodeVariantsInfo{ true, 2, 6 };
         data[ZYDIS_MNEMONIC_JCXZ] = EncodeVariantsInfo{ true, 2, -1 };
@@ -76,41 +76,37 @@ namespace zasm
         data[ZYDIS_MNEMONIC_JP] = EncodeVariantsInfo{ true, 2, 6 };
         data[ZYDIS_MNEMONIC_JS] = EncodeVariantsInfo{ true, 2, 6 };
         data[ZYDIS_MNEMONIC_JZ] = EncodeVariantsInfo{ true, 2, 6 };
-
         data[ZYDIS_MNEMONIC_LOOP] = EncodeVariantsInfo{ true, 2, -1 };
         data[ZYDIS_MNEMONIC_LOOPE] = EncodeVariantsInfo{ true, 2, -1 };
         data[ZYDIS_MNEMONIC_LOOPNE] = EncodeVariantsInfo{ true, 2, -1 };
-
         data[ZYDIS_MNEMONIC_CALL] = EncodeVariantsInfo{ true, -1, 5 };
+        // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 
         return data;
     }
 
     static constexpr auto encoderVariantData = buildEncodeVariantTable();
 
-    static const EncodeVariantsInfo& getEncodeVariantInfo(ZydisMnemonic mnemonic) noexcept
+    static constexpr const EncodeVariantsInfo& getEncodeVariantInfo(ZydisMnemonic mnemonic) noexcept
     {
-        return encoderVariantData[mnemonic];
+        return encoderVariantData[mnemonic]; // NOLINT
     }
 
-    static bool isLabelExternal(detail::ProgramState* state, Label::Id id)
+    static bool isLabelExternal(detail::ProgramState* state, Label::Id labelId)
     {
-        size_t idx = static_cast<size_t>(id);
+        const auto idx = static_cast<std::size_t>(labelId);
         if (idx >= state->labels.size())
-            return false;
-
-        auto& data = state->labels[idx];
-        if ((data.flags & LabelFlags::External) != LabelFlags::None)
         {
-            return true;
+            return false;
         }
 
-        return false;
+        auto& data = state->labels[idx];
+        return (data.flags & LabelFlags::External) != LabelFlags::None;
     }
 
-    static int64_t getRelativeAddress(int64_t va, int64_t target, int32_t instrSize) noexcept
+    static int64_t getRelativeAddress(std::int64_t address, std::int64_t target, std::int32_t instrSize) noexcept
     {
-        return target - (va + instrSize);
+        return target - (address + instrSize);
     }
 
     static bool hasAttrib(x86::Attribs attribs, x86::Attribs other) noexcept
@@ -122,7 +118,7 @@ namespace zasm
     {
         ZydisInstructionAttributes res{};
 
-        const auto translateAttrib = [&res, &attribs](x86::Attribs other, ZydisInstructionAttributes newAttrib) {
+        const auto translateAttrib = [&res, &attribs](x86::Attribs other, ZydisInstructionAttributes newAttrib) noexcept {
             if (hasAttrib(attribs, other))
             {
                 res |= newAttrib;
@@ -141,15 +137,15 @@ namespace zasm
     }
 
     static std::pair<int64_t, ZydisBranchType> processRelAddress(
-        const EncodeVariantsInfo& info, int64_t va, int64_t targetAddress)
+        const EncodeVariantsInfo& info, int64_t address, int64_t targetAddress)
     {
-        int64_t res{};
+        std::int64_t res{};
         auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
 
         if (info.canEncodeRel8())
         {
-            auto rel = getRelativeAddress(va, targetAddress, info.encodeSizeRel8);
-            if (std::abs(rel) <= std::numeric_limits<int8_t>::max())
+            const auto rel = getRelativeAddress(address, targetAddress, info.encodeSizeRel8);
+            if (std::abs(rel) <= std::numeric_limits<std::int8_t>::max())
             {
                 res = rel;
                 desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_SHORT;
@@ -158,8 +154,8 @@ namespace zasm
 
         if (desiredBranchType == ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE && info.canEncodeRel32())
         {
-            auto rel = getRelativeAddress(va, targetAddress, info.encodeSizeRel32);
-            if (std::abs(rel) <= std::numeric_limits<int32_t>::max())
+            const auto rel = getRelativeAddress(address, targetAddress, info.encodeSizeRel32);
+            if (std::abs(rel) <= std::numeric_limits<std::int32_t>::max())
             {
                 res = rel;
                 desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NEAR;
@@ -171,19 +167,19 @@ namespace zasm
         return { res, desiredBranchType };
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState&, const Reg& op) noexcept
+    static Error buildOperand_(ZydisEncoderOperand& dst, [[maybe_unused]] EncoderState& state, const Reg& src) noexcept
     {
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER;
-        dst.reg.value = static_cast<ZydisRegister>(op.getId());
+        dst.reg.value = static_cast<ZydisRegister>(src.getId());
 
         return Error::None;
     }
 
-    static int64_t getTemporaryRel(EncoderState& state)
+    static int64_t getTemporaryRel(EncoderState& state) noexcept
     {
         auto* ctx = state.ctx;
 
-        int64_t kTempRel = kTemporaryRel32Value;
+        std::int64_t kTempRel = kTemporaryRel32Value;
 
         // NOTE: Workaround for some instructions that only accept rel8
         if (state.req.mnemonic == ZYDIS_MNEMONIC_JCXZ || state.req.mnemonic == ZYDIS_MNEMONIC_JECXZ
@@ -192,23 +188,23 @@ namespace zasm
             kTempRel = kTemporaryRel8Value;
         }
 
-        int64_t immValue = ctx != nullptr ? ctx->va + kTempRel : kTempRel;
+        const std::int64_t immValue = ctx != nullptr ? ctx->va + kTempRel : kTempRel;
         return immValue;
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Label& op) noexcept
+    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Label& src)
     {
         auto* ctx = state.ctx;
         auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
 
         // Initially a temporary placeholder. Make sure this is within rel32 if a
         // context is provided.
-        int64_t immValue = getTemporaryRel(state);
+        std::int64_t immValue = getTemporaryRel(state);
 
-        std::optional<int64_t> labelVA;
-        if (ctx != nullptr && !isLabelExternal(ctx->program, op.getId()))
+        std::optional<std::int64_t> labelVA;
+        if (ctx != nullptr && !isLabelExternal(ctx->program, src.getId()))
         {
-            labelVA = ctx != nullptr ? ctx->getLabelAddress(op.getId()) : std::nullopt;
+            labelVA = ctx != nullptr ? ctx->getLabelAddress(src.getId()) : std::nullopt;
             if (!labelVA.has_value() && ctx != nullptr)
             {
                 ctx->needsExtraPass = true;
@@ -219,9 +215,9 @@ namespace zasm
         const auto& encodeInfo = getEncodeVariantInfo(state.req.mnemonic);
         if (state.operandIndex == 0 && encodeInfo.isControlFlow)
         {
-            auto targetAddress = labelVA.has_value() ? *labelVA : immValue;
+            const auto targetAddress = labelVA.has_value() ? *labelVA : immValue;
 
-            auto [addrRel, branchType] = processRelAddress(encodeInfo, ctx ? ctx->va : 0, targetAddress);
+            const auto [addrRel, branchType] = processRelAddress(encodeInfo, ctx != nullptr ? ctx->va : 0, targetAddress);
 
             immValue = addrRel;
             desiredBranchType = branchType;
@@ -242,7 +238,7 @@ namespace zasm
                 {
                     state.relocKind = RelocationType::Abs;
                     state.relocData = RelocationData::Immediate;
-                    state.relocLabel = op.getId();
+                    state.relocLabel = src.getId();
                 }
             }
         }
@@ -258,19 +254,19 @@ namespace zasm
         return Error::None;
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Imm& op) noexcept
+    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Imm& src)
     {
         auto* ctx = state.ctx;
 
         auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
-        int64_t immValue = op.value<int64_t>();
+        auto immValue = src.value<std::int64_t>();
 
         // Check if this operand is used as the control flow target.
         const auto& encodeInfo = getEncodeVariantInfo(state.req.mnemonic);
         if (state.operandIndex == 0 && encodeInfo.isControlFlow)
         {
             const auto targetAddress = immValue;
-            auto [addrRel, branchType] = processRelAddress(encodeInfo, ctx ? ctx->va : 0, targetAddress);
+            const auto [addrRel, branchType] = processRelAddress(encodeInfo, ctx != nullptr ? ctx->va : 0, targetAddress);
 
             immValue = addrRel;
             desiredBranchType = branchType;
@@ -287,24 +283,24 @@ namespace zasm
         return Error::None;
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Mem& op) noexcept
+    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Mem& src)
     {
         auto* ctx = state.ctx;
 
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY;
-        dst.mem.base = static_cast<ZydisRegister>(op.getBase().getId());
-        dst.mem.index = static_cast<ZydisRegister>(op.getIndex().getId());
-        dst.mem.scale = op.getScale();
-        dst.mem.size = static_cast<uint16_t>(op.getByteSize());
+        dst.mem.base = static_cast<ZydisRegister>(src.getBase().getId());
+        dst.mem.index = static_cast<ZydisRegister>(src.getIndex().getId());
+        dst.mem.scale = src.getScale();
+        dst.mem.size = static_cast<uint16_t>(src.getByteSize());
 
-        int64_t displacement = op.getDisplacement();
+        std::int64_t displacement = src.getDisplacement();
 
-        const auto va = ctx ? ctx->va : 0;
+        const auto address = ctx != nullptr ? ctx->va : 0;
 
         bool usingLabel = false;
         bool externalLabel = false;
 
-        if (auto labelId = op.getLabelId(); labelId != Label::Id::Invalid)
+        if (const auto labelId = src.getLabelId(); labelId != Label::Id::Invalid)
         {
             if (ctx != nullptr)
             {
@@ -319,7 +315,9 @@ namespace zasm
                 {
                     displacement += kTemporaryRel32Value;
                     if (!externalLabel)
+                    {
                         ctx->needsExtraPass = true;
+                    }
                 }
             }
             else
@@ -346,50 +344,55 @@ namespace zasm
             state.relocData = RelocationData::Memory;
             if (usingLabel)
             {
-                state.relocLabel = op.getLabelId();
+                state.relocLabel = src.getLabelId();
             }
         }
         else if (dst.mem.base == ZydisRegister::ZYDIS_REGISTER_RIP)
         {
             // We require the exact instruction size to encode this correctly.
-            const auto instrSize = ctx ? ctx->instrSize : 0;
-            if (ctx && instrSize == 0)
+            const auto instrSize = ctx != nullptr ? ctx->instrSize : 0;
+            if (ctx != nullptr && instrSize == 0)
             {
                 // Causes to re-encode again with instruction size available.
                 ctx->instrSize = kHintRequiresSize;
             }
 
-            displacement = displacement - (va + instrSize);
+            displacement = displacement - (address + instrSize);
 
             if (externalLabel)
             {
                 state.relocKind = RelocationType::Rel32;
                 state.relocData = RelocationData::Memory;
-                state.relocLabel = op.getLabelId();
+                state.relocLabel = src.getLabelId();
             }
         }
 
         dst.mem.displacement = displacement;
 
         // Handling segment
-        const auto segmentId = static_cast<ZydisRegister>(op.getSegment().getId());
+        const auto segmentId = static_cast<ZydisRegister>(src.getSegment().getId());
         if (segmentId == ZYDIS_REGISTER_GS)
+        {
             state.req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_GS;
+        }
         else if (segmentId == ZYDIS_REGISTER_FS)
+        {
             state.req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_FS;
+        }
 
         return Error::None;
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState&, const Operand::None&) noexcept
+    static Error buildOperand_(
+        ZydisEncoderOperand& dst, [[maybe_unused]] EncoderState& state, [[maybe_unused]] const Operand::None& src) noexcept
     {
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_UNUSED;
         return Error::None;
     }
 
-    static Error buildOperand(ZydisEncoderOperand& dst, EncoderState& state, const Operand& op) noexcept
+    static Error buildOperand(ZydisEncoderOperand& dst, EncoderState& state, const Operand& src)
     {
-        return op.visit([&dst, &state](auto&& op2) { return buildOperand_(dst, state, op2); });
+        return src.visit([&dst, &state](auto&& src2) { return buildOperand_(dst, state, src2); });
     }
 
     static void fixupIs4Operands(ZydisEncoderRequest& req) noexcept
@@ -440,28 +443,23 @@ namespace zasm
                 return;
         }
 
-        if (req.operands[2].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER
-            && req.operands[3].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER)
+        const auto opType2 = req.operands[2].type;
+        const auto opType3 = req.operands[3].type;
+        if (opType2 == ZYDIS_OPERAND_TYPE_REGISTER && opType3 == ZYDIS_OPERAND_TYPE_MEMORY)
         {
-            req.operands[3].reg.is4 = true;
+            req.operands[2].reg.is4 = ZYAN_TRUE;
         }
         else if (
-            req.operands[2].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER
-            && req.operands[3].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY)
+            (opType2 == ZYDIS_OPERAND_TYPE_REGISTER && opType3 == ZYDIS_OPERAND_TYPE_REGISTER)
+            || (opType2 == ZYDIS_OPERAND_TYPE_MEMORY && opType3 == ZYDIS_OPERAND_TYPE_REGISTER))
         {
-            req.operands[2].reg.is4 = true;
-        }
-        else if (
-            req.operands[2].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY
-            && req.operands[3].type == ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER)
-        {
-            req.operands[3].reg.is4 = true;
+            req.operands[3].reg.is4 = ZYAN_TRUE;
         }
     }
 
     static Error encode_(
-        EncoderResult& res, EncoderContext* ctx, MachineMode mode, x86::Attribs attribs, Instruction::Mnemonic id,
-        size_t numOps, const Operand* operands) noexcept
+        EncoderResult& res, EncoderContext* ctx, MachineMode mode, x86::Attribs attribs, Instruction::Mnemonic mnemonic,
+        size_t numOps, const Operand* operands)
     {
         res.length = 0;
 
@@ -470,10 +468,14 @@ namespace zasm
 
         ZydisEncoderRequest& req = state.req;
         if (mode == MachineMode::AMD64)
+        {
             req.machine_mode = ZYDIS_MACHINE_MODE_LONG_64;
+        }
         else if (mode == MachineMode::I386)
+        {
             req.machine_mode = ZYDIS_MACHINE_MODE_LONG_COMPAT_32;
-        req.mnemonic = static_cast<ZydisMnemonic>(id);
+        }
+        req.mnemonic = static_cast<ZydisMnemonic>(mnemonic);
         req.prefixes = getAttribs(attribs);
 
         if (hasAttrib(attribs, x86::Attribs::OperandSize8))
@@ -493,11 +495,11 @@ namespace zasm
             req.operand_size_hint = ZydisOperandSizeHint::ZYDIS_OPERAND_SIZE_HINT_64;
         }
 
-        const auto numOperands = std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, numOps);
+        const auto numOperands = std::min<std::size_t>(ZYDIS_ENCODER_MAX_OPERANDS, numOps);
         for (state.operandIndex = 0; state.operandIndex < numOperands; ++state.operandIndex)
         {
-            auto& dstOp = req.operands[state.operandIndex];
-            const auto& srcOp = operands[state.operandIndex];
+            auto& dstOp = req.operands[state.operandIndex];   // NOLINT
+            const auto& srcOp = operands[state.operandIndex]; // NOLINT
             if (auto opStatus = buildOperand(dstOp, state, srcOp); opStatus != Error::None)
             {
                 return opStatus;
@@ -507,7 +509,7 @@ namespace zasm
 
         fixupIs4Operands(req);
 
-        size_t bufLen = res.data.size();
+        std::size_t bufLen = res.data.size();
         switch (auto status = ZydisEncoderEncodeInstruction(&req, res.data.data(), &bufLen); status)
         {
             case ZYAN_STATUS_SUCCESS:
@@ -517,7 +519,7 @@ namespace zasm
                 return Error::ImpossibleInstruction;
         }
 
-        res.length = static_cast<uint8_t>(bufLen);
+        res.length = static_cast<std::uint8_t>(bufLen);
         res.relocKind = state.relocKind;
         res.relocData = state.relocData;
         res.relocLabel = state.relocLabel;
@@ -526,11 +528,11 @@ namespace zasm
     }
 
     Expected<EncoderResult, Error> encode(
-        MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic id, size_t numOps,
-        const EncoderOperands& operands) noexcept
+        MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, std::size_t numOps,
+        const EncoderOperands& operands)
     {
         EncoderResult res;
-        if (auto err = encode_(res, nullptr, mode, static_cast<x86::Attribs>(attribs), id, numOps, operands.data());
+        if (auto err = encode_(res, nullptr, mode, static_cast<x86::Attribs>(attribs), mnemonic, numOps, operands.data());
             err != Error::None)
         {
             return makeUnexpected(err);
@@ -539,15 +541,15 @@ namespace zasm
     }
 
     static Expected<EncoderResult, Error> encodeWithContext(
-        EncoderContext& ctx, MachineMode mode, Instruction::Attribs prefixes, Instruction::Mnemonic id, size_t numOps,
-        const Operand* operands) noexcept
+        EncoderContext& ctx, MachineMode mode, Instruction::Attribs prefixes, Instruction::Mnemonic mnemonic,
+        std::size_t numOps, const Operand* operands)
     {
         EncoderResult res;
 
         // encode_ will set this to kHintRequiresSize in case a length is required for correct encoding.
         ctx.instrSize = 0;
 
-        if (auto encodeError = encode_(res, &ctx, mode, static_cast<x86::Attribs>(prefixes), id, numOps, operands);
+        if (const auto encodeError = encode_(res, &ctx, mode, static_cast<x86::Attribs>(prefixes), mnemonic, numOps, operands);
             encodeError != Error::None)
         {
             return makeUnexpected(encodeError);
@@ -557,7 +559,8 @@ namespace zasm
         {
             // Encode with now known size, instruction size can change again in this call.
             ctx.instrSize = res.length;
-            if (auto encodeError = encode_(res, &ctx, mode, static_cast<x86::Attribs>(prefixes), id, numOps, operands);
+            if (const auto encodeError = encode_(
+                    res, &ctx, mode, static_cast<x86::Attribs>(prefixes), mnemonic, numOps, operands);
                 encodeError != Error::None)
             {
                 return makeUnexpected(encodeError);
@@ -575,15 +578,17 @@ namespace zasm
         return res;
     }
 
-    Expected<EncoderResult, Error> encode(EncoderContext& ctx, MachineMode mode, const Instruction& instr) noexcept
+    Expected<EncoderResult, Error> encode(EncoderContext& ctx, MachineMode mode, const Instruction& instr)
     {
         const auto countOpInputs = std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getOperandCount());
 
-        size_t explicitOps = 0;
-        for (size_t i = 0; i < countOpInputs; ++i)
+        std::size_t explicitOps = 0;
+        for (std::size_t i = 0; i < countOpInputs; ++i)
         {
             if (instr.isOperandHidden(i))
+            {
                 break;
+            }
 
             explicitOps++;
         }

@@ -27,8 +27,8 @@ namespace zasm
         std::int32_t index{};
         std::int32_t offset{};
         std::int64_t address{};
-        std::int32_t rawSize{};
-        std::int32_t virtualSize{};
+        std::int64_t rawSize{};
+        std::int64_t virtualSize{};
         std::int32_t align{};
         Section::Attribs attribs{};
     };
@@ -45,7 +45,7 @@ namespace zasm
         std::int64_t va{};
         std::int32_t offset{};
         std::int32_t instrSize{};
-        std::int32_t drift{};
+        std::int64_t drift{};
 
         struct LabelLink
         {
@@ -67,8 +67,8 @@ namespace zasm
         {
         public:
             std::int64_t address{};
-            std::size_t offset{};
-            std::size_t length{};
+            std::int32_t offset{};
+            std::int32_t length{};
             RelocationType relocKind{};
             RelocationData relocData{};
             Label::Id relocLabel{ Label::Id::Invalid };
@@ -82,7 +82,7 @@ namespace zasm
         {
             assert(id != Label::Id::Invalid);
 
-            const auto labelIdx = static_cast<size_t>(id);
+            const auto labelIdx = static_cast<std::size_t>(id);
             if (labelIdx >= labelLinks.size())
             {
                 const auto resizeStartIndex = labelLinks.size();

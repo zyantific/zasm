@@ -44,8 +44,12 @@ namespace zasm::benchmarks
 
             serializer.serialize(program, 0x00400000);
 
-            state.counters["BytesEncoded"] = benchmark::Counter(serializer.getCodeSize(), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1024);
-            state.counters["Instructions"] = benchmark::Counter(state.range(0), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
+            state.counters["BytesEncoded"] = benchmark::Counter(
+                static_cast<double>(serializer.getCodeSize()), benchmark::Counter::kIsIterationInvariantRate,
+                benchmark::Counter::OneK::kIs1024);
+            state.counters["Instructions"] = benchmark::Counter(
+                static_cast<double>(state.range(0)), benchmark::Counter::kIsIterationInvariantRate,
+                benchmark::Counter::OneK::kIs1000);
         }
     }
     BENCHMARK(BM_Serialization)->Unit(benchmark::kMillisecond)->RangeMultiplier(2)->Range(4096, 8 << 18);

@@ -62,6 +62,8 @@ if(MSVC) # msvc
 	target_compile_options(zasm_common INTERFACE
 		"/bigobj"
 		"/MP"
+		"/W3"
+		"/permissive-"
 	)
 endif()
 

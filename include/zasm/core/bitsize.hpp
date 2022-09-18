@@ -1,11 +1,12 @@
 #pragma once
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 
 namespace zasm
 {
-    enum class BitSize : uint8_t
+    enum class BitSize : std::uint8_t
     {
         _0,
         _1,
@@ -26,7 +27,8 @@ namespace zasm
         _4096,
     };
 
-    static constexpr BitSize toBitSize(int32_t numBits) noexcept
+    template<typename T>
+    constexpr BitSize toBitSize(const T numBits) noexcept
     {
 #define SWITCH_BIT(n)                                                                                                          \
     case n:                                                                                                                    \
@@ -58,7 +60,7 @@ namespace zasm
         return BitSize::_0;
     }
 
-    static constexpr int32_t getBitSize(BitSize bitSize) noexcept
+    constexpr int32_t getBitSize(BitSize bitSize) noexcept
     {
 #define SWITCH_BIT(n)                                                                                                          \
     case BitSize::_##n:                                                                                                        \

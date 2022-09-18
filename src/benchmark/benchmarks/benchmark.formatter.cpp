@@ -28,7 +28,8 @@ namespace zasm::benchmarks
             benchmark::DoNotOptimize(res);
 
             state.counters["PrintedNodes"] = benchmark::Counter(
-                program.size(), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
+                static_cast<double>(program.size()), benchmark::Counter::kIsIterationInvariantRate,
+                benchmark::Counter::OneK::kIs1000);
         }
     }
     BENCHMARK(BM_Formatter_Program)->Unit(benchmark::kMillisecond);

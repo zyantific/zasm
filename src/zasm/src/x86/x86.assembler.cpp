@@ -1,5 +1,6 @@
 #include "../encoder/generator.hpp"
 
+#include <algorithm>
 #include <zasm/program/program.hpp>
 #include <zasm/x86/assembler.hpp>
 
@@ -7,7 +8,7 @@ namespace zasm::x86
 {
     Assembler::Assembler(Program& program)
         : _program(program)
-        , _generator(new InstrGenerator(program.getMode()))
+        , _generator(std::make_unique<InstrGenerator>(program.getMode()))
     {
         _program.addObserver(*this);
     }
@@ -15,15 +16,14 @@ namespace zasm::x86
     Assembler::~Assembler()
     {
         _program.removeObserver(*this);
-        delete _generator;
     }
 
-    void Assembler::setCursor(const Node* pos)
+    void Assembler::setCursor(const Node* pos) noexcept
     {
         _cursor = pos;
     }
 
-    const Node* Assembler::getCursor() const
+    const Node* Assembler::getCursor() const noexcept
     {
         return _cursor;
     }
@@ -118,10 +118,10 @@ namespace zasm::x86
     }
 
     Error Assembler::emit(
-        Attribs attribs, Mnemonic id, std::size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops)
+        Attribs attribs, Mnemonic mnemonic, std::size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops)
     {
         auto genResult = _generator->generate(
-            static_cast<Instruction::Attribs>(attribs), static_cast<Instruction::Mnemonic>(id), numOps, std::move(ops));
+            static_cast<Instruction::Attribs>(attribs), static_cast<Instruction::Mnemonic>(mnemonic), numOps, std::move(ops));
         if (!genResult)
         {
             return genResult.error();
@@ -138,10 +138,7 @@ namespace zasm::x86
         std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS> ops;
 
         const auto numOps = std::min<std::size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getOperandCount());
-        for (size_t i = 0; i < numOps; i++)
-        {
-            ops[i] = instr.getOperand(i);
-        }
+        std::copy_n(std::begin(instr.getOperands()), numOps, std::begin(ops));
 
         return emit(
             static_cast<x86::Attribs>(instr.getAttribs()), static_cast<x86::Mnemonic>(instr.getMnemonic()), numOps,
@@ -178,19 +175,21 @@ namespace zasm::x86
         return Error::None;
     }
 
-    void Assembler::onNodeDetach(const Node* node)
+    void Assembler::onNodeDetach(const Node* node) noexcept
     {
         if (node != _cursor)
+        {
             return;
-
+        }
         _cursor = node->getPrev();
     }
 
-    void Assembler::onNodeDestroy(const Node* node)
+    void Assembler::onNodeDestroy(const Node* node) noexcept
     {
         if (node != _cursor)
+        {
             return;
-
+        }
         _cursor = node->getPrev();
     }
 

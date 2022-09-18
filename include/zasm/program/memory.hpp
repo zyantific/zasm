@@ -4,6 +4,8 @@
 #include "label.hpp"
 #include "register.hpp"
 
+#include <cstdint>
+#include <limits>
 #include <zasm/base/mode.hpp>
 #include <zasm/core/bitsize.hpp>
 #include <zasm/core/packed.hpp>
@@ -12,31 +14,30 @@ namespace zasm
 {
     class Mem
     {
-        using RegisterPack = Packed<uint32_t, Reg::Id, 10>;
+        using RegisterPack = Packed<std::uint32_t, Reg::Id, 10>;
 
-        RegisterPack _segBaseIndex{};
         BitSize _bitSize{};
-        uint8_t _scale{};
-        int64_t _disp{};
+        RegisterPack _segBaseIndex{};
+        std::uint8_t _scale{};
+        std::int64_t _disp{};
         Label::Id _label{ Label::Id::Invalid };
 
     public:
         constexpr explicit Mem(
-            BitSize bitSize, const Reg& seg, const Reg& base, const Reg& index, int32_t scale, int64_t disp) noexcept
+            BitSize bitSize, const Reg& seg, const Reg& base, const Reg& index, std::int32_t scale, std::int64_t disp) noexcept
             : _bitSize{ bitSize }
             , _segBaseIndex{ seg.getId(), base.getId(), index.getId() }
-            , _scale{ static_cast<uint8_t>(scale) }
+            , _scale{ static_cast<std::uint8_t>(scale) }
             , _disp{ disp }
-            , _label{ Label::Id::Invalid }
         {
         }
 
         constexpr explicit Mem(
-            BitSize bitSize, const Reg& seg, const Label& label, const Reg& base, const Reg& index, int32_t scale,
-            int64_t disp) noexcept
+            BitSize bitSize, const Reg& seg, const Label& label, const Reg& base, const Reg& index, std::int32_t scale,
+            std::int64_t disp) noexcept
             : _bitSize{ bitSize }
             , _segBaseIndex{ seg.getId(), base.getId(), index.getId() }
-            , _scale{ static_cast<uint8_t>(scale) }
+            , _scale{ static_cast<std::uint8_t>(scale) }
             , _disp{ disp }
             , _label{ label.getId() }
         {
@@ -47,7 +48,7 @@ namespace zasm
             return Reg{ _segBaseIndex.get<0>() };
         }
 
-        Mem& setSegment(const Reg& reg)
+        Mem& setSegment(const Reg& reg) noexcept
         {
             _segBaseIndex.set<0>(reg.getId());
             return *this;
@@ -58,7 +59,7 @@ namespace zasm
             return Reg{ _segBaseIndex.get<1>() };
         }
 
-        Mem& setBase(const Reg& reg)
+        Mem& setBase(const Reg& reg) noexcept
         {
             _segBaseIndex.set<1>(reg.getId());
             return *this;
@@ -69,7 +70,7 @@ namespace zasm
             return Reg{ _segBaseIndex.get<2>() };
         }
 
-        Mem& setIndex(const Reg& reg)
+        Mem& setIndex(const Reg& reg) noexcept
         {
             _segBaseIndex.set<2>(reg.getId());
             return *this;
@@ -79,23 +80,25 @@ namespace zasm
         {
             // In case no index is assigned scale has to be zero.
             if (_segBaseIndex.get<1>() == Reg::Id::None)
+            {
                 return 0;
+            }
 
             return _scale;
         }
 
-        Mem& setScale(uint8_t scale)
+        Mem& setScale(std::uint8_t scale) noexcept
         {
             _scale = scale;
             return *this;
         }
 
-        constexpr int64_t getDisplacement() const noexcept
+        constexpr std::int64_t getDisplacement() const noexcept
         {
             return _disp;
         }
 
-        Mem& setDisplacement(int64_t disp)
+        Mem& setDisplacement(std::int64_t disp) noexcept
         {
             _disp = disp;
             return *this;
@@ -106,20 +109,20 @@ namespace zasm
             return _bitSize;
         }
 
-        Mem& setBitSize(BitSize bitSize)
+        Mem& setBitSize(BitSize bitSize) noexcept
         {
             _bitSize = bitSize;
             return *this;
         }
 
-        BitSize getBitSize(MachineMode) const noexcept
+        BitSize getBitSize([[maybe_unused]] MachineMode mode) const noexcept
         {
             return getBitSize();
         }
 
         int32_t getByteSize() const noexcept
         {
-            return ::zasm::getBitSize(_bitSize) / 8;
+            return ::zasm::getBitSize(_bitSize) / std::numeric_limits<uint8_t>::digits;
         }
 
         constexpr Label getLabel() const noexcept
@@ -127,7 +130,7 @@ namespace zasm
             return Label{ _label };
         }
 
-        Mem& setLabel(const Label& label)
+        Mem& setLabel(const Label& label) noexcept
         {
             _label = label.getId();
             return *this;

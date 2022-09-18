@@ -11,13 +11,13 @@ namespace zasm
     public:
         // For debug builds this makes inspection easier.
         // For release builds size matters more.
-        enum class Id : int16_t
+        enum class Id : std::int16_t
         {
             None = 0,
             Invalid = -1,
         };
 
-        enum class Class : uint8_t
+        enum class Class : std::uint8_t
         {
             Invalid = 0,
         };
@@ -40,13 +40,13 @@ namespace zasm
         /// Returns the index per register class
         /// NOTE: For Gp8 there are 20 registers, hi/lo regs are in the same class.
         /// </summary>
-        int8_t getIndex() const noexcept;
+        std::int8_t getIndex() const noexcept;
 
         /// <summary>
         /// Returns the physical index which is also used for the encoding.
         /// </summary>
         /// <returns>Physical index, typically 0 to 31. Returns -1 if it has no index.</returns>
-        int8_t getPhysicalIndex() const noexcept;
+        std::int8_t getPhysicalIndex() const noexcept;
 
         /// <summary>
         /// Returns the root register for registers that are lower size, ex.: root of ax
@@ -59,7 +59,7 @@ namespace zasm
         /// Returns the offset in the space of the root register as bytes.
         /// This is typically 0 except for Gp8Hi registers.
         /// </summary>
-        int8_t getOffset() const noexcept;
+        std::int8_t getOffset() const noexcept;
 
         bool isGp8() const noexcept;
         bool isGp8Lo() const noexcept;
