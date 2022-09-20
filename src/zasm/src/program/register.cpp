@@ -1,13 +1,14 @@
 #include <Zydis/Zydis.h>
+#include <cstddef>
 #include <zasm/program/register.hpp>
 
 namespace zasm
 {
     static_assert(ZYDIS_REGISTER_AL < ZYDIS_REGISTER_AH);
-    static constexpr int8_t kGp8HiStartIndex = ZYDIS_REGISTER_AH - ZYDIS_REGISTER_AL;
+    static constexpr std::int8_t kGp8HiStartIndex = ZYDIS_REGISTER_AH - ZYDIS_REGISTER_AL;
     static_assert(kGp8HiStartIndex == 4, "This should be 4, if this triggers the definition probably changed");
 
-    static ZydisMachineMode getMode(MachineMode mode)
+    static ZydisMachineMode getMode(MachineMode mode) noexcept
     {
         switch (mode)
         {
@@ -24,46 +25,48 @@ namespace zasm
 
     BitSize Reg::getBitSize(MachineMode mode) const noexcept
     {
-        const auto id = static_cast<ZydisRegister>(getId());
-        return toBitSize(ZydisRegisterGetWidth(getMode(mode), id));
+        const auto regId = static_cast<ZydisRegister>(getId());
+        return toBitSize(ZydisRegisterGetWidth(getMode(mode), regId));
     }
 
     Reg::Class Reg::getClass() const noexcept
     {
-        const auto id = static_cast<ZydisRegister>(getId());
-        return static_cast<Reg::Class>(ZydisRegisterGetClass(id));
+        const auto regId = static_cast<ZydisRegister>(getId());
+        return static_cast<Reg::Class>(ZydisRegisterGetClass(regId));
     }
 
-    int8_t Reg::getIndex() const noexcept
+    std::int8_t Reg::getIndex() const noexcept
     {
-        const auto id = static_cast<ZydisRegister>(getId());
-        return ZydisRegisterGetId(id);
+        const auto regId = static_cast<ZydisRegister>(getId());
+        return ZydisRegisterGetId(regId);
     }
 
-    int8_t Reg::getPhysicalIndex() const noexcept
+    std::int8_t Reg::getPhysicalIndex() const noexcept
     {
-        const auto id = static_cast<ZydisRegister>(getId());
-        const auto regIndex = ZydisRegisterGetId(id);
+        const auto regId = static_cast<ZydisRegister>(getId());
+        const auto regIndex = ZydisRegisterGetId(regId);
         if (regIndex == -1)
+        {
             return -1;
+        }
         if (isGp8() && regIndex >= kGp8HiStartIndex)
         {
-            return regIndex - kGp8HiStartIndex;
+            return static_cast<std::int8_t>(regIndex - kGp8HiStartIndex);
         }
         return regIndex;
     }
 
     Reg Reg::getRoot(MachineMode mode) const noexcept
     {
-        const auto id = static_cast<ZydisRegister>(getId());
-        const auto enclosingId = ZydisRegisterGetLargestEnclosing(getMode(mode), id);
+        const auto regId = static_cast<ZydisRegister>(getId());
+        const auto enclosingId = ZydisRegisterGetLargestEnclosing(getMode(mode), regId);
         return Reg{ static_cast<Reg::Id>(enclosingId) };
     }
 
-    int8_t Reg::getOffset() const noexcept
+    std::int8_t Reg::getOffset() const noexcept
     {
-        const auto id = static_cast<ZydisRegister>(getId());
-        switch (id)
+        const auto regId = static_cast<ZydisRegister>(getId());
+        switch (regId)
         {
             case ZYDIS_REGISTER_AH:
             case ZYDIS_REGISTER_CH:
@@ -84,9 +87,11 @@ namespace zasm
     bool Reg::isGp8Lo() const noexcept
     {
         if (!isGp8())
+        {
             return false;
-        const auto id = static_cast<ZydisRegister>(getId());
-        switch (id)
+        }
+        const auto regId = static_cast<ZydisRegister>(getId());
+        switch (regId)
         {
             case ZYDIS_REGISTER_AH:
             case ZYDIS_REGISTER_CH:
@@ -102,9 +107,11 @@ namespace zasm
     bool Reg::isGp8Hi() const noexcept
     {
         if (!isGp8())
+        {
             return false;
-        const auto id = static_cast<ZydisRegister>(getId());
-        switch (id)
+        }
+        const auto regId = static_cast<ZydisRegister>(getId());
+        switch (regId)
         {
             case ZYDIS_REGISTER_AH:
             case ZYDIS_REGISTER_CH:

@@ -45,12 +45,12 @@ namespace zasm
     // Encodes with the requested instruction without a context and will use temporary
     // values for operands like labels and rip-rel addressing.
     Expected<EncoderResult, Error> encode(
-        MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic id, size_t numOps,
-        const EncoderOperands& operands) noexcept;
+        MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, std::size_t numOps,
+        const EncoderOperands& operands);
 
     // Encodes with full context. This function still allows labels to be unbound and will not error
     // instead a temporary value be usually encoded. It is expected for the serialization to handle this
     // with multiple passes.
-    Expected<EncoderResult, Error> encode(EncoderContext& ctx, MachineMode mode, const Instruction& instr) noexcept;
+    Expected<EncoderResult, Error> encode(EncoderContext& ctx, MachineMode mode, const Instruction& instr);
 
 } // namespace zasm

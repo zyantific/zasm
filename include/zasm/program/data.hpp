@@ -7,6 +7,8 @@
 
 namespace zasm
 {
+    // TODO: Store the current data type and try to eliminate the C union.
+
     class Data
     {
         static constexpr std::size_t kInlineStorageSize = 32;
@@ -28,42 +30,48 @@ namespace zasm
             std::uint64_t u64;
             std::array<std::uint8_t, kInlineStorageSize> bytes;
 
+            // Test
         } _storage{};
 #pragma pack(pop)
+
+        constexpr bool isDataInline() const noexcept
+        {
+            return (_size & kInlineDataFlag) != 0;
+        }
 
     public:
         constexpr Data() noexcept = default;
 
         constexpr Data(std::uint8_t val, std::size_t repeatCount = 1) noexcept
+            : _size{ kInlineDataFlag | sizeof(val) }
+            , _repeatCount{ repeatCount == 0 ? 1 : repeatCount }
         {
             _storage.u8 = val;
-            _size = kInlineDataFlag | sizeof(val);
-            _repeatCount = repeatCount == 0 ? 1 : repeatCount;
         }
 
         constexpr Data(std::uint16_t val, std::size_t repeatCount = 1) noexcept
+            : _size{ kInlineDataFlag | sizeof(val) }
+            , _repeatCount{ repeatCount == 0 ? 1 : repeatCount }
         {
             _storage.u16 = val;
-            _size = kInlineDataFlag | sizeof(val);
-            _repeatCount = repeatCount == 0 ? 1 : repeatCount;
         }
 
         constexpr Data(std::uint32_t val, std::size_t repeatCount = 1) noexcept
+            : _size{ kInlineDataFlag | sizeof(val) }
+            , _repeatCount{ repeatCount == 0 ? 1 : repeatCount }
         {
             _storage.u32 = val;
-            _size = kInlineDataFlag | sizeof(val);
-            _repeatCount = repeatCount == 0 ? 1 : repeatCount;
         }
 
         constexpr Data(std::uint64_t val, std::size_t repeatCount = 1) noexcept
+            : _size{ kInlineDataFlag | sizeof(val) }
+            , _repeatCount{ repeatCount == 0 ? 1 : repeatCount }
         {
             _storage.u64 = val;
-            _size = kInlineDataFlag | sizeof(val);
-            _repeatCount = repeatCount == 0 ? 1 : repeatCount;
         }
 
-        Data(const void* ptr, std::size_t len);
-        Data(const Data& other);
+        Data(const void* ptr, std::size_t len) noexcept;
+        Data(const Data& other) noexcept;
         Data(Data&& other) noexcept;
         ~Data();
 
@@ -93,15 +101,17 @@ namespace zasm
             return _repeatCount;
         }
 
-        Data& operator=(const Data& other);
+        Data& operator=(const Data& other) noexcept;
         Data& operator=(Data&& other) noexcept;
 
         constexpr bool isU8() const noexcept
         {
-            if ((_size & kInlineDataFlag) == 0)
+            if (!isDataInline())
+            {
                 return false;
+            }
 
-            return getSize() == 1;
+            return getSize() == sizeof(std::uint8_t);
         }
 
         constexpr std::uint8_t valueAsU8() const noexcept
@@ -111,10 +121,12 @@ namespace zasm
 
         constexpr bool isU16() const noexcept
         {
-            if ((_size & kInlineDataFlag) == 0)
+            if (!isDataInline())
+            {
                 return false;
+            }
 
-            return getSize() == 2;
+            return getSize() == sizeof(std::uint16_t);
         }
 
         constexpr std::uint16_t valueAsU16() const noexcept
@@ -124,10 +136,12 @@ namespace zasm
 
         constexpr bool isU32() const noexcept
         {
-            if ((_size & kInlineDataFlag) == 0)
+            if (!isDataInline())
+            {
                 return false;
+            }
 
-            return getSize() == 4;
+            return getSize() == sizeof(std::uint32_t);
         }
 
         constexpr std::uint32_t valueAsU32() const noexcept
@@ -137,10 +151,12 @@ namespace zasm
 
         constexpr bool isU64() const noexcept
         {
-            if ((_size & kInlineDataFlag) == 0)
+            if (!isDataInline())
+            {
                 return false;
+            }
 
-            return getSize() == 8;
+            return getSize() == sizeof(std::uint64_t);
         }
 
         constexpr std::uint64_t valueAsU64() const noexcept

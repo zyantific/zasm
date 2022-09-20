@@ -12,7 +12,7 @@ jobs:
       id: review
       with:
         build_dir: build
-        clang_tidy_version: 11
+        clang_tidy_version: 12
         apt_packages: liblapack-dev
         config_file: '.clang-tidy'
         cmake_command: cmake . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=on

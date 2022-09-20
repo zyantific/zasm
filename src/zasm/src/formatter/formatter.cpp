@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cinttypes>
 #include <cmath>
+#include <cstddef>
 #include <cstring>
 #include <zasm/formatter/formatter.hpp>
 #include <zasm/program/instruction.hpp>
@@ -17,7 +18,8 @@ namespace zasm::formatter
     {
         struct Context
         {
-            static constexpr size_t kInlineCapacity = 64;
+        public:
+            static constexpr std::size_t kInlineCapacity = 64;
 
             Program& program;
             Options options{};
@@ -28,37 +30,49 @@ namespace zasm::formatter
                 std::array<char, kInlineCapacity> buf;
             } _data{};
 
-            size_t size{};
-            size_t capacity{ kInlineCapacity };
+            std::size_t size{};
+            std::size_t capacity{ kInlineCapacity };
 
-            constexpr Context(Program& p, Options o)
-                : program(p)
-                , options(o)
+            constexpr Context() = delete;
+            constexpr Context(Program& prog, Options opts)
+                : program(prog)
+                , options(opts)
             {
             }
+            Context(const Context&) = delete;
+            Context(Context&&) = delete;
 
             ~Context()
             {
                 if (capacity > kInlineCapacity)
                 {
+                    // NOLINTNEXTLINE
                     std::free(_data.ptr);
                 }
             }
 
-            template<size_t N> void appendLiteral(const char (&str)[N])
+            Context& operator=(const Context&) = delete;
+            Context& operator=(Context&&) = delete;
+
+            // NOLINTNEXTLINE
+            template<std::size_t N> void appendLiteral(const char (&str)[N])
             {
-                return append(str, N - 1);
+                if (N > 0 && str[N - 1] == '\0')
+                {
+                    return append(str, N - 1); // NOLINT
+                }
+                return append(str, N); // NOLINT
             }
 
             void appendString(const char* str)
             {
-                size_t len = strlen(str);
+                const std::size_t len = strlen(str);
                 return append(str, len);
             }
 
-            void append(const char* str, size_t len)
+            void append(const char* str, std::size_t len)
             {
-                size_t spaceLeft = capacity - size;
+                const std::size_t spaceLeft = capacity - size;
                 if (len > spaceLeft)
                 {
                     growBuffer(len);
@@ -69,21 +83,22 @@ namespace zasm::formatter
 
             template<typename TFmt, typename... TArgs> void format(TFmt&& fmt, TArgs&&... args)
             {
-                size_t spaceLeft = capacity - size;
-
+                std::size_t spaceLeft = capacity - size;
+                // NOLINTNEXTLINE
                 int len = snprintf(data() + size, spaceLeft, std::forward<TFmt>(fmt), std::forward<TArgs>(args)...);
                 if (len >= spaceLeft)
                 {
                     growBuffer(len);
 
                     spaceLeft = capacity - size;
+                    // NOLINTNEXTLINE
                     len = snprintf(data() + size, spaceLeft, std::forward<TFmt>(fmt), std::forward<TArgs>(args)...);
                 }
 
                 size += len;
             }
 
-            bool empty() const
+            bool empty() const noexcept
             {
                 return size == 0;
             }
@@ -93,7 +108,7 @@ namespace zasm::formatter
                 return (options & opt) != Options::None;
             }
 
-            char* data()
+            char* data() noexcept
             {
                 if (capacity <= kInlineCapacity)
                 {
@@ -102,21 +117,26 @@ namespace zasm::formatter
                 return _data.ptr;
             }
 
-            void growBuffer(size_t extraLen)
+            void growBuffer(std::size_t extraLen) noexcept
             {
                 assert(extraLen > 0);
 
-                const size_t newCapacity = (capacity + extraLen) << 2;
+                const std::size_t newCapacity = (capacity + extraLen) << 2;
 
                 char* ptr = nullptr;
                 if (capacity > kInlineCapacity)
                 {
-                    ptr = reinterpret_cast<char*>(std::realloc(_data.ptr, newCapacity));
+                    // NOLINTNEXTLINE
+                    ptr = static_cast<char*>(std::realloc(_data.ptr, newCapacity));
                 }
                 else
                 {
-                    ptr = reinterpret_cast<char*>(std::malloc(newCapacity));
-                    std::memcpy(ptr, _data.buf.data(), size);
+                    // NOLINTNEXTLINE
+                    ptr = static_cast<char*>(std::malloc(newCapacity));
+                    if (ptr != nullptr)
+                    {
+                        std::memcpy(ptr, _data.buf.data(), size);
+                    }
                 }
 
                 if (ptr == nullptr)
@@ -136,19 +156,19 @@ namespace zasm::formatter
             ctx.appendString(str);
         }
 
-        static void opToString(Context&, const Operand::None&)
+        static void opToString([[maybe_unused]] Context& ctx, [[maybe_unused]] const Operand::None& opNone) noexcept
         {
         }
 
-        static void opToString(Context& ctx, const Reg& op)
+        static void opToString(Context& ctx, const Reg& opReg)
         {
-            const char* str = ZydisRegisterGetString(static_cast<ZydisRegister>(op.getId()));
+            const char* str = ZydisRegisterGetString(static_cast<ZydisRegister>(opReg.getId()));
             ctx.appendString(str);
         }
 
-        static void opToString(Context& ctx, const Imm& op)
+        static void opToString(Context& ctx, const Imm& opImm)
         {
-            int64_t val = op.value<int64_t>();
+            const auto val = opImm.value<std::int64_t>();
             if (ctx.hasOption(Options::HexImmediates))
             {
                 if (val < 0)
@@ -186,47 +206,47 @@ namespace zasm::formatter
             }
         }
 
-        static void opToString(Context& ctx, const Label& op)
+        static void opToString(Context& ctx, const Label& label)
         {
-            return labelToString(ctx, op);
+            return labelToString(ctx, label);
         }
 
-        static void opToString(Context& ctx, const Mem& op)
+        static void opToString(Context& ctx, const Mem& opMem)
         {
-            if (op.getByteSize() == 1)
+            if (opMem.getBitSize() == BitSize::_8)
             {
                 ctx.appendLiteral("byte ptr ");
             }
-            else if (op.getByteSize() == 2)
+            else if (opMem.getBitSize() == BitSize::_16)
             {
                 ctx.appendLiteral("word ptr ");
             }
-            else if (op.getByteSize() == 4)
+            else if (opMem.getBitSize() == BitSize::_32)
             {
                 ctx.appendLiteral("dword ptr ");
             }
-            else if (op.getByteSize() == 8)
+            else if (opMem.getBitSize() == BitSize::_64)
             {
                 ctx.appendLiteral("qword ptr ");
             }
-            else if (op.getByteSize() == 10)
+            else if (opMem.getBitSize() == BitSize::_80)
             {
                 ctx.appendLiteral("tword ptr ");
             }
-            else if (op.getByteSize() == 16)
+            else if (opMem.getBitSize() == BitSize::_128)
             {
                 ctx.appendLiteral("xmmword ptr ");
             }
-            else if (op.getByteSize() == 32)
+            else if (opMem.getBitSize() == BitSize::_256)
             {
                 ctx.appendLiteral("ymmword ptr ");
             }
-            else if (op.getByteSize() == 64)
+            else if (opMem.getBitSize() == BitSize::_512)
             {
                 ctx.appendLiteral("zmmword ptr ");
             }
 
-            if (auto regSeg = op.getSegment(); regSeg.isValid())
+            if (const auto regSeg = opMem.getSegment(); regSeg.isValid())
             {
                 opToString(ctx, regSeg);
                 ctx.appendLiteral(":");
@@ -235,14 +255,14 @@ namespace zasm::formatter
             ctx.appendLiteral("[");
 
             bool hasBase = false;
-            if (auto regBase = op.getBase(); regBase.isValid())
+            if (const auto regBase = opMem.getBase(); regBase.isValid())
             {
                 opToString(ctx, regBase);
                 hasBase = true;
             }
 
             bool hasIndex = false;
-            if (auto regIdx = op.getIndex(); regIdx.isValid())
+            if (const auto regIdx = opMem.getIndex(); regIdx.isValid())
             {
                 if (hasBase)
                 {
@@ -251,14 +271,14 @@ namespace zasm::formatter
                 opToString(ctx, regIdx);
                 hasIndex = true;
 
-                if (op.getScale() > 1)
+                if (opMem.getScale() > 1)
                 {
-                    ctx.format("*%d", op.getScale());
+                    ctx.format("*%d", opMem.getScale());
                 }
             }
 
             bool hasLabel = false;
-            if (auto label = op.getLabel(); label.isValid())
+            if (const auto label = opMem.getLabel(); label.isValid())
             {
                 if (hasBase || hasIndex)
                 {
@@ -269,8 +289,7 @@ namespace zasm::formatter
                 hasLabel = true;
             }
 
-            bool hasDisp = false;
-            if (auto disp = op.getDisplacement(); disp != 0)
+            if (const auto disp = opMem.getDisplacement(); disp != 0)
             {
                 if (hasBase || hasIndex || hasLabel)
                 {
@@ -305,21 +324,19 @@ namespace zasm::formatter
                         ctx.format("%" PRId64, disp);
                     }
                 }
-                hasDisp = true;
             }
             else
             {
                 if (!hasBase && !hasIndex && !hasLabel)
                 {
                     ctx.appendLiteral("0");
-                    hasDisp = true;
                 }
             }
 
             ctx.appendLiteral("]");
         }
 
-        static void nodeToString(Context&, const NodePoint&)
+        static void nodeToString([[maybe_unused]] Context& ctx, [[maybe_unused]] const NodePoint& node) noexcept
         {
         }
 
@@ -347,7 +364,9 @@ namespace zasm::formatter
         static void nodeToString(Context& ctx, const Data& node)
         {
             if (node.getSize() == 0)
+            {
                 return;
+            }
 
             if (node.isU8())
             {
@@ -387,7 +406,7 @@ namespace zasm::formatter
             }
             else
             {
-                const uint8_t* data = reinterpret_cast<const uint8_t*>(node.getData());
+                const auto* data = static_cast<const uint8_t*>(node.getData());
                 constexpr const auto bytesPerLine = 16;
 
                 size_t bytesOnLine = 0;
@@ -460,9 +479,9 @@ namespace zasm::formatter
             mnemonictoString(ctx, node.getMnemonic());
 
             size_t opIndex = 0;
-            for (auto& op : node.getOperands())
+            for (const auto& operand : node.getOperands())
             {
-                if (op.holds<Operand::None>())
+                if (operand.holds<Operand::None>())
                 {
                     break;
                 }
@@ -472,7 +491,7 @@ namespace zasm::formatter
                     continue;
                 }
 
-                op.visit([&](auto&& op) {
+                operand.visit([&](auto&& opVal) {
                     if (opIndex == 0)
                     {
                         ctx.appendLiteral(" ");
@@ -481,7 +500,7 @@ namespace zasm::formatter
                     {
                         ctx.appendLiteral(", ");
                     }
-                    opToString(ctx, op);
+                    opToString(ctx, opVal);
                 });
 
                 opIndex++;
@@ -492,6 +511,11 @@ namespace zasm::formatter
 
     std::string toString(Program& program, const Node* node, Options options /*= {}*/)
     {
+        if (node == nullptr)
+        {
+            return "<nullptr>";
+        }
+        
         auto ctx = detail::Context(program, options);
 
         node->visit([&](auto&& n) { detail::nodeToString(ctx, n); });
@@ -504,12 +528,12 @@ namespace zasm::formatter
         return toString(program, program.getHead(), nullptr, options);
     }
 
-    std::string toString(Program& program, const Node* from, const Node* to, Options options /*= {}*/)
+    std::string toString(Program& program, const Node* nodeFrom, const Node* nodeTo, Options options /*= {}*/)
     {
         auto ctx = detail::Context(program, options);
 
-        auto* node = from;
-        while (node != nullptr && node != to)
+        const auto* node = nodeFrom;
+        while (node != nullptr && node != nodeTo)
         {
             if (!ctx.empty())
             {
@@ -526,6 +550,11 @@ namespace zasm::formatter
 
     std::string toString(Program& program, const Instruction* instr, Options options /*= {}*/)
     {
+        if (instr == nullptr)
+        {
+            return "<nullptr>";
+        }
+        
         auto ctx = detail::Context(program, options);
 
         detail::nodeToString(ctx, *instr);

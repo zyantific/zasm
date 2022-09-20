@@ -9,7 +9,7 @@ namespace zasm
 
     namespace detail
     {
-        enum class SectionAttribs : uint32_t
+        enum class SectionAttribs : std::uint32_t
         {
             None = 0,
             Read = (1u << 0),
@@ -30,7 +30,7 @@ namespace zasm
     class Section
     {
     public:
-        enum class Id : int32_t
+        enum class Id : std::int32_t
         {
             Invalid = -1,
         };
@@ -38,7 +38,7 @@ namespace zasm
         using Attribs = detail::SectionAttribs;
 
         static constexpr Attribs kDefaultAttribs = Section::Attribs::Code | Section::Attribs::Exec;
-        static constexpr int32_t kDefaultAlign = 0x1000;
+        static constexpr std::int32_t kDefaultAlign = 0x1000;
 
     private:
         Id _id{ Id::Invalid };

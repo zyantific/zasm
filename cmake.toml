@@ -15,7 +15,7 @@ benchmarks = "ZASM_BUILD_BENCHMARKS"
 
 [target.zasm_common]
 type = "interface"
-msvc.compile-options = ["/bigobj", "/MP"]
+msvc.compile-options = ["/bigobj", "/MP", "/W3", "/permissive-"]
 alias = "zasm::common"
 
 [target.zasm]

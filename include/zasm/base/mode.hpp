@@ -4,7 +4,7 @@
 
 namespace zasm
 {
-    enum class MachineMode : uint8_t
+    enum class MachineMode : std::uint8_t
     {
         I386,
         AMD64,

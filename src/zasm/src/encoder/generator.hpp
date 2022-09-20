@@ -22,7 +22,8 @@ namespace zasm
         // Generates an instruction without context.
         // This is primarily used by the assembler to obtain all relevant meta data.
         // Some operands will encode temporary values and switched back after decoding.
-        Result generate(Instruction::Attribs attribs, Instruction::Mnemonic id, size_t numOps, EncoderOperands&& operands) noexcept;
+        Result generate(
+            Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, size_t numOps, EncoderOperands&& operands);
     };
 
 } // namespace zasm

@@ -7,7 +7,7 @@
 
 namespace zasm
 {
-    Data::Data(const void* ptr, std::size_t len)
+    Data::Data(const void* ptr, std::size_t len) noexcept
     {
         if (len <= kInlineStorageSize)
         {
@@ -16,6 +16,7 @@ namespace zasm
         }
         else
         {
+            // NOLINTNEXTLINE
             void* data = std::malloc(len);
             if (data != nullptr)
             {
@@ -38,30 +39,35 @@ namespace zasm
         *this = std::move(other);
     }
 
-    Data::Data(const Data& other)
+    Data::Data(const Data& other) noexcept
     {
         *this = other;
     }
 
     Data::~Data()
     {
-        if (_size == 0)
+        if (_size == 0 || isDataInline())
+        {
             return;
+        }
 
-        if (_size & kInlineDataFlag)
-            return;
-
+        // NOLINTNEXTLINE
         std::free(const_cast<void*>(_storage.ptr));
+
         _storage.ptr = nullptr;
     }
 
     const void* Data::getData() const noexcept
     {
         if (_size == 0)
+        {
             return nullptr;
+        }
 
-        if (_size & kInlineDataFlag)
+        if (isDataInline())
+        {
             return _storage.bytes.data();
+        }
 
         return _storage.ptr;
     }
@@ -76,16 +82,17 @@ namespace zasm
         return getSize() * _repeatCount;
     }
 
-    Data& Data::operator=(const Data& other)
+    Data& Data::operator=(const Data& other) noexcept
     {
         _size = other._size;
         _repeatCount = other._repeatCount;
-        if (_size & kInlineDataFlag)
+        if (isDataInline())
         {
             _storage.bytes = other._storage.bytes;
         }
         else
         {
+            // NOLINTNEXTLINE
             void* data = malloc(other.getSize());
             if (data != nullptr)
             {
@@ -106,7 +113,7 @@ namespace zasm
     {
         _size = other._size;
         _repeatCount = other._repeatCount;
-        if (_size & kInlineDataFlag)
+        if (isDataInline())
         {
             _storage.bytes = other._storage.bytes;
         }

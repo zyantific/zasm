@@ -12,8 +12,8 @@ namespace zasm
     {
         union
         {
-            int64_t s;
-            uint64_t u;
+            std::int64_t s;
+            std::uint64_t u;
         };
 
     public:
@@ -21,19 +21,19 @@ namespace zasm
             : s{}
         {
         }
-        constexpr Imm(uint32_t imm) noexcept
+        constexpr Imm(std::uint32_t imm) noexcept
             : u{ imm }
         {
         }
-        constexpr Imm(int32_t imm) noexcept
+        constexpr Imm(std::int32_t imm) noexcept
             : s{ imm }
         {
         }
-        constexpr Imm(int64_t imm) noexcept
+        constexpr Imm(std::int64_t imm) noexcept
             : s{ imm }
         {
         }
-        constexpr Imm(uint64_t imm) noexcept
+        constexpr Imm(std::uint64_t imm) noexcept
             : u{ imm }
         {
         }
@@ -45,23 +45,29 @@ namespace zasm
 
         template<typename T> Imm& setValue(const T val)
         {
-            s = static_cast<int64_t>(val);
+            s = static_cast<std::int64_t>(val);
 
             return *this;
         }
 
         constexpr BitSize getBitSize() const noexcept
         {
-            if (math::abs(s) > std::numeric_limits<int32_t>::max())
+            if (math::abs(s) > std::numeric_limits<std::int32_t>::max())
+            {
                 return BitSize::_64;
-            if (math::abs(s) > std::numeric_limits<int16_t>::max())
+            }
+            if (math::abs(s) > std::numeric_limits<std::int16_t>::max())
+            {
                 return BitSize::_32;
-            if (math::abs(s) > std::numeric_limits<int8_t>::max())
+            }
+            if (math::abs(s) > std::numeric_limits<std::int8_t>::max())
+            {
                 return BitSize::_16;
+            }
             return BitSize::_8;
         }
 
-        constexpr BitSize getBitSize(MachineMode) const noexcept
+        constexpr BitSize getBitSize([[maybe_unused]] MachineMode mode) const noexcept
         {
             return getBitSize();
         }
@@ -83,9 +89,9 @@ namespace zasm
     /// <summary>
     /// Helpers to avoid casts.
     /// </summary>
-    using Imm64 = detail::ImmT<int64_t>;
-    using Imm32 = detail::ImmT<int32_t>;
-    using Imm16 = detail::ImmT<int16_t>;
-    using Imm8 = detail::ImmT<int8_t>;
+    using Imm64 = detail::ImmT<std::int64_t>;
+    using Imm32 = detail::ImmT<std::int32_t>;
+    using Imm16 = detail::ImmT<std::int16_t>;
+    using Imm8 = detail::ImmT<std::int8_t>;
 
 } // namespace zasm

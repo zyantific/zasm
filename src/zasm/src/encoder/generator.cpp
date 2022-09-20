@@ -50,9 +50,10 @@ namespace zasm
     }
 
     InstrGenerator::Result InstrGenerator::generate(
-        Instruction::Attribs attribs, Instruction::Mnemonic id, size_t numOps, EncoderOperands&& operands) noexcept
+        Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, size_t numOps, EncoderOperands&& operands)
     {
-        auto encodeResult = encode(_mode, static_cast<zasm::Instruction::Attribs>(attribs), static_cast<zasm::Instruction::Mnemonic>(id), numOps,
+        auto encodeResult = encode(
+            _mode, static_cast<zasm::Instruction::Attribs>(attribs), static_cast<zasm::Instruction::Mnemonic>(mnemonic), numOps,
             operands);
         if (!encodeResult)
         {
@@ -68,13 +69,17 @@ namespace zasm
         // Exchange back certain operands.
         const auto& decodedInstr = *decodeResult;
 
-        auto newOps = decodedInstr.getOperands();
+        // Intentional copy.
+        Instruction::Operands newOps = decodedInstr.getOperands();
+        
         const auto opCount = decodedInstr.getOperandCount();
         const auto& vis = decodedInstr.getOperandsVisibility();
         for (size_t i = 0; i < opCount; i++)
         {
             if (vis.get(i) == Operand::Visibility::Hidden)
+            {
                 continue;
+            }
 
             const auto& opSrc = operands[i];
             if (opSrc.holds<Label>())
@@ -83,7 +88,8 @@ namespace zasm
             }
             else if (const auto* opMem = opSrc.getIf<Mem>(); opMem != nullptr)
             {
-                auto& decodedMemOp = newOps[i].get<Mem>();
+                // NOLINTNEXTLINE
+                const auto& decodedMemOp = newOps[i].get<Mem>();
 
                 if (opMem->hasLabel())
                 {
@@ -94,8 +100,8 @@ namespace zasm
             }
             if (opSrc.holds<Imm>())
             {
-                const auto id = decodedInstr.getMnemonic();
-                if (i == 0 && isImmediateControlFlow(id))
+                const auto mnemonic = decodedInstr.getMnemonic();
+                if (i == 0 && isImmediateControlFlow(mnemonic))
                 {
                     newOps[i] = opSrc;
                 }

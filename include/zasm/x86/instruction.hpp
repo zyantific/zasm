@@ -1765,32 +1765,32 @@ namespace zasm::x86
         Xtest = ZYDIS_MNEMONIC_XTEST,
     };
 
-    inline bool operator==(const zasm::Instruction::Mnemonic lhs, const zasm::x86::Mnemonic rhs)
+    inline bool operator==(const zasm::Instruction::Mnemonic lhs, const zasm::x86::Mnemonic rhs) noexcept
     {
         return static_cast<uint32_t>(lhs) == static_cast<uint32_t>(rhs);
     }
 
-    inline bool operator!=(const zasm::Instruction::Mnemonic lhs, const zasm::x86::Mnemonic rhs)
+    inline bool operator!=(const zasm::Instruction::Mnemonic lhs, const zasm::x86::Mnemonic rhs) noexcept
     {
         return static_cast<uint32_t>(lhs) != static_cast<uint32_t>(rhs);
     }
 
-    inline bool operator<(const zasm::Instruction::Mnemonic lhs, const zasm::x86::Mnemonic rhs)
+    inline bool operator<(const zasm::Instruction::Mnemonic lhs, const zasm::x86::Mnemonic rhs) noexcept
     {
         return static_cast<uint32_t>(lhs) < static_cast<uint32_t>(rhs);
     }
 
-    inline bool operator>(const zasm::Instruction::Mnemonic lhs, const zasm::x86::Mnemonic rhs)
+    inline bool operator>(const zasm::Instruction::Mnemonic lhs, const zasm::x86::Mnemonic rhs) noexcept
     {
         return static_cast<uint32_t>(lhs) > static_cast<uint32_t>(rhs);
     }
 
-    inline bool operator<=(const zasm::Instruction::Mnemonic lhs, const zasm::x86::Mnemonic rhs)
+    inline bool operator<=(const zasm::Instruction::Mnemonic lhs, const zasm::x86::Mnemonic rhs) noexcept
     {
         return static_cast<uint32_t>(lhs) <= static_cast<uint32_t>(rhs);
     }
 
-    inline bool operator>=(const zasm::Instruction::Mnemonic lhs, const zasm::x86::Mnemonic rhs)
+    inline bool operator>=(const zasm::Instruction::Mnemonic lhs, const zasm::x86::Mnemonic rhs) noexcept
     {
         return static_cast<uint32_t>(lhs) >= static_cast<uint32_t>(rhs);
     }
@@ -1908,32 +1908,32 @@ namespace zasm::x86
         XSAVEOPT = ZYDIS_CATEGORY_XSAVEOPT,
     };
 
-    inline bool operator==(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs)
+    inline bool operator==(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs) noexcept
     {
         return static_cast<uint32_t>(lhs) == static_cast<uint32_t>(rhs);
     }
 
-    inline bool operator!=(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs)
+    inline bool operator!=(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs) noexcept
     {
         return static_cast<uint32_t>(lhs) != static_cast<uint32_t>(rhs);
     }
 
-    inline bool operator<(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs)
+    inline bool operator<(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs) noexcept
     {
         return static_cast<uint32_t>(lhs) < static_cast<uint32_t>(rhs);
     }
 
-    inline bool operator>(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs)
+    inline bool operator>(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs) noexcept
     {
         return static_cast<uint32_t>(lhs) > static_cast<uint32_t>(rhs);
     }
 
-    inline bool operator<=(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs)
+    inline bool operator<=(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs) noexcept
     {
         return static_cast<uint32_t>(lhs) <= static_cast<uint32_t>(rhs);
     }
 
-    inline bool operator>=(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs)
+    inline bool operator>=(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs) noexcept
     {
         return static_cast<uint32_t>(lhs) >= static_cast<uint32_t>(rhs);
     }
@@ -1941,17 +1941,17 @@ namespace zasm::x86
     enum class Attribs : std::underlying_type_t<zasm::Instruction::Attribs>
     {
         None = 0,
-        Lock = (1u << 0),
-        Rep = (1u << 1),
-        Repe = (1u << 2),
-        Repne = (1u << 3),
-        Bnd = (1u << 4),
-        Xacquire = (1u << 5),
-        Xrelease = (1u << 6),
-        OperandSize8 = (1u << 7),
-        OperandSize16 = (1u << 8),
-        OperandSize32 = (1u << 9),
-        OperandSize64 = (1u << 10),
+        Lock = (1U << 0),
+        Rep = (1U << 1),
+        Repe = (1U << 2),
+        Repne = (1U << 3),
+        Bnd = (1U << 4),
+        Xacquire = (1U << 5),
+        Xrelease = (1U << 6),
+        OperandSize8 = (1U << 7),
+        OperandSize16 = (1U << 8),
+        OperandSize32 = (1U << 9),
+        OperandSize64 = (1U << 10),
     };
     ZASM_ENABLE_ENUM_OPERATORS(Attribs);
 

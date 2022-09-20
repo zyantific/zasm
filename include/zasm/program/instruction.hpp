@@ -4,6 +4,8 @@
 
 #include <array>
 #include <cassert>
+#include <cstddef>
+#include <cstdint>
 #include <zasm/core/enumflags.hpp>
 #include <zasm/core/packed.hpp>
 
@@ -11,26 +13,26 @@ namespace zasm
 {
     class Instruction
     {
-        static constexpr size_t kMaxOperands = 10;
+        static constexpr std::size_t kMaxOperands = 10;
 
     public:
-        enum class Mnemonic : uint16_t;
-        enum class Encoding : uint8_t;
-        enum class Attribs : uint16_t;
-        enum class Category : uint8_t;
+        enum class Mnemonic : std::uint16_t;
+        enum class Encoding : std::uint8_t;
+        enum class Attribs : std::uint16_t;
+        enum class Category : std::uint8_t;
 
-        using Length = uint8_t;
-        using OperandCount = uint8_t;
+        using Length = std::uint8_t;
+        using OperandCount = std::uint8_t;
         using Operands = std::array<Operand, kMaxOperands>;
 
-        using OperandsAccess = Packed<uint32_t, Operand::Access, 3>;
-        using OperandsVisibility = Packed<uint32_t, Operand::Visibility, 3>;
+        using OperandsAccess = Packed<std::uint32_t, Operand::Access, 3>;
+        using OperandsVisibility = Packed<std::uint32_t, Operand::Visibility, 3>;
 
         struct CPUFlags
         {
-            uint32_t read;
-            uint32_t write;
-            uint32_t undefined;
+            std::uint32_t read;
+            std::uint32_t write;
+            std::uint32_t undefined;
         };
 
     private:
@@ -51,14 +53,14 @@ namespace zasm
             Attribs attribs, Mnemonic mnemonic, OperandCount opCount, const Operands& operands, const OperandsAccess& access,
             const OperandsVisibility& opsVisibility, const CPUFlags& flags, const Category& category,
             Length length = 0) noexcept
-            : _operands{ operands }
-            , _opCount{ opCount }
-            , _mnemonic{ mnemonic }
-            , _access{ access }
+            : _access{ access }
             , _opsVisibility{ opsVisibility }
+            , _operands{ operands }
             , _cpuFlags{ flags }
-            , _category{ category }
+            , _mnemonic{ mnemonic }
             , _attribs{ attribs }
+            , _opCount{ opCount }
+            , _category{ category }
             , _length{ length }
             , _metaDataValid{ true }
         {
@@ -96,7 +98,9 @@ namespace zasm
         template<typename T> constexpr Instruction& setMnemonic(T mnemonic)
         {
             if (_mnemonic != static_cast<Mnemonic>(mnemonic))
+            {
                 _metaDataValid = false;
+            }
 
             _mnemonic = static_cast<Mnemonic>(mnemonic);
 
@@ -122,7 +126,7 @@ namespace zasm
         {
             static_assert(std::is_enum_v<T> || std::is_integral_v<T>, "Type must be integral or enum");
 
-            return (static_cast<uint32_t>(_attribs) & static_cast<uint32_t>(attrib)) != 0u;
+            return (static_cast<uint32_t>(_attribs) & static_cast<uint32_t>(attrib)) != 0U;
         }
 
         /// <summary>
@@ -137,7 +141,7 @@ namespace zasm
             static_assert(std::is_enum_v<T> || std::is_integral_v<T>, "Type must be integral or enum");
 
             _metaDataValid = false;
-            _attribs = static_cast<Attribs>(static_cast<uint32_t>(_attribs) | static_cast<uint32_t>(attrib));
+            _attribs = static_cast<Attribs>(static_cast<std::uint32_t>(_attribs) | static_cast<std::uint32_t>(attrib));
 
             return *this;
         }
@@ -154,7 +158,7 @@ namespace zasm
             static_assert(std::is_enum_v<T> || std::is_integral_v<T>, "Type must be integral or enum");
 
             _metaDataValid = false;
-            _attribs = static_cast<Attribs>(static_cast<uint32_t>(_attribs) & ~static_cast<uint32_t>(attrib));
+            _attribs = static_cast<Attribs>(static_cast<std::uint32_t>(_attribs) & ~static_cast<std::uint32_t>(attrib));
 
             return *this;
         }
@@ -178,10 +182,7 @@ namespace zasm
         {
             assert(_metaDataValid == true);
 
-            if (!_metaDataValid)
-                return 0;
-
-            return _length;
+            return _metaDataValid ? _length : 0;
         }
 
         constexpr const Operands& getOperands() const noexcept
@@ -189,12 +190,12 @@ namespace zasm
             return _operands;
         }
 
-        constexpr size_t getOperandCount() const noexcept
+        constexpr std::size_t getOperandCount() const noexcept
         {
             return _opCount;
         }
 
-        template<size_t TIndex, typename T = Operand> constexpr const T& getOperand() const
+        template<std::size_t TIndex, typename T = Operand> constexpr const T& getOperand() const
         {
             if constexpr (std::is_same_v<T, Operand>)
             {
@@ -202,12 +203,12 @@ namespace zasm
             }
             else
             {
-                auto& op = std::get<TIndex>(_operands);
-                return op.template get<T>();
+                const auto& operand = std::get<TIndex>(_operands);
+                return operand.template get<T>();
             }
         }
 
-        template<size_t TIndex, typename T = Operand> constexpr T& getOperand()
+        template<std::size_t TIndex, typename T = Operand> constexpr T& getOperand()
         {
             if constexpr (std::is_same_v<T, Operand>)
             {
@@ -215,12 +216,25 @@ namespace zasm
             }
             else
             {
-                auto& op = std::get<TIndex>(_operands);
-                return op.template get<T>();
+                auto& operand = std::get<TIndex>(_operands);
+                return operand.template get<T>();
             }
         }
 
-        template<typename T = Operand> constexpr const T& getOperand(size_t index) const
+        template<typename T = Operand> constexpr const T& getOperand(std::size_t index) const
+        {
+            if constexpr (std::is_same_v<T, Operand>)
+            {
+                return _operands[index];
+            }
+            else
+            {
+                const auto& operand = _operands[index];
+                return operand.template get<T>();
+            }
+        }
+
+        template<typename T = Operand> constexpr T& getOperand(std::size_t index)
         {
             if constexpr (std::is_same_v<T, Operand>)
             {
@@ -233,35 +247,26 @@ namespace zasm
             }
         }
 
-        template<typename T = Operand> constexpr T& getOperand(size_t index)
-        {
-            if constexpr (std::is_same_v<T, Operand>)
-            {
-                return _operands[index];
-            }
-            else
-            {
-                auto& op = _operands[index];
-                return op.template get<T>();
-            }
-        }
-
-        template<typename T> constexpr const T* getOperandIf(size_t index) const noexcept
+        template<typename T> constexpr const T* getOperandIf(std::size_t index) const noexcept
         {
             if (index >= _opCount || index >= _operands.size())
+            {
                 return nullptr;
+            }
 
-            auto& op = _operands[index];
-            return op.template getIf<T>();
+            const auto& operand = _operands[index];
+            return operand.template getIf<T>();
         }
 
-        template<typename T> constexpr T* getOperandIf(size_t index) noexcept
+        template<typename T> constexpr T* getOperandIf(std::size_t index) noexcept
         {
             if (index >= _opCount || index >= _operands.size())
+            {
                 return nullptr;
+            }
 
-            auto& op = _operands[index];
-            return op.template getIf<T>();
+            auto& operand = _operands[index];
+            return operand.template getIf<T>();
         }
 
         constexpr Instruction& addOperand(const Operand& val) noexcept
@@ -278,7 +283,7 @@ namespace zasm
             return *this;
         }
 
-        constexpr Instruction& setOperand(size_t index, const Operand& val) noexcept
+        constexpr Instruction& setOperand(std::size_t index, const Operand& val) noexcept
         {
             assert(index < _opCount);
 
@@ -300,52 +305,62 @@ namespace zasm
             return _opsVisibility;
         }
 
-        constexpr const Operand::Visibility getOperandVisibility(size_t index) const noexcept
+        constexpr Operand::Visibility getOperandVisibility(std::size_t index) const noexcept
         {
             assert(_metaDataValid == true);
 
             if (index >= _opCount || !_metaDataValid)
+            {
                 return Operand::Visibility::Invalid;
+            }
 
             return _opsVisibility.get(index);
         }
 
-        constexpr bool isOperandHidden(size_t index) const noexcept
+        constexpr bool isOperandHidden(std::size_t index) const noexcept
         {
             assert(_metaDataValid == true);
 
             if (index >= _opCount)
+            {
                 return true;
+            }
 
             return getOperandVisibility(index) == Operand::Visibility::Hidden;
         }
 
-        constexpr bool isOperandExplicit(size_t index) const noexcept
+        constexpr bool isOperandExplicit(std::size_t index) const noexcept
         {
             assert(_metaDataValid == true);
 
             if (index >= _opCount)
+            {
                 return false;
+            }
 
             return getOperandVisibility(index) == Operand::Visibility::Explicit;
         }
 
-        constexpr bool isOperandImplicit(size_t index) const noexcept
+        constexpr bool isOperandImplicit(std::size_t index) const noexcept
         {
             assert(_metaDataValid == true);
 
             if (index >= _opCount)
+            {
                 return false;
+            }
 
             return getOperandVisibility(index) == Operand::Visibility::Implicit;
         }
 
-        constexpr const Operand::Access getOperandAccess(size_t index) const noexcept
+        constexpr Operand::Access getOperandAccess(std::size_t index) const noexcept
         {
             assert(_metaDataValid == true);
 
             if (index >= _opCount || !_metaDataValid)
+            {
                 return Operand::Access::None;
+            }
 
             return _access.get(index);
         }

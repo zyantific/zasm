@@ -39,57 +39,55 @@ namespace zasm
             : data{ std::move(val) }
         {
         }
-        
+
         constexpr operator bool() const noexcept
         {
             return hasValue();
         }
-        
+
         constexpr bool hasValue() const noexcept
         {
             return std::holds_alternative<TSuccess>(data);
         }
-        
-        constexpr const TFailure& error() const
+
+        constexpr const TFailure& error() const noexcept
         {
             assert(!hasValue());
-            return std::get<::zasm::detail::Unexpected<TFailure>>(data).failure;
-        }
-        
-        constexpr TSuccess& value()
-        {
-            assert(hasValue());
-            return std::get<TSuccess>(data);
-        }
-        
-        constexpr const TSuccess& value() const
-        {
-            assert(hasValue());
-            return std::get<TSuccess>(data);
+            return std::get_if<::zasm::detail::Unexpected<TFailure>>(&data)->failure;
         }
 
-        constexpr TSuccess& operator*()
+        constexpr TSuccess& value() noexcept
         {
             assert(hasValue());
-            return std::get<TSuccess>(data);
+            return *std::get_if<TSuccess>(&data);
         }
-        
-        constexpr const TSuccess& operator*() const
+
+        constexpr const TSuccess& value() const noexcept
         {
             assert(hasValue());
-            return std::get<TSuccess>(data);
+            return *std::get_if<TSuccess>(&data);
         }
-        
-        constexpr TSuccess* operator->()
+
+        constexpr TSuccess& operator*() noexcept
         {
-            assert(hasValue());
-            return &std::get<TSuccess>(data);
+            return value();
         }
-        
-        constexpr const TSuccess* operator->() const
+
+        constexpr const TSuccess& operator*() const noexcept
+        {
+            return value();
+        }
+
+        constexpr TSuccess* operator->() noexcept
         {
             assert(hasValue());
-            return &std::get<TSuccess>(data);
+            return std::get_if<TSuccess>(&data);
+        }
+
+        constexpr const TSuccess* operator->() const noexcept
+        {
+            assert(hasValue());
+            return std::get_if<TSuccess>(&data);
         }
     };
 

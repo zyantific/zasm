@@ -12,6 +12,7 @@
 #include "zasm/program/section.hpp"
 
 #include <Zydis/Zydis.h>
+#include <cstddef>
 #include <vector>
 
 namespace zasm
@@ -21,7 +22,7 @@ namespace zasm
 
 namespace zasm::detail
 {
-    constexpr size_t PoolSize = 1u << 10;
+    constexpr std::size_t PoolSize = 1U << 10;
 
     struct LabelData
     {
@@ -39,8 +40,8 @@ namespace zasm::detail
         Section::Id id{ Section::Id::Invalid };
         StringPool::Id nameId{ StringPool::Id::Invalid };
         Section::Attribs attribs{};
-        int32_t physicalIndex{ -1 };
-        int32_t align{};
+        std::int32_t physicalIndex{ -1 };
+        std::int32_t align{};
 
         // The node that holds/binds the label in the list.
         const zasm::Node* node{};
@@ -56,7 +57,7 @@ namespace zasm::detail
     {
         Node* head{};
         Node* tail{};
-        size_t nodeCount{};
+        std::size_t nodeCount{};
     };
 
     struct Symbols

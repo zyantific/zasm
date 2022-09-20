@@ -6,7 +6,9 @@
 #include "zasm/encoder/encoder.hpp"
 
 #include <Zydis/Decoder.h>
+#include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <iterator>
 
 namespace zasm
@@ -15,19 +17,19 @@ namespace zasm
     {
         struct LabelInfo
         {
-            static constexpr int32_t kUnboundOffset = -1;
-            static constexpr int64_t kUnboundAddress = -1;
+            static constexpr std::int32_t kUnboundOffset = -1;
+            static constexpr std::int64_t kUnboundAddress = -1;
 
             Label::Id labelId{ Label::Id::Invalid };
-            int32_t boundOffset{ kUnboundOffset };
-            int64_t boundAddress{ kUnboundAddress };
+            std::int32_t boundOffset{ kUnboundOffset };
+            std::int64_t boundAddress{ kUnboundAddress };
         };
 
         struct SerializerState
         {
-            int64_t base{};
+            std::int64_t base{};
             std::vector<SectionInfo> sections;
-            std::vector<uint8_t> code;
+            std::vector<std::uint8_t> code;
             std::vector<RelocationInfo> relocations;
             std::vector<RelocationInfo> externalRelocations;
             std::vector<LabelInfo> labels;
@@ -38,23 +40,23 @@ namespace zasm
     struct SerializeContext
     {
         EncoderContext& ctx;
-        std::vector<uint8_t> buffer;
+        std::vector<std::uint8_t> buffer;
     };
 
-    static bool isLabelExternal(detail::ProgramState& prog, Label::Id id)
+    static bool isLabelExternal(const detail::ProgramState& prog, Label::Id labelId) noexcept
     {
-        const auto idx = static_cast<size_t>(id);
-        if (idx >= prog.labels.size())
+        const auto labelIdx = static_cast<std::size_t>(labelId);
+        if (labelIdx >= prog.labels.size())
+        {
             return false;
+        }
 
-        const auto& entry = prog.labels[idx];
-        if ((entry.flags & LabelFlags::External) != LabelFlags::None)
-            return true;
-
-        return false;
+        const auto& entry = prog.labels[labelIdx];
+        return (entry.flags & LabelFlags::External) != LabelFlags::None;
     }
 
-    static Error serializeNode(detail::ProgramState&, SerializeContext& state, const NodePoint&)
+    static Error serializeNode(
+        [[maybe_unused]] detail::ProgramState& program, SerializeContext& state, [[maybe_unused]] const NodePoint& node)
     {
         auto& ctx = state.ctx;
 
@@ -73,7 +75,7 @@ namespace zasm
         return Error::None;
     }
 
-    static Error serializeNode(detail::ProgramState& prog, SerializeContext& state, const Instruction& instr)
+    static Error serializeNode(const detail::ProgramState& prog, SerializeContext& state, const Instruction& instr)
     {
         auto& ctx = state.ctx;
 
@@ -89,11 +91,11 @@ namespace zasm
             {
                 if (res->length < nodeEntry.length)
                 {
-                    ctx.drift += nodeEntry.length - res->length;
+                    ctx.drift += nodeEntry.length - static_cast<std::int64_t>(res->length);
                 }
                 else if (res->length > nodeEntry.length)
                 {
-                    ctx.drift -= res->length - nodeEntry.length;
+                    ctx.drift -= static_cast<std::int64_t>(res->length) - nodeEntry.length;
                 }
             }
             nodeEntry.length = res->length;
@@ -118,10 +120,12 @@ namespace zasm
         return Error::None;
     }
 
-    static Error serializeNode(detail::ProgramState& prog, SerializeContext& state, const Label& label)
+    static Error serializeNode(const detail::ProgramState& prog, SerializeContext& state, const Label& label)
     {
         if (!label.isValid())
+        {
             return Error::InvalidLabel;
+        }
 
         auto& ctx = state.ctx;
 
@@ -133,7 +137,7 @@ namespace zasm
             ctx.nodeIndex++;
         }
 
-        const auto labelIdx = static_cast<size_t>(label.getId());
+        const auto labelIdx = static_cast<std::size_t>(label.getId());
         if (labelIdx >= prog.labels.size())
         {
             return Error::LabelNotFound;
@@ -146,35 +150,35 @@ namespace zasm
         return Error::None;
     }
 
-    static bool isSameSection(const EncoderSection& a, const EncoderSection& b)
+    static bool isSameSection(const EncoderSection& lhs, const EncoderSection& rhs) noexcept
     {
-        return a.nameId == b.nameId && a.attribs == b.attribs && a.align == b.align;
+        return lhs.nameId == rhs.nameId && lhs.attribs == rhs.attribs && lhs.align == rhs.align;
     }
 
-    static void finalizeCurSection(SerializeContext& state)
+    static void finalizeCurSection(SerializeContext& state) noexcept
     {
         auto& ctx = state.ctx;
 
         auto& curSection = ctx.sections[ctx.sectionIndex];
 
         // Final virtual size.
-        curSection.virtualSize = math::alignTo<int32_t>(curSection.rawSize, curSection.align);
+        curSection.virtualSize = math::alignTo<std::int64_t>(curSection.rawSize, curSection.align);
 
         // Align current address.
         ctx.va = math::alignTo<int64_t>(ctx.va, curSection.align);
     }
 
-    static Error serializeNode(detail::ProgramState& prog, SerializeContext& state, const Section& section)
+    static Error serializeNode(const detail::ProgramState& prog, SerializeContext& state, const Section& section)
     {
         auto& ctx = state.ctx;
 
-        const auto sectionIndex = static_cast<size_t>(section.getId());
+        const auto sectionIndex = static_cast<std::size_t>(section.getId());
         if (sectionIndex >= prog.sections.size())
         {
             return Error::SectionNotFound;
         }
 
-        auto& sectionData = prog.sections[sectionIndex];
+        const auto& sectionData = prog.sections[sectionIndex];
 
         auto& curSection = ctx.sections[ctx.sectionIndex];
 
@@ -209,12 +213,12 @@ namespace zasm
         return Error::None;
     }
 
-    static Error serializeNode(detail::ProgramState&, SerializeContext& state, const Data& data)
+    static Error serializeNode([[maybe_unused]] const detail::ProgramState& program, SerializeContext& state, const Data& data)
     {
         auto& ctx = state.ctx;
 
-        const uint8_t* ptr = reinterpret_cast<const uint8_t*>(data.getData());
-        const auto totalSize = data.getTotalSize();
+        const auto* ptr = static_cast<const uint8_t*>(data.getData());
+        const auto totalSize = static_cast<int32_t>(data.getTotalSize());
 
         {
             auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
@@ -242,12 +246,12 @@ namespace zasm
         return Error::None;
     }
 
-    static Error serializeNode(detail::ProgramState& program, SerializeContext& state, const EmbeddedLabel& data)
+    static Error serializeNode(const detail::ProgramState& program, SerializeContext& state, const EmbeddedLabel& data)
     {
         auto& ctx = state.ctx;
 
-        int32_t byteSize = 0;
-        int64_t labelAddr = 0;
+        std::int32_t byteSize = 0;
+        std::int64_t labelAddr = 0;
 
         const auto label = data.getLabel();
         if (auto addr = state.ctx.getLabelAddress(label.getId()); addr.has_value())
@@ -275,42 +279,45 @@ namespace zasm
             }
         }
 
-        uint8_t tempBuf[8]{};
+        std::array<std::uint8_t, sizeof(std::uint64_t)> tempBuf{};
         RelocationType relocKind = RelocationType::Abs;
 
         const auto absValue = std::abs(labelAddr);
         if (data.getSize() == BitSize::_8)
         {
-            if (!ctx.needsExtraPass && absValue >= std::numeric_limits<uint8_t>::max())
+            if (!ctx.needsExtraPass && absValue >= std::numeric_limits<std::uint8_t>::max())
+            {
                 return Error::InvalidLabel;
-
-            const auto rawValue = static_cast<int8_t>(labelAddr);
-            std::memcpy(tempBuf, &rawValue, sizeof(rawValue));
-            byteSize = 1;
+            }
+            const auto rawValue = static_cast<std::int8_t>(labelAddr);
+            std::memcpy(tempBuf.data(), &rawValue, sizeof(rawValue));
+            byteSize = sizeof(rawValue);
         }
         else if (data.getSize() == BitSize::_16)
         {
-            if (!ctx.needsExtraPass && absValue >= std::numeric_limits<uint16_t>::max())
+            if (!ctx.needsExtraPass && absValue >= std::numeric_limits<std::uint16_t>::max())
+            {
                 return Error::InvalidLabel;
-
-            const auto rawValue = static_cast<int16_t>(labelAddr);
-            std::memcpy(tempBuf, &rawValue, sizeof(rawValue));
-            byteSize = 2;
+            }
+            const auto rawValue = static_cast<std::int16_t>(labelAddr);
+            std::memcpy(tempBuf.data(), &rawValue, sizeof(rawValue));
+            byteSize = sizeof(rawValue);
         }
         else if (data.getSize() == BitSize::_32)
         {
-            if (!ctx.needsExtraPass && absValue >= std::numeric_limits<uint32_t>::max())
+            if (!ctx.needsExtraPass && absValue >= std::numeric_limits<std::uint32_t>::max())
+            {
                 return Error::InvalidLabel;
-
-            const auto rawValue = static_cast<int32_t>(labelAddr);
-            std::memcpy(tempBuf, &rawValue, sizeof(rawValue));
-            byteSize = 4;
+            }
+            const auto rawValue = static_cast<std::int32_t>(labelAddr);
+            std::memcpy(tempBuf.data(), &rawValue, sizeof(rawValue));
+            byteSize = sizeof(rawValue);
         }
         else if (data.getSize() == BitSize::_64)
         {
-            const auto rawValue = static_cast<int64_t>(labelAddr);
-            std::memcpy(tempBuf, &rawValue, sizeof(rawValue));
-            byteSize = 8;
+            const auto rawValue = static_cast<std::int64_t>(labelAddr);
+            std::memcpy(tempBuf.data(), &rawValue, sizeof(rawValue));
+            byteSize = sizeof(rawValue);
         }
         else
         {
@@ -339,39 +346,51 @@ namespace zasm
         sect.rawSize += byteSize;
 
         auto& buffer = state.buffer;
-        buffer.insert(buffer.end(), tempBuf, tempBuf + byteSize);
+        buffer.insert(buffer.end(), std::begin(tempBuf), std::begin(tempBuf) + byteSize);
 
         return Error::None;
     }
 
     Serializer::Serializer()
-        : _state(new detail::SerializerState())
+        : _state(std::make_unique<detail::SerializerState>())
     {
     }
 
-    Serializer::~Serializer()
+    Serializer::Serializer(Serializer&& other) noexcept
     {
-        delete _state;
+        *this = std::move(other);
     }
 
-    Error Serializer::serialize(const Program& program, int64_t newBase)
+    Serializer::~Serializer() = default;
+
+    Serializer& Serializer::operator=(Serializer&& other) noexcept
+    {
+        _state = std::move(other._state);
+        other._state = nullptr;
+
+        return *this;
+    }
+
+    Error Serializer::serialize(const Program& program, std::int64_t newBase)
     {
         return serialize(program, newBase, program.getHead(), program.getTail());
     }
 
-    Error Serializer::serialize(const Program& program, int64_t newBase, const Node* first, const Node* last)
+    Error Serializer::serialize(const Program& program, std::int64_t newBase, const Node* first, const Node* last)
     {
         detail::ProgramState& programState = program.getState();
 
         const auto* lastNode = last != nullptr ? last->getNext() : nullptr;
 
-        const auto nodeCount = [&]() -> size_t {
+        const auto nodeCount = [&]() noexcept -> size_t {
             // If the entire program is serialized the size is known.
             if (first == program.getHead() && last == program.getTail())
+            {
                 return program.size();
+            }
             // else count nodes in range.
-            size_t count = 0;
-            for (auto* node = first; node != lastNode; node = node->getNext())
+            std::size_t count = 0;
+            for (const auto* node = first; node != lastNode; node = node->getNext())
             {
                 count++;
             }
@@ -385,15 +404,15 @@ namespace zasm
 
         SerializeContext state{ encoderCtx, {} };
 
-        int32_t codeDiff = 0;
-        int32_t codeSize = 0;
+        std::int32_t codeDiff = 0;
+        std::int32_t codeSize = 0;
 
         EncoderSection defaultSect{};
         defaultSect.index = 0;
-        defaultSect.attribs = Section::Attribs::Code;
+        defaultSect.attribs = Section::kDefaultAttribs;
+        defaultSect.align = Section::kDefaultAlign;
         defaultSect.address = newBase;
         defaultSect.nameId = programState.symbolNames.aquire(".text");
-        defaultSect.align = 0x1000;
 
         const auto serializePass = [&]() {
             state.buffer.clear();
@@ -412,7 +431,7 @@ namespace zasm
 
             for (const auto* node = first; node != lastNode; node = node->getNext())
             {
-                auto status = node->visit([&](auto&& n) { return serializeNode(programState, state, n); });
+                const auto status = node->visit([&](auto&& n) { return serializeNode(programState, state, n); });
                 if (status != Error::None)
                 {
                     return status;
@@ -427,7 +446,7 @@ namespace zasm
         };
 
         // Initial.
-        if (auto status = serializePass(); status != Error::None)
+        if (const auto status = serializePass(); status != Error::None)
         {
             return status;
         }
@@ -446,7 +465,7 @@ namespace zasm
         // Second or more passes.
         while (encoderCtx.needsExtraPass || encoderCtx.drift != 0)
         {
-            if (auto status = serializePass(); status != Error::None)
+            if (const auto status = serializePass(); status != Error::None)
             {
                 return status;
             }
@@ -459,7 +478,7 @@ namespace zasm
         _state->labels.clear();
         for (auto& labelLink : encoderCtx.labelLinks)
         {
-            const auto labelIdx = static_cast<size_t>(labelLink.id);
+            const auto labelIdx = static_cast<std::size_t>(labelLink.id);
             if (labelIdx >= programState.labels.size())
             {
                 return Error::InvalidLabel;
@@ -486,15 +505,19 @@ namespace zasm
             default:
                 return Error::InvalidParameter;
         }
-
-        ZydisDecodedOperand instrOps[ZYDIS_MAX_OPERAND_COUNT];
-        ZydisDecodedInstruction instr;
+        if (decoderStatus != ZYAN_STATUS_SUCCESS)
+        {
+            // FIXME: Make this a better error.
+            return Error::InvalidMode;
+        }
 
         _state->relocations.clear();
         for (auto& node : encoderCtx.nodes)
         {
             if (node.relocKind == RelocationType::None)
+            {
                 continue;
+            }
 
             RelocationInfo reloc;
             reloc.kind = node.relocKind;
@@ -510,19 +533,30 @@ namespace zasm
             {
                 reloc.offset = node.offset;
                 reloc.address = node.address;
-                reloc.size = toBitSize(node.length * 8);
+                reloc.size = toBitSize(node.length * std::numeric_limits<std::uint8_t>::digits);
             }
             else
             {
-                const uint8_t* data = state.buffer.data() + node.offset;
+                const std::uint8_t* data = state.buffer.data() + node.offset;
+
+                std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT> instrOps{};
+                ZydisDecodedInstruction instr{};
 
                 decoderStatus = ZydisDecoderDecodeFull(
-                    &decoder, data, node.length, &instr, instrOps, static_cast<ZyanU8>(std::size(instrOps)), 0);
+                    &decoder, data, node.length, &instr, instrOps.data(), static_cast<ZyanU8>(std::size(instrOps)), 0);
+
+                if (decoderStatus != ZYAN_STATUS_SUCCESS)
+                {
+                    // FIXME: Properly translate the error.
+                    return Error::ImpossibleRelocation;
+                }
 
                 if (node.relocData == RelocationData::Immediate)
                 {
-                    if (instr.raw.imm[0].is_relative)
+                    if (instr.raw.imm[0].is_relative == ZYAN_TRUE)
+                    {
                         continue;
+                    }
 
                     reloc.offset = node.offset + instr.raw.imm[0].offset;
                     reloc.address = node.address + instr.raw.imm[0].offset;
@@ -539,15 +573,22 @@ namespace zasm
             if (isExternal)
             {
                 // Zero out the temporary value to make it easier to spot unpatched values.
-                constexpr const uint8_t temp[sizeof(uint64_t)]{};
                 if (reloc.size == BitSize::_8)
-                    std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint8_t));
+                {
+                    std::fill_n(std::begin(state.buffer) + reloc.offset, sizeof(std::uint8_t), 0U);
+                }
                 else if (reloc.size == BitSize::_16)
-                    std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint16_t));
+                {
+                    std::fill_n(std::begin(state.buffer) + reloc.offset, sizeof(std::uint16_t), 0U);
+                }
                 else if (reloc.size == BitSize::_32)
-                    std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint32_t));
+                {
+                    std::fill_n(std::begin(state.buffer) + reloc.offset, sizeof(std::uint32_t), 0U);
+                }
                 else if (reloc.size == BitSize::_64)
-                    std::memcpy(state.buffer.data() + reloc.offset, temp, sizeof(uint64_t));
+                {
+                    std::fill_n(std::begin(state.buffer) + reloc.offset, sizeof(std::uint64_t), 0U);
+                }
 
                 _state->externalRelocations.push_back(reloc);
             }
@@ -562,7 +603,7 @@ namespace zasm
         _state->sections.clear();
         for (auto& sectionLink : encoderCtx.sections)
         {
-            const size_t idx = _state->sections.size();
+            const auto idx = _state->sections.size();
 
             auto& sect = _state->sections.emplace_back();
             sect.name = programState.symbolNames.get(sectionLink.nameId);
@@ -579,47 +620,49 @@ namespace zasm
         return Error::None;
     }
 
-    Error Serializer::relocate(int64_t newBase)
+    Error Serializer::relocate(std::int64_t newBase)
     {
         if (_state->code.empty())
+        {
             return Error::EmptyState;
+        }
 
         const auto oldBase = _state->base;
 
         // Make a copy of the code buffer to avoid corrupting the
         // state in case one of the relocations fail.
-        auto code = _state->code;
+        std::vector<std::uint8_t> code = _state->code;
 
-        auto relocs = _state->relocations;
+        std::vector<RelocationInfo> relocs = _state->relocations;
         for (auto& reloc : relocs)
         {
             if (reloc.size == BitSize::_32)
             {
-                uint32_t value{};
+                std::uint32_t value{};
                 std::memcpy(&value, code.data() + reloc.offset, sizeof(value));
 
-                uint64_t newValue = value;
+                std::uint64_t newValue = value;
                 newValue -= oldBase;
                 newValue += newBase;
 
-                if (newValue > std::numeric_limits<uint32_t>::max())
+                if (newValue > std::numeric_limits<std::uint32_t>::max())
                 {
                     return Error::ImpossibleRelocation;
                 }
 
-                value = static_cast<uint32_t>(newValue);
+                value = static_cast<std::uint32_t>(newValue);
                 std::memcpy(code.data() + reloc.offset, &value, sizeof(value));
             }
             else if (reloc.size == BitSize::_64)
             {
-                uint64_t value{};
+                std::uint64_t value{};
                 std::memcpy(&value, code.data() + reloc.offset, sizeof(value));
 
-                uint64_t newValue = value;
+                std::uint64_t newValue = value;
                 newValue -= oldBase;
                 newValue += newBase;
 
-                value = static_cast<uint64_t>(newValue);
+                value = static_cast<std::uint64_t>(newValue);
                 std::memcpy(code.data() + reloc.offset, &value, sizeof(value));
             }
 
@@ -628,7 +671,7 @@ namespace zasm
         }
 
         // Adjust external relocations.
-        auto externalRelocs = _state->externalRelocations;
+        std::vector<RelocationInfo> externalRelocs = _state->externalRelocations;
         for (auto& reloc : externalRelocs)
         {
             reloc.address -= oldBase;
@@ -636,7 +679,7 @@ namespace zasm
         }
 
         // Adjust label addresses.
-        auto labels = _state->labels;
+        std::vector<detail::LabelInfo> labels = _state->labels;
         for (auto& label : labels)
         {
             label.boundAddress -= oldBase;
@@ -644,7 +687,7 @@ namespace zasm
         }
 
         // Adjust sections
-        auto sections = _state->sections;
+        std::vector<SectionInfo> sections = _state->sections;
         for (auto& sect : sections)
         {
             sect.address -= oldBase;
@@ -662,86 +705,94 @@ namespace zasm
         return Error::None;
     }
 
-    int64_t Serializer::getBase() const noexcept
+    std::int64_t Serializer::getBase() const noexcept
     {
         return _state->base;
     }
 
-    size_t Serializer::getCodeSize() const noexcept
+    std::size_t Serializer::getCodeSize() const noexcept
     {
         return _state->code.size();
     }
 
-    const uint8_t* Serializer::getCode() const noexcept
+    const std::uint8_t* Serializer::getCode() const noexcept
     {
         if (_state->code.empty())
+        {
             return nullptr;
-
+        }
         return _state->code.data();
     }
 
-    size_t Serializer::getSectionCount() const noexcept
+    std::size_t Serializer::getSectionCount() const noexcept
     {
         return _state->sections.size();
     }
 
-    const SectionInfo* Serializer::getSectionInfo(size_t sectionIndex) const noexcept
+    const SectionInfo* Serializer::getSectionInfo(std::size_t sectionIndex) const noexcept
     {
         if (sectionIndex >= _state->sections.size())
+        {
             return nullptr;
-
+        }
         return &_state->sections[sectionIndex];
     }
 
-    int64_t Serializer::getLabelOffset(const Label::Id labelId) const noexcept
+    std::int32_t Serializer::getLabelOffset(const Label::Id labelId) const noexcept
     {
-        const auto idx = static_cast<size_t>(labelId);
+        const auto idx = static_cast<std::size_t>(labelId);
         if (idx >= _state->labels.size())
+        {
             return -1;
+        }
 
         assert(_state->labels[idx].labelId == labelId);
 
         return _state->labels[idx].boundOffset;
     }
 
-    int64_t Serializer::getLabelAddress(const Label::Id labelId) const noexcept
+    std::int64_t Serializer::getLabelAddress(const Label::Id labelId) const noexcept
     {
-        const auto idx = static_cast<size_t>(labelId);
+        const auto idx = static_cast<std::size_t>(labelId);
         if (idx >= _state->labels.size())
+        {
             return -1;
+        }
 
         assert(_state->labels[idx].labelId == labelId);
 
         return _state->labels[idx].boundAddress;
     }
 
-    size_t Serializer::getRelocationCount() const noexcept
+    std::size_t Serializer::getRelocationCount() const noexcept
     {
         return _state->relocations.size();
     }
 
-    const RelocationInfo* Serializer::getRelocation(const size_t index) const noexcept
+    const RelocationInfo* Serializer::getRelocation(const std::size_t index) const noexcept
     {
         if (index >= _state->relocations.size())
+        {
             return nullptr;
-
+        }
         return &_state->relocations[index];
     }
 
-    size_t Serializer::getExternalRelocationCount() const noexcept
+    std::size_t Serializer::getExternalRelocationCount() const noexcept
     {
         return _state->externalRelocations.size();
     }
 
-    const zasm::RelocationInfo* Serializer::getExternalRelocation(const size_t index) const noexcept
+    const zasm::RelocationInfo* Serializer::getExternalRelocation(const std::size_t index) const noexcept
     {
         if (index >= _state->externalRelocations.size())
+        {
             return nullptr;
-
+        }
         return &_state->externalRelocations[index];
     }
 
-    void Serializer::clear()
+    void Serializer::clear() noexcept
     {
         _state->base = 0;
         _state->code.clear();

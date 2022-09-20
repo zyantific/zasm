@@ -35,12 +35,12 @@ namespace zasm
             return _id != Id::Invalid;
         }
 
-        BitSize getBitSize() const noexcept
+        static BitSize getBitSize() noexcept
         {
             return BitSize::_0;
         }
 
-        BitSize getBitSize(MachineMode) const noexcept
+        BitSize getBitSize(MachineMode /*unused*/) const noexcept
         {
             return getBitSize();
         }

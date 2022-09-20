@@ -5,7 +5,7 @@
 
 namespace zasm
 {
-    enum class Error : uint32_t
+    enum class Error : std::uint32_t
     {
         None = 0,
         // Generic.

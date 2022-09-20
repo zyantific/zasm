@@ -10,18 +10,16 @@ namespace zasm
         class Node : public zasm::Node
         {
         public:
-            constexpr Node() = default;
-
             template<typename T>
-            constexpr Node(zasm::Node::Id id, T&& val)
+            constexpr Node(zasm::Node::Id id, T&& val) noexcept
                 : ::zasm::Node(id, std::forward<T>(val))
             {
             }
-            void setPrev(const ::zasm::Node* node)
+            void setPrev(const ::zasm::Node* node) noexcept
             {
                 _prev = node;
             }
-            void setNext(const ::zasm::Node* node)
+            void setNext(const ::zasm::Node* node) noexcept
             {
                 _next = node;
             }
@@ -29,7 +27,7 @@ namespace zasm
 
         static_assert(sizeof(Node) == sizeof(::zasm::Node));
 
-        static Node* toInternal(const zasm::Node* node)
+        static Node* toInternal(const zasm::Node* node) noexcept
         {
             return static_cast<Node*>(const_cast<zasm::Node*>(node));
         }

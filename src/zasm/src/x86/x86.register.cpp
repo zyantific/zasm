@@ -14,7 +14,7 @@ namespace zasm::x86
             // Skip the hi ones.
             regIndex += kGp8HiStartIndex;
         }
-        auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR8, regIndex);
+        const auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR8, regIndex);
         return Gp{ static_cast<Reg::Id>(reg) };
     }
 
@@ -25,34 +25,34 @@ namespace zasm::x86
 
     Gp Gp::r8hi() const noexcept
     {
-        auto regIndex = getPhysicalIndex();
+        const auto regIndex = getPhysicalIndex();
         if (regIndex >= kGp8HiStartIndex)
         {
             // Unsupported.
             return Gp{};
         }
-        auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR8, regIndex + kGp8HiStartIndex);
+        const auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR8, regIndex + kGp8HiStartIndex);
         return Gp{ static_cast<Reg::Id>(reg) };
     }
 
     Gp Gp::r16() const noexcept
     {
-        auto regIndex = getPhysicalIndex();
-        auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR16, regIndex);
+        const auto regIndex = getPhysicalIndex();
+        const auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR16, regIndex);
         return Gp{ static_cast<Reg::Id>(reg) };
     }
 
     Gp Gp::r32() const noexcept
     {
-        auto regIndex = getPhysicalIndex();
-        auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR32, regIndex);
+        const auto regIndex = getPhysicalIndex();
+        const auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR32, regIndex);
         return Gp{ static_cast<Reg::Id>(reg) };
     }
 
     Gp Gp::r64() const noexcept
     {
-        auto regIndex = getPhysicalIndex();
-        auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR64, regIndex);
+        const auto regIndex = getPhysicalIndex();
+        const auto reg = ZydisRegisterEncode(ZYDIS_REGCLASS_GPR64, regIndex);
         return Gp{ static_cast<Reg::Id>(reg) };
     }
 

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <iterator>
 #include <string.h>
 #include <string>
 #include <vector>
@@ -14,18 +15,18 @@ namespace zasm
     {
         struct Entry
         {
-            size_t hash{};
-            int32_t offset{};
-            int32_t len{};
-            int32_t capacity{};
-            int32_t refCount{};
+            std::size_t hash{};
+            std::int32_t offset{};
+            std::int32_t len{};
+            std::int32_t capacity{};
+            std::int32_t refCount{};
         };
 
         std::vector<Entry> _entries;
         std::vector<char> _data;
 
     public:
-        enum class Id : int32_t
+        enum class Id : std::int32_t
         {
             Invalid = -1,
         };
@@ -47,9 +48,9 @@ namespace zasm
             return aquire_(val.c_str(), val.size());
         }
 
-        int32_t release(Id id)
+        int32_t release(Id stringId) noexcept
         {
-            Entry* entry = getEntry(*this, id);
+            Entry* entry = getEntry(*this, stringId);
             if (entry == nullptr)
             {
                 return 0;
@@ -59,25 +60,22 @@ namespace zasm
             return newRefCount;
         }
 
-        template<size_t N> Id find(const char (&value)[N]) const noexcept
+        // NOLINTNEXTLINE
+        template<std::size_t N> Id find(const char (&value)[N]) const noexcept
         {
             const auto hash = getHash(value, N);
             return find(value, N, hash);
         }
 
-        bool isValid(Id id) const noexcept
+        bool isValid(Id stringId) const noexcept
         {
-            auto* entry = getEntry(*this, id);
-            if (entry == nullptr)
-            {
-                return false;
-            }
-            return true;
+            const auto* entry = getEntry(*this, stringId);
+            return entry != nullptr;
         }
 
-        const char* get(Id id) const noexcept
+        const char* get(Id stringId) const noexcept
         {
-            auto* entry = getEntry(*this, id);
+            const auto* entry = getEntry(*this, stringId);
             if (entry == nullptr)
             {
                 return nullptr;
@@ -86,9 +84,9 @@ namespace zasm
             return _data.data() + entry->offset;
         }
 
-        int32_t getLength(Id id) const noexcept
+        int32_t getLength(Id stringId) const noexcept
         {
-            auto* entry = getEntry(*this, id);
+            const auto* entry = getEntry(*this, stringId);
             if (entry == nullptr)
             {
                 return 0;
@@ -96,9 +94,9 @@ namespace zasm
             return entry->len;
         }
 
-        int32_t getRefCount(Id id) const noexcept
+        int32_t getRefCount(Id stringId) const noexcept
         {
-            auto* entry = getEntry(*this, id);
+            const auto* entry = getEntry(*this, stringId);
             if (entry == nullptr)
             {
                 return 0;
@@ -115,10 +113,10 @@ namespace zasm
 
     private:
         template<typename TSelf>
-        static auto getEntry(TSelf&& self, Id id)
+        static auto getEntry(TSelf&& self, Id stringId) noexcept
             -> std::conditional_t<std::is_const_v<std::remove_reference_t<TSelf>>, const Entry*, Entry*>
         {
-            const auto idx = static_cast<size_t>(id);
+            const auto idx = static_cast<std::size_t>(stringId);
             if (idx >= self._entries.size())
             {
                 return nullptr;
@@ -131,9 +129,9 @@ namespace zasm
             return &self._entries[idx];
         }
 
-        Id find_(const char* buf, size_t len, size_t hash) const noexcept
+        Id find_(const char* buf, std::size_t len, std::size_t hash) const noexcept
         {
-            auto it = std::find_if(std::begin(_entries), std::end(_entries), [&](const auto& entry) {
+            auto it = std::find_if(std::begin(_entries), std::end(_entries), [&](const auto& entry) noexcept {
                 if (entry.refCount == 0 || entry.hash != hash || entry.len != len)
                 {
                     return false;
@@ -143,77 +141,81 @@ namespace zasm
             });
             if (it != std::end(_entries))
             {
-                auto index = std::distance(_entries.begin(), it);
+                const auto index = std::distance(_entries.begin(), it);
                 return static_cast<Id>(index);
             }
             return Id::Invalid;
         }
 
-        Id aquire_(const char* buf, size_t len)
+        Id aquire_(const char* buf, std::size_t len)
         {
-            constexpr int32_t kTerminatorLength = 1;
+            constexpr std::int32_t kTerminatorLength = 1;
 
             const auto hash = getHash(buf, len);
 
-            auto id = find_(buf, len, hash);
-            if (id != Id::Invalid)
+            auto stringId = find_(buf, len, hash);
+            if (stringId != Id::Invalid)
             {
-                auto& entry = _entries[static_cast<size_t>(id)];
+                auto& entry = _entries[static_cast<std::size_t>(stringId)];
                 entry.refCount++;
-                return id;
+                return stringId;
             }
 
-            const auto len2 = static_cast<int32_t>(len);
+            const auto len2 = static_cast<std::int32_t>(len);
 
             // Use empty entry if any exist.
-            auto it = std::find_if(_entries.begin(), _entries.end(), [&](auto&& entry) {
+            auto itEntry = std::find_if(_entries.begin(), _entries.end(), [&](auto&& entry) {
                 return entry.refCount <= 0 && entry.capacity >= len2 + kTerminatorLength;
             });
 
-            if (it != _entries.end())
+            if (itEntry != _entries.end())
             {
                 // Found empty space.
-                auto& entry = *it;
+                auto& entry = *itEntry;
 
-                id = static_cast<Id>(std::distance(_entries.begin(), it));
+                stringId = static_cast<Id>(std::distance(_entries.begin(), itEntry));
                 std::memcpy(_data.data() + entry.offset, buf, len2);
 
                 // Ensure null termination.
-                _data[entry.offset + len2] = '\0';
+                const auto termOffset = static_cast<std::size_t>(entry.offset) + len2;
+                _data[termOffset] = '\0';
 
                 entry.hash = hash;
                 entry.len = len2;
                 entry.refCount = 1;
 
-                return id;
+                return stringId;
             }
 
             // New entry.
-            const int32_t offset = static_cast<int32_t>(_data.size());
-            _data.insert(_data.end(), buf, buf + len);
+            const auto offset = static_cast<std::int32_t>(_data.size());
+            std::copy_n(buf, len, std::back_insert_iterator(_data));
 
             // Ensure null termination.
             _data.push_back('\0');
 
-            id = static_cast<Id>(_entries.size());
+            stringId = static_cast<Id>(_entries.size());
 
             _entries.push_back({ hash, offset, len2, len2 + kTerminatorLength, 1 });
 
-            return id;
+            return stringId;
         }
 
-    private:
-        constexpr size_t getHash(const char* buf, size_t len) const noexcept
+        static constexpr std::size_t getHash(const char* buf, size_t len) noexcept
         {
+            if (buf == nullptr)
+            {
+                return 0;
+            }
 #ifdef _M_AMD64
-            constexpr size_t offset = 0xcbf29ce484222325ULL;
-            constexpr size_t prime = 0x00000100000001B3ULL;
+            constexpr std::size_t offset = 0xcbf29ce484222325ULL;
+            constexpr std::size_t prime = 0x00000100000001B3ULL;
 #else
-            constexpr size_t offset = 0x811c9dc5U;
-            constexpr size_t prime = 0x01000193U;
+            constexpr std::size_t offset = 0x811c9dc5U;
+            constexpr std::size_t prime = 0x01000193U;
 #endif
-            size_t result = offset;
-            for (size_t i = 0; i < len; ++i)
+            std::size_t result = offset;
+            for (std::size_t i = 0; i < len; ++i)
             {
                 result ^= static_cast<unsigned char>(buf[i]);
                 result *= prime;

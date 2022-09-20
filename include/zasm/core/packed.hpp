@@ -10,7 +10,7 @@ namespace zasm
 {
     template<typename TUnderlying, typename TElement, std::size_t TElementBitSize> class Packed
     {
-        static_assert(std::is_signed_v<TUnderlying> == false, "Underlying type must be unsigned");
+        static_assert(!std::is_signed_v<TUnderlying>, "Underlying type must be unsigned");
 
         static constexpr std::size_t kElementMask = (TUnderlying{ 1U } << TElementBitSize) - TUnderlying{ 1U };
         static constexpr std::size_t kStorageBitSize = std::numeric_limits<TUnderlying>::digits;
@@ -48,7 +48,9 @@ namespace zasm
 
             assert(bitIndex + TElementBitSize < kStorageBitSize);
             if (bitIndex + TElementBitSize > kStorageBitSize)
+            {
                 return;
+            }
 
             const auto newVal = (static_cast<TUnderlying>(val) & kElementMask) << bitIndex;
 
@@ -71,7 +73,9 @@ namespace zasm
 
             assert(bitIndex + TElementBitSize < kStorageBitSize);
             if (bitIndex + TElementBitSize > kStorageBitSize)
+            {
                 return TElement{};
+            }
 
             const auto res = (_data >> bitIndex) & kElementMask;
             return static_cast<TElement>(res);

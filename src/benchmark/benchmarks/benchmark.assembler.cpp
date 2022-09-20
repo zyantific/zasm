@@ -22,7 +22,7 @@ namespace zasm::benchmarks
             assembler.nop();
 
             state.counters["Instructions"] = benchmark::Counter(
-                1, benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
+                1.0, benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
         }
     }
     BENCHMARK(BM_Assembler_EmitSingle_0_Operands)->Unit(benchmark::kMicrosecond);
@@ -44,7 +44,7 @@ namespace zasm::benchmarks
             assembler.push(rax);
 
             state.counters["Instructions"] = benchmark::Counter(
-                1, benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
+                1.0, benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
         }
     }
     BENCHMARK(BM_Assembler_EmitSingle_1_Operands)->Unit(benchmark::kMicrosecond);
@@ -66,7 +66,7 @@ namespace zasm::benchmarks
             assembler.mov(rax, rax);
 
             state.counters["Instructions"] = benchmark::Counter(
-                1, benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
+                1.0, benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
         }
     }
     BENCHMARK(BM_Assembler_EmitSingle_2_Operands)->Unit(benchmark::kMicrosecond);
@@ -88,7 +88,7 @@ namespace zasm::benchmarks
             assembler.rorx(rcx, rdx, Imm(1));
 
             state.counters["Instructions"] = benchmark::Counter(
-                1, benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
+                1.0, benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
         }
     }
     BENCHMARK(BM_Assembler_EmitSingle_3_Operands)->Unit(benchmark::kMicrosecond);
@@ -113,7 +113,8 @@ namespace zasm::benchmarks
             }
 
             state.counters["Instructions"] = benchmark::Counter(
-                program.size(), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
+                static_cast<double>(program.size()), benchmark::Counter::kIsIterationInvariantRate,
+                benchmark::Counter::OneK::kIs1000);
         }
     }
     BENCHMARK(BM_Assembler_EmitAll)->Unit(benchmark::kMillisecond);
