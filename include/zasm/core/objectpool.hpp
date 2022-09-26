@@ -40,28 +40,28 @@ namespace zasm
         Entry* _freeItem = nullptr;
 
     public:
-        typedef ObjectPool<T> other;
+        using other = ObjectPool<T>;
 
-        typedef T value_type;
+        using value_type = T;
 
-        typedef value_type* pointer;
-        typedef const value_type* const_pointer;
-        typedef void* void_pointer;
-        typedef const void* const_void_pointer;
+        using pointer = value_type*;
+        using const_pointer = const value_type*;
+        using void_pointer = void*;
+        using const_void_pointer = const void*;
 
-        typedef value_type& reference;
-        typedef const value_type& const_reference;
+        using reference = value_type&;
+        using const_reference = const value_type&;
 
-        typedef std::size_t size_type;
+        using size_type = std::size_t;
 
         ObjectPool<T> select_on_container_copy_construction() const
         {
             return (*this);
         }
 
-        template<class _Other> struct rebind
+        template<class TOther> struct rebind
         {
-            typedef ObjectPool<_Other> other;
+            using other = ObjectPool<TOther>;
         };
 
         ObjectPool()
