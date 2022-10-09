@@ -6,6 +6,7 @@
 #include "label.hpp"
 #include "section.hpp"
 
+#include <cstddef>
 #include <climits>
 #include <variant>
 
