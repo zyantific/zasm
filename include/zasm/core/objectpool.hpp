@@ -22,10 +22,10 @@ namespace zasm
 
             alignas(alignof(T)) std::array<std::byte, sizeof(T)> object;
 
-            T* data() noexcept
+            void* data() noexcept
             {
                 // NOLINTNEXTLINE
-                return reinterpret_cast<T*>(object.data());
+                return static_cast<void*>(object.data());
             }
         };
 #pragma pack(pop)
@@ -69,14 +69,14 @@ namespace zasm
             _blocks.push_back(std::make_unique<Block>());
         }
 
-        pointer address(reference _Val) const noexcept
+        pointer address(reference val) const noexcept
         {
-            return std::addressof(_Val);
+            return std::addressof(val);
         }
 
-        const_pointer address(const_reference _Val) const noexcept
+        const_pointer address(const_reference val) const noexcept
         {
-            return std::addressof(_Val);
+            return std::addressof(val);
         }
 
         template<class TOther> ObjectPool([[maybe_unused]] const ObjectPool<TOther>& other)
@@ -106,7 +106,7 @@ namespace zasm
                 auto* entry = _freeItem;
                 _freeItem = entry->prev;
 
-                return entry->data();
+                return static_cast<pointer>(entry->data());
             }
 
             auto* block = _blocks.back().get();
@@ -118,7 +118,7 @@ namespace zasm
             auto& entry = block->storage[block->slot];
             block->slot++;
 
-            return entry.data();
+            return static_cast<pointer>(entry.data());
         }
 
         pointer allocate(size_type count, [[maybe_unused]] const void* hint)
