@@ -539,12 +539,9 @@ namespace zasm
             {
                 const std::uint8_t* data = state.buffer.data() + node.offset;
 
-                std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT> instrOps{};
                 ZydisDecodedInstruction instr{};
 
-                decoderStatus = ZydisDecoderDecodeFull(
-                    &decoder, data, node.length, &instr, instrOps.data(), static_cast<ZyanU8>(std::size(instrOps)), 0);
-
+                decoderStatus = ZydisDecoderDecodeInstruction(&decoder, nullptr, data, node.length, &instr);
                 if (decoderStatus != ZYAN_STATUS_SUCCESS)
                 {
                     // FIXME: Properly translate the error.

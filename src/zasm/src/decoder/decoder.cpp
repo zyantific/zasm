@@ -151,8 +151,7 @@ namespace zasm
         ZydisDecodedInstruction instr;
         std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT> instrOps{};
 
-        ZyanStatus status = ZydisDecoderDecodeFull(
-            &_decoder, data, len, &instr, instrOps.data(), static_cast<ZyanU8>(std::size(instrOps)), 0);
+        ZyanStatus status = ZydisDecoderDecodeFull(&_decoder, data, len, &instr, instrOps.data());
         if (status != ZYAN_STATUS_SUCCESS)
         {
             // TODO: Translate proper error.

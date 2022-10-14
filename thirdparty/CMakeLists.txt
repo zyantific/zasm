@@ -17,12 +17,12 @@ option(BENCHMARK_USE_BUNDLED_GTEST "" OFF)
 
 include(FetchContent)
 
-message(STATUS "Fetching Zydis (9b88291)...")
+message(STATUS "Fetching Zydis (v4.0.0-rc.1)...")
 FetchContent_Declare(Zydis
 	GIT_REPOSITORY
 		"https://github.com/zyantific/zydis"
 	GIT_TAG
-		9b88291
+		v4.0.0-rc.1
 )
 FetchContent_MakeAvailable(Zydis)
 
