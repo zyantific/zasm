@@ -3,6 +3,7 @@
 [options]
 ZYDIS_BUILD_EXAMPLES = false
 ZYDIS_BUILD_TOOLS = false
+ZYDIS_BUILD_DOXYGEN = false
 INSTALL_GTEST = false
 BUILD_GMOCK = false
 BENCHMARK_ENABLE_TESTING = false
@@ -11,7 +12,7 @@ BENCHMARK_USE_BUNDLED_GTEST = false
 
 [fetch-content.Zydis]
 git = "https://github.com/zyantific/zydis"
-tag = "9b88291"
+tag = "53dd088062c734e7882b3a77ff287bdf3356d977"
 
 [fetch-content.GTest]
 condition = "tests"

@@ -9,6 +9,7 @@ endif()
 # Options
 option(ZYDIS_BUILD_EXAMPLES "" OFF)
 option(ZYDIS_BUILD_TOOLS "" OFF)
+option(ZYDIS_BUILD_DOXYGEN "" OFF)
 option(INSTALL_GTEST "" OFF)
 option(BUILD_GMOCK "" OFF)
 option(BENCHMARK_ENABLE_TESTING "" OFF)
@@ -17,12 +18,12 @@ option(BENCHMARK_USE_BUNDLED_GTEST "" OFF)
 
 include(FetchContent)
 
-message(STATUS "Fetching Zydis (9b88291)...")
+message(STATUS "Fetching Zydis (53dd088062c734e7882b3a77ff287bdf3356d977)...")
 FetchContent_Declare(Zydis
 	GIT_REPOSITORY
 		"https://github.com/zyantific/zydis"
 	GIT_TAG
-		9b88291
+		53dd088062c734e7882b3a77ff287bdf3356d977
 )
 FetchContent_MakeAvailable(Zydis)
 
