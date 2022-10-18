@@ -137,28 +137,36 @@ namespace zasm
     }
 
     static std::pair<int64_t, ZydisBranchType> processRelAddress(
-        const EncodeVariantsInfo& info, int64_t address, int64_t targetAddress)
+        const EncodeVariantsInfo& info, EncoderContext* ctx, int64_t targetAddress)
     {
         std::int64_t res{};
         auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
 
-        if (info.canEncodeRel8())
+        if (ctx == nullptr)
         {
-            const auto rel = getRelativeAddress(address, targetAddress, info.encodeSizeRel8);
-            if (std::abs(rel) <= std::numeric_limits<std::int8_t>::max())
-            {
-                res = rel;
-                desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_SHORT;
-            }
+            desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NEAR;
+            res = kTemporaryRel32Value;
         }
-
-        if (desiredBranchType == ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE && info.canEncodeRel32())
+        else
         {
-            const auto rel = getRelativeAddress(address, targetAddress, info.encodeSizeRel32);
-            if (std::abs(rel) <= std::numeric_limits<std::int32_t>::max())
+            if (info.canEncodeRel8())
             {
-                res = rel;
-                desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NEAR;
+                const auto rel = getRelativeAddress(ctx->va, targetAddress, info.encodeSizeRel8);
+                if (std::abs(rel) <= std::numeric_limits<std::int8_t>::max())
+                {
+                    res = rel;
+                    desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_SHORT;
+                }
+            }
+
+            if (desiredBranchType == ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE && info.canEncodeRel32())
+            {
+                const auto rel = getRelativeAddress(ctx->va, targetAddress, info.encodeSizeRel32);
+                if (std::abs(rel) <= std::numeric_limits<std::int32_t>::max())
+                {
+                    res = rel;
+                    desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NEAR;
+                }
             }
         }
 
@@ -217,7 +225,7 @@ namespace zasm
         {
             const auto targetAddress = labelVA.has_value() ? *labelVA : immValue;
 
-            const auto [addrRel, branchType] = processRelAddress(encodeInfo, ctx != nullptr ? ctx->va : 0, targetAddress);
+            const auto [addrRel, branchType] = processRelAddress(encodeInfo, ctx, targetAddress);
 
             immValue = addrRel;
             desiredBranchType = branchType;
@@ -266,7 +274,7 @@ namespace zasm
         if (state.operandIndex == 0 && encodeInfo.isControlFlow)
         {
             const auto targetAddress = immValue;
-            const auto [addrRel, branchType] = processRelAddress(encodeInfo, ctx != nullptr ? ctx->va : 0, targetAddress);
+            const auto [addrRel, branchType] = processRelAddress(encodeInfo, ctx, targetAddress);
 
             immValue = addrRel;
             desiredBranchType = branchType;

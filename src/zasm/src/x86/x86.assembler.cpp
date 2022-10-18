@@ -137,7 +137,7 @@ namespace zasm::x86
     {
         std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS> ops;
 
-        const auto numOps = std::min<std::size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getOperandCount());
+        auto numOps = std::min<std::size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getExplicitOperandCount());
         std::copy_n(std::begin(instr.getOperands()), numOps, std::begin(ops));
 
         return emit(

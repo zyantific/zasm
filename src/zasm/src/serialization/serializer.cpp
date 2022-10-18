@@ -757,7 +757,6 @@ namespace zasm
         }
 
         assert(_state->labels[idx].labelId == labelId);
-
         return _state->labels[idx].boundAddress;
     }
 

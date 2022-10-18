@@ -195,6 +195,19 @@ namespace zasm
             return _opCount;
         }
 
+        /// <summary>
+        /// Returns the amount of operands that are not hidden.
+        /// </summary>
+        constexpr std::size_t getExplicitOperandCount() const noexcept
+        {
+            auto opCount = _opCount;
+            while (opCount > 0 && _opsVisibility.get(opCount - 1) == Operand::Visibility::Hidden)
+            {
+                --opCount;
+            }
+            return opCount;
+        }
+
         template<std::size_t TIndex, typename T = Operand> constexpr const T& getOperand() const
         {
             if constexpr (std::is_same_v<T, Operand>)
