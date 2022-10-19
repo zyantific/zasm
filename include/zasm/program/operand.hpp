@@ -207,6 +207,18 @@ namespace zasm
             return std::holds_alternative<Operand::None>(_data);
         }
 
+        template<typename T> T& get()
+        {
+            if constexpr (std::is_same_v<T, Operand>)
+            {
+                return *this;
+            }
+            else
+            {
+                return std::get<T>(_data);
+            }
+        }
+
         template<typename T> const T& get() const
         {
             if constexpr (std::is_same_v<T, Operand>)
@@ -248,6 +260,19 @@ namespace zasm
         constexpr std::size_t getTypeIndex() const noexcept
         {
             return _data.index();
+        }
+
+        constexpr bool isExchangableType(const Operand& other) const noexcept
+        {
+            if (holds<Label>() && other.holds<Imm>())
+            {
+                return true;
+            }
+            else if (holds<Imm>() && other.holds<Label>())
+            {
+                return true;
+            }
+            return getTypeIndex() == other.getTypeIndex();
         }
 
         template<typename F> constexpr auto visit(F&& f) const

@@ -117,11 +117,10 @@ namespace zasm::x86
         return Error::None;
     }
 
-    Error Assembler::emit(
-        Attribs attribs, Mnemonic mnemonic, std::size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops)
+    Error Assembler::emit(Attribs attribs, Mnemonic mnemonic, std::size_t numOps, const Operand* ops)
     {
         auto genResult = _generator->generate(
-            static_cast<Instruction::Attribs>(attribs), static_cast<Instruction::Mnemonic>(mnemonic), numOps, std::move(ops));
+            static_cast<Instruction::Attribs>(attribs), static_cast<Instruction::Mnemonic>(mnemonic), numOps, ops);
         if (!genResult)
         {
             return genResult.error();
@@ -135,14 +134,11 @@ namespace zasm::x86
 
     Error Assembler::emit(const Instruction& instr)
     {
-        std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS> ops;
-
-        auto numOps = std::min<std::size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getExplicitOperandCount());
-        std::copy_n(std::begin(instr.getOperands()), numOps, std::begin(ops));
+        const auto& ops = instr.getOperands();
+        const auto numOps = std::min<std::size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getExplicitOperandCount());
 
         return emit(
-            static_cast<x86::Attribs>(instr.getAttribs()), static_cast<x86::Mnemonic>(instr.getMnemonic()), numOps,
-            std::move(ops));
+            static_cast<x86::Attribs>(instr.getAttribs()), static_cast<x86::Mnemonic>(instr.getMnemonic()), numOps, ops.data());
     }
 
     Error Assembler::embedLabel(Label label)
