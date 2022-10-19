@@ -264,11 +264,7 @@ namespace zasm
 
         constexpr bool isExchangableType(const Operand& other) const noexcept
         {
-            if (holds<Label>() && other.holds<Imm>())
-            {
-                return true;
-            }
-            else if (holds<Imm>() && other.holds<Label>())
+            if ((holds<Label>() && other.holds<Imm>()) || (holds<Imm>() && other.holds<Label>()))
             {
                 return true;
             }

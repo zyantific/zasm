@@ -67,7 +67,6 @@ namespace zasm
         }
 
         zasm::Instruction& newInstr = *decodeResult;
-        auto& newOps = newInstr.getOperands();
 
         const auto opCount = newInstr.getOperandCount();
         const auto& vis = newInstr.getOperandsVisibility();
