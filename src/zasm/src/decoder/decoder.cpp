@@ -13,6 +13,11 @@ namespace zasm
         return Reg{ static_cast<Reg::Id>(reg) };
     }
 
+    static constexpr bool isRipRelative(const ZydisDecodedOperandMem& mem)
+    {
+        return mem.base == ZYDIS_REGISTER_RIP || mem.base == ZYDIS_REGISTER_EIP || mem.base == ZYDIS_REGISTER_IP;
+    }
+
     static Operand getOperand(
         const ZydisDecodedInstruction& instr, const ZydisDecodedOperand& srcOp, std::uint64_t address) noexcept
     {
@@ -26,8 +31,15 @@ namespace zasm
         }
         if (srcOp.type == ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY)
         {
-            return Mem{ toBitSize(srcOp.size),   getReg(srcOp.mem.segment), getReg(srcOp.mem.base),
-                        getReg(srcOp.mem.index), srcOp.mem.scale,           srcOp.mem.disp.value };
+            auto baseReg = getReg(srcOp.mem.base);
+            auto disp = srcOp.mem.disp.value;
+            if (isRipRelative(srcOp.mem))
+            {
+                // Keep RIP as a hint to make this relative.
+                disp += instr.length + address;
+            }
+            return Mem{ toBitSize(srcOp.size),   getReg(srcOp.mem.segment), baseReg,
+                        getReg(srcOp.mem.index), srcOp.mem.scale,           disp };
         }
         if (srcOp.type == ZydisOperandType::ZYDIS_OPERAND_TYPE_IMMEDIATE)
         {

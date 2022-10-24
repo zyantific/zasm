@@ -88,14 +88,12 @@ namespace zasm
             else if (const auto* opMem = opSrc.getIf<Mem>(); opMem != nullptr && opDecoded.holds<Mem>())
             {
                 const auto& opDecodedMem = opDecoded.get<Mem>();
-                // We only require to modify the memory operand if there is a label or has a different segment.
-                if (opMem->hasLabel() || opMem->getSegment() != opDecodedMem.getSegment())
-                {
-                    // Create copy of input operand in order to modify it.
-                    Mem mem = *opMem;
-                    mem.setSegment(opDecodedMem.getSegment());
-                    newInstr.setOperand(i, mem);
-                }
+
+                // Create copy of input operand in order to modify it.
+                Mem mem = *opMem;
+                mem.setSegment(opDecodedMem.getSegment());
+                    
+                newInstr.setOperand(i, mem);
             }
             else if (opSrc.holds<Imm>())
             {
