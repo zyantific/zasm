@@ -359,13 +359,21 @@ namespace zasm
         {
             // We require the exact instruction size to encode this correctly.
             const auto instrSize = ctx != nullptr ? ctx->instrSize : 0;
-            if (ctx != nullptr && instrSize == 0)
+            if (instrSize == 0)
             {
-                // Causes to re-encode again with instruction size available.
-                ctx->instrSize = kHintRequiresSize;
+                if (ctx != nullptr)
+                {
+                    // Causes to re-encode again with instruction size available.
+                    ctx->instrSize = kHintRequiresSize;
+                }
+                
+                // Ensure this encodes.
+                displacement = kTemporaryRel32Value;
             }
-
-            displacement = displacement - (address + instrSize);
+            else
+            {
+                displacement = displacement - (address + instrSize);
+            }
 
             if (externalLabel)
             {
