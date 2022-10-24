@@ -36,7 +36,7 @@ namespace zasm
             if (isRipRelative(srcOp.mem))
             {
                 // Keep RIP as a hint to make this relative.
-                disp += instr.length + address;
+                disp += static_cast<std::int64_t>(address + instr.length);
             }
             return Mem{ toBitSize(srcOp.size),   getReg(srcOp.mem.segment), baseReg,
                         getReg(srcOp.mem.index), srcOp.mem.scale,           disp };
