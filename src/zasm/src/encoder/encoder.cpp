@@ -537,10 +537,10 @@ namespace zasm
 
     Expected<EncoderResult, Error> encode(
         MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, std::size_t numOps,
-        const EncoderOperands& operands)
+        const Operand* operands)
     {
         EncoderResult res;
-        if (auto err = encode_(res, nullptr, mode, static_cast<x86::Attribs>(attribs), mnemonic, numOps, operands.data());
+        if (auto err = encode_(res, nullptr, mode, static_cast<x86::Attribs>(attribs), mnemonic, numOps, operands);
             err != Error::None)
         {
             return makeUnexpected(err);
@@ -588,21 +588,9 @@ namespace zasm
 
     Expected<EncoderResult, Error> encode(EncoderContext& ctx, MachineMode mode, const Instruction& instr)
     {
-        const auto countOpInputs = std::min<size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getOperandCount());
-
-        std::size_t explicitOps = 0;
-        for (std::size_t i = 0; i < countOpInputs; ++i)
-        {
-            if (instr.isOperandHidden(i))
-            {
-                break;
-            }
-
-            explicitOps++;
-        }
-
-        const auto& operands = instr.getOperands();
-        return encodeWithContext(ctx, mode, instr.getAttribs(), instr.getMnemonic(), explicitOps, operands.data());
+        const auto& ops = instr.getOperands();
+        return encodeWithContext(
+            ctx, mode, instr.getAttribs(), instr.getMnemonic(), instr.getExplicitOperandCount(), ops.data());
     }
 
 } // namespace zasm

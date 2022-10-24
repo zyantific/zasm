@@ -46,7 +46,7 @@ namespace zasm
     // values for operands like labels and rip-rel addressing.
     Expected<EncoderResult, Error> encode(
         MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, std::size_t numOps,
-        const EncoderOperands& operands);
+        const Operand* operands);
 
     // Encodes with full context. This function still allows labels to be unbound and will not error
     // instead a temporary value be usually encoded. It is expected for the serialization to handle this

@@ -108,11 +108,11 @@ namespace zasm::x86
         {
             const auto attribs = _attribState;
             _attribState = Attribs::None;
-            return emit(attribs, mnemonic, sizeof...(TArgs), { args... });
+            std::array<Operand, sizeof...(TArgs)> ops{ args... };
+            return emit(attribs, mnemonic, ops.size(), ops.data());
         }
 
-        Error emit(
-            Attribs attribs, Mnemonic mnemonic, std::size_t numOps, std::array<Operand, ZYDIS_ENCODER_MAX_OPERANDS>&& ops);
+        Error emit(Attribs attribs, Mnemonic mnemonic, std::size_t numOps, const Operand* ops);
         Error emit(const Instruction& instr);
 
     private:
