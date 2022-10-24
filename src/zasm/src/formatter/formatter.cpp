@@ -515,7 +515,7 @@ namespace zasm::formatter
         {
             return "<nullptr>";
         }
-        
+
         auto ctx = detail::Context(program, options);
 
         node->visit([&](auto&& n) { detail::nodeToString(ctx, n); });
@@ -554,7 +554,7 @@ namespace zasm::formatter
         {
             return "<nullptr>";
         }
-        
+
         auto ctx = detail::Context(program, options);
 
         detail::nodeToString(ctx, *instr);
