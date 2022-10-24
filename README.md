@@ -105,7 +105,7 @@ while (bytesDecoded < code.size())
 
 	// Append in Program.
 	const auto& instr = decoderRes.value();
-	assembler.fromInstruction(instr);
+	assembler.emit(instr);
 
 	bytesDecoded += instr.getLength();
 }
@@ -154,6 +154,16 @@ a.section(".data", Section::Attribs::Data);
 
 auto res = serializer.serialize(program, 0x00400000);
 assert(res == Error::None);
+
+std::string getHexDump(const uint8_t *buf, size_t len) {
+  std::string res;
+  for (size_t i = 0; i < len; i++) {
+    char temp[3]{};
+    snprintf(temp, std::size(temp), "%02X", buf[i]);
+    res += temp;
+  }
+  return res;
+}
 
 // Iterate all sections and print the info and the section data.
 for (size_t i = 0; i < serializer.getSectionCount(); ++i)
