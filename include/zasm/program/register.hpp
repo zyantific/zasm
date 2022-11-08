@@ -61,6 +61,7 @@ namespace zasm
         /// </summary>
         std::int8_t getOffset() const noexcept;
 
+        bool isIP() const noexcept;
         bool isGp8() const noexcept;
         bool isGp8Lo() const noexcept;
         bool isGp8Hi() const noexcept;

@@ -79,6 +79,11 @@ namespace zasm
         return 0;
     }
 
+    bool Reg::isIP() const noexcept
+    {
+        return getClass() == static_cast<Reg::Class>(ZYDIS_REGCLASS_IP);
+    }
+
     bool Reg::isGp8() const noexcept
     {
         return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_GPR8;
