@@ -11,7 +11,7 @@
 
 namespace zasm
 {
-    class Instruction
+    class Instruction final
     {
         static constexpr std::size_t kMaxOperands = 10;
 
