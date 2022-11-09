@@ -8,7 +8,7 @@
 
 namespace zasm
 {
-    class Imm
+    class Imm final
     {
         union
         {

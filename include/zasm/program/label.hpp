@@ -7,7 +7,7 @@
 namespace zasm
 {
 
-    class Label
+    class Label final
     {
     public:
         enum class Id : int32_t

@@ -27,7 +27,7 @@ namespace zasm
         ZASM_ENABLE_ENUM_OPERATORS(SectionAttribs);
     } // namespace detail
 
-    class Section
+    class Section final
     {
     public:
         enum class Id : std::int32_t

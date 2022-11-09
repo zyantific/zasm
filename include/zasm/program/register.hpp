@@ -6,7 +6,7 @@
 
 namespace zasm
 {
-    class Reg
+    class Reg final
     {
     public:
         // For debug builds this makes inspection easier.

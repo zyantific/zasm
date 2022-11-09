@@ -9,7 +9,7 @@ namespace zasm
 {
     // TODO: Store the current data type and try to eliminate the C union.
 
-    class Data
+    class Data final
     {
         static constexpr std::size_t kInlineStorageSize = 32;
         static constexpr std::size_t kInlineDataFlag = std::size_t{ 1U } << (std::numeric_limits<std::size_t>::digits - 1);
