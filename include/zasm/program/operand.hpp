@@ -54,7 +54,7 @@ namespace zasm
     class Operand
     {
     public:
-        struct None
+        struct None final
         {
             static BitSize getBitSize(MachineMode /*unused*/) noexcept
             {

@@ -12,7 +12,7 @@
 
 namespace zasm
 {
-    class Mem
+    class Mem final
     {
         using RegisterPack = Packed<std::uint32_t, Reg::Id, 10>;
 

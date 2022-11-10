@@ -8,7 +8,7 @@ namespace zasm::x86
     using Reg = zasm::Reg;
 
     // Strong type for general purpose regs.
-    class Gp : public Reg
+    class Gp  : public Reg 
     {
     public:
         using Reg::Reg;

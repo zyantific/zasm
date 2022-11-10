@@ -8,7 +8,7 @@
 
 namespace zasm
 {
-    class EmbeddedLabel
+    class EmbeddedLabel final
     {
         Label::Id _label{ Label::Id::Invalid };
         Label::Id _relativeLabel{ Label::Id::Invalid };

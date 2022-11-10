@@ -15,7 +15,7 @@ namespace zasm
     // Placeholder type that represents an empty node.
     // This type can be useful for scenarios where the user wants to keep track
     // of a volatile range by having this at the start and end as markers.
-    struct NodePoint
+    struct NodePoint final
     {
     };
 

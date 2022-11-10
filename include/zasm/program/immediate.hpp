@@ -8,7 +8,7 @@
 
 namespace zasm
 {
-    class Imm
+    class Imm 
     {
         union
         {
@@ -75,7 +75,7 @@ namespace zasm
 
     namespace detail
     {
-        template<typename T> class ImmT : public Imm
+        template<typename T> class ImmT final : public Imm 
         {
         public:
             template<typename T2>
