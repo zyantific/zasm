@@ -6,10 +6,12 @@ languages = ["CXX"]
 [options]
 ZASM_BUILD_TESTS = false
 ZASM_BUILD_BENCHMARKS = false
+ZASM_BUILD_EXAMPLES = false
 
 [conditions]
 tests = "ZASM_BUILD_TESTS"
 benchmarks = "ZASM_BUILD_BENCHMARKS"
+examples = "ZASM_BUILD_EXAMPLES"
 
 [subdir.thirdparty]
 
@@ -32,22 +34,13 @@ include-directories = ["include"]
 compile-features = ["cxx_std_17"]
 link-libraries = ["Zydis"]
 
-[target.testing]
-condition = "tests"
-type = "executable"
-sources = ["src/testing/testing.cpp"]
-link-libraries = [
-    "zasm::common",
-	"zasm::zasm"
-]
-
-[target.testdata]
+[target.zasm_testdata]
 condition = "tests"
 type = "interface"
 alias = "zasm::testdata"
 include-directories = ["src/testdata"]
 
-[target.tests]
+[target.zasm_tests]
 condition = "tests"
 type = "executable"
 sources = [
@@ -62,8 +55,10 @@ link-libraries = [
     "zasm::testdata",
     "GTest::gtest",
 ]
+[target.zasm_tests.properties]
+PROJECT_LABEL = "tests"
 
-[target.benchmarks]
+[target.zasm_benchmarks]
 condition = "tests"
 type = "executable"
 sources = [
@@ -78,8 +73,117 @@ link-libraries = [
     "zasm::testdata",
     "benchmark::benchmark",
 ]
+[target.zasm_benchmarks.properties]
+PROJECT_LABEL = "benchmarks"
+
+[target.zasm_example_common]
+condition = "examples"
+type = "interface"
+alias = "zasm::examples::common"
+include-directories = ["examples/common"]
+link-libraries = [
+    "zasm::common",
+	"zasm::zasm"
+]
+
+## Examples
+[target.zasm_example_assembler_basic]
+condition = "examples"
+type = "executable"
+sources = ["examples/assembler_basic/main.cpp"]
+link-libraries = [
+    "zasm::examples::common",
+]
+[target.zasm_example_assembler_basic.properties]
+FOLDER = "examples"
+PROJECT_LABEL = "assembler_basic"
+RUNTIME_OUTPUT_NAME = "example.assembler_basic"
+
+[target.zasm_example_assembler_sections]
+condition = "examples"
+type = "executable"
+sources = ["examples/assembler_sections/main.cpp"]
+link-libraries = [
+    "zasm::examples::common",
+]
+[target.zasm_example_assembler_sections.properties]
+FOLDER = "examples"
+PROJECT_LABEL = "assembler_sections"
+RUNTIME_OUTPUT_NAME = "example.assembler_sections"
+
+[target.zasm_example_decode_to_assembler]
+condition = "examples"
+type = "executable"
+sources = ["examples/decode_to_assembler/main.cpp"]
+link-libraries = [
+    "zasm::examples::common",
+]
+[target.zasm_example_decode_to_assembler.properties]
+FOLDER = "examples"
+PROJECT_LABEL = "decode_to_assembler"
+RUNTIME_OUTPUT_NAME = "example.decode_to_assembler"
+
+[target.zasm_example_program_observer]
+condition = "examples"
+type = "executable"
+sources = ["examples/program_observer/main.cpp"]
+link-libraries = [
+    "zasm::examples::common",
+]
+[target.zasm_example_program_observer.properties]
+FOLDER = "examples"
+PROJECT_LABEL = "program_observer"
+RUNTIME_OUTPUT_NAME = "example.program_observer"
+
+[target.zasm_example_instruction_info]
+condition = "examples"
+type = "executable"
+sources = ["examples/instruction_info/main.cpp"]
+link-libraries = [
+    "zasm::examples::common",
+]
+[target.zasm_example_instruction_info.properties]
+FOLDER = "examples"
+PROJECT_LABEL = "instruction_info"
+RUNTIME_OUTPUT_NAME = "example.instruction_info"
+
+[target.zasm_example_modify_program]
+condition = "examples"
+type = "executable"
+sources = ["examples/modify_program/main.cpp"]
+link-libraries = [
+    "zasm::examples::common",
+]
+[target.zasm_example_modify_program.properties]
+FOLDER = "examples"
+PROJECT_LABEL = "modify_program"
+RUNTIME_OUTPUT_NAME = "example.modify_program"
+
+[target.zasm_example_basic_jit]
+condition = "examples"
+type = "executable"
+sources = ["examples/basic_jit/main.cpp"]
+link-libraries = [
+    "zasm::examples::common",
+]
+[target.zasm_example_basic_jit.properties]
+FOLDER = "examples"
+PROJECT_LABEL = "basic_jit"
+RUNTIME_OUTPUT_NAME = "example.basic_jit"
+
+[target.zasm_example_modify_instruction]
+condition = "examples"
+type = "executable"
+sources = ["examples/modify_instruction/main.cpp"]
+link-libraries = [
+    "zasm::examples::common",
+]
+[target.zasm_example_modify_instruction.properties]
+FOLDER = "examples"
+PROJECT_LABEL = "modify_instruction"
+RUNTIME_OUTPUT_NAME = "example.modify_instruction"
 
 [[test]]
 condition = "tests"
 name = "tests"
-command = "$<TARGET_FILE:tests>"
+command = "$<TARGET_FILE:zasm_tests>"

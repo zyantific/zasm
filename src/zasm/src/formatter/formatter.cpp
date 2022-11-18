@@ -528,7 +528,7 @@ namespace zasm::formatter
 
     } // namespace detail
 
-    std::string toString(Program& program, const Node* node, Options options /*= {}*/)
+    std::string toString(Program& program, const Node* node, Options options /*= kDefaultOptions*/)
     {
         if (node == nullptr)
         {
@@ -547,7 +547,7 @@ namespace zasm::formatter
         return toString(program, program.getHead(), nullptr, options);
     }
 
-    std::string toString(Program& program, const Node* nodeFrom, const Node* nodeTo, Options options /*= {}*/)
+    std::string toString(Program& program, const Node* nodeFrom, const Node* nodeTo, Options options /*= kDefaultOptions*/)
     {
         auto ctx = detail::Context(program, options);
 
@@ -567,7 +567,7 @@ namespace zasm::formatter
         return { ctx.data(), ctx.size };
     }
 
-    std::string toString(Program& program, const Instruction* instr, Options options /*= {}*/)
+    std::string toString(Program& program, const Instruction* instr, Options options /*= kDefaultOptions*/)
     {
         if (instr == nullptr)
         {
@@ -581,7 +581,7 @@ namespace zasm::formatter
         return { ctx.data(), ctx.size };
     }
 
-    std::string toString(const Instruction* instr, Options options /*= {}*/)
+    std::string toString(const Instruction* instr, Options options /*= kDefaultOptions*/)
     {
         if (instr == nullptr)
         {
@@ -591,6 +591,15 @@ namespace zasm::formatter
         auto ctx = detail::Context(options);
 
         detail::nodeToString(ctx, *instr);
+
+        return { ctx.data(), ctx.size };
+    }
+
+    std::string toString(const Reg& reg, Options options /*= kDefaultOptions*/)
+    {
+        auto ctx = detail::Context(options);
+
+        detail::opToString(ctx, reg);
 
         return { ctx.data(), ctx.size };
     }

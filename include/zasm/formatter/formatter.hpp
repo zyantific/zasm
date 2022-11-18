@@ -9,6 +9,8 @@ namespace zasm
     class Program;
     class Node;
     class Instruction;
+    class Reg;
+    
 } // namespace zasm
 
 namespace zasm::formatter
@@ -67,5 +69,10 @@ namespace zasm::formatter
     /// <param name="instr">Instruction to format</param>
     /// <param name="options">Format options</param>
     std::string toString(const Instruction* instr, Options options = kDefaultOptions);
+
+    /// <summary>
+    /// Returns a formatted register name.
+    /// </summary>
+    std::string toString(const Reg& reg, Options options = kDefaultOptions);
 
 } // namespace zasm::formatter
