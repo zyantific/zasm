@@ -75,9 +75,7 @@ namespace zasm
         {
         }
 
-        constexpr Operand(const Operand& other) noexcept
-
-            = default;
+        constexpr Operand(const Operand& other) noexcept = default;
 
         constexpr Operand(Operand&& other) noexcept
             : _data{ std::move(other._data) }

@@ -21,7 +21,7 @@ namespace zasm::formatter
         public:
             static constexpr std::size_t kInlineCapacity = 64;
 
-            Program& program;
+            Program* program{};
             Options options{};
 
             union
@@ -34,8 +34,13 @@ namespace zasm::formatter
             std::size_t capacity{ kInlineCapacity };
 
             constexpr Context() = delete;
+            constexpr Context(Options opts)
+                : program(nullptr)
+                , options(opts)
+            {
+            }
             constexpr Context(Program& prog, Options opts)
-                : program(prog)
+                : program(&prog)
                 , options(opts)
             {
             }
@@ -188,22 +193,17 @@ namespace zasm::formatter
 
         static void labelToString(Context& ctx, const Label& label)
         {
-            auto labelData = ctx.program.getLabelData(label);
-            if (labelData.hasValue())
+            if (ctx.program != nullptr)
             {
-                if (labelData->name != nullptr)
+                auto labelData = ctx.program->getLabelData(label);
+                if (labelData.hasValue() && labelData->name != nullptr)
                 {
                     ctx.format("%s", labelData->name);
-                }
-                else
-                {
-                    ctx.format("L%u", label.getId());
+                    return;
                 }
             }
-            else
-            {
-                ctx.format("L%u", label.getId());
-            }
+
+            ctx.format("L%u", label.getId());
         }
 
         static void opToString(Context& ctx, const Label& label)
@@ -254,11 +254,19 @@ namespace zasm::formatter
 
             ctx.appendLiteral("[");
 
+            bool hasRel = false;
             bool hasBase = false;
             if (const auto regBase = opMem.getBase(); regBase.isValid())
             {
-                opToString(ctx, regBase);
-                hasBase = true;
+                if (regBase.isIP())
+                {
+                    hasRel = true;
+                }
+                else
+                {
+                    opToString(ctx, regBase);
+                    hasBase = true;
+                }
             }
 
             bool hasIndex = false;
@@ -301,6 +309,10 @@ namespace zasm::formatter
                     {
                         ctx.appendLiteral("+");
                     }
+                }
+                else if (hasRel)
+                {
+                    ctx.appendLiteral("rel ");
                 }
                 if (ctx.hasOption(Options::HexOffsets))
                 {
@@ -442,8 +454,15 @@ namespace zasm::formatter
 
         static void nodeToString(Context& ctx, const Section& node)
         {
-            const char* str = ctx.program.getSectionName(node);
-            ctx.format(".section %s", str);
+            if (ctx.program != nullptr)
+            {
+                const char* str = ctx.program->getSectionName(node);
+                ctx.format(".section %s", str);
+            }
+            else
+            {
+                ctx.format(".section");
+            }
         }
 
         static void nodeToString(Context& ctx, const EmbeddedLabel& node)
@@ -509,7 +528,7 @@ namespace zasm::formatter
 
     } // namespace detail
 
-    std::string toString(Program& program, const Node* node, Options options /*= {}*/)
+    std::string toString(Program& program, const Node* node, Options options /*= kDefaultOptions*/)
     {
         if (node == nullptr)
         {
@@ -528,7 +547,7 @@ namespace zasm::formatter
         return toString(program, program.getHead(), nullptr, options);
     }
 
-    std::string toString(Program& program, const Node* nodeFrom, const Node* nodeTo, Options options /*= {}*/)
+    std::string toString(Program& program, const Node* nodeFrom, const Node* nodeTo, Options options /*= kDefaultOptions*/)
     {
         auto ctx = detail::Context(program, options);
 
@@ -548,7 +567,7 @@ namespace zasm::formatter
         return { ctx.data(), ctx.size };
     }
 
-    std::string toString(Program& program, const Instruction* instr, Options options /*= {}*/)
+    std::string toString(Program& program, const Instruction* instr, Options options /*= kDefaultOptions*/)
     {
         if (instr == nullptr)
         {
@@ -558,6 +577,29 @@ namespace zasm::formatter
         auto ctx = detail::Context(program, options);
 
         detail::nodeToString(ctx, *instr);
+
+        return { ctx.data(), ctx.size };
+    }
+
+    std::string toString(const Instruction* instr, Options options /*= kDefaultOptions*/)
+    {
+        if (instr == nullptr)
+        {
+            return "<nullptr>";
+        }
+
+        auto ctx = detail::Context(options);
+
+        detail::nodeToString(ctx, *instr);
+
+        return { ctx.data(), ctx.size };
+    }
+
+    std::string toString(const Reg& reg, Options options /*= kDefaultOptions*/)
+    {
+        auto ctx = detail::Context(options);
+
+        detail::opToString(ctx, reg);
 
         return { ctx.data(), ctx.size };
     }

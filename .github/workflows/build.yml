@@ -46,7 +46,7 @@ jobs:
 
     - name: Build
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DZASM_BUILD_TESTS=ON
+        cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DZASM_BUILD_TESTS=ON -DZASM_BUILD_EXAMPLES=ON
         cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
 
     - name: Test
@@ -78,7 +78,7 @@ jobs:
 
     - name: Build
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DZASM_BUILD_TESTS=ON
+        cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DZASM_BUILD_TESTS=ON -DZASM_BUILD_EXAMPLES=ON
         cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
 
     - name: Test

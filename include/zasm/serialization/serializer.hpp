@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <memory>
 #include <zasm/core/errors.hpp>
 #include <zasm/core/expected.hpp>
 #include <zasm/encoder/encoder.hpp>
@@ -37,7 +36,7 @@ namespace zasm
 
     class Serializer
     {
-        std::unique_ptr<detail::SerializerState> _state;
+        detail::SerializerState* _state{};
 
     public:
         Serializer();
