@@ -31,7 +31,7 @@ int main()
         a.dq(0xABCDEF123);
     }
 
-    Serializer serializer;
+    Serializer serializer{};
 
     auto res = serializer.serialize(program, 0x00400000);
     assert(res == Error::None);

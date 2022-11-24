@@ -25,7 +25,7 @@ namespace zasm::x86
         Program& _program;
         const Node* _cursor{};
         Attribs _attribState{};
-        std::unique_ptr<InstrGenerator> _generator{};
+        InstrGenerator* _generator{};
 
     public:
         Assembler(Program& _program);

@@ -352,7 +352,7 @@ namespace zasm
     }
 
     Serializer::Serializer()
-        : _state(std::make_unique<detail::SerializerState>())
+        : _state(new detail::SerializerState())
     {
     }
 
@@ -361,11 +361,15 @@ namespace zasm
         *this = std::move(other);
     }
 
-    Serializer::~Serializer() = default;
+    Serializer::~Serializer()
+    {
+        delete _state;
+        _state = nullptr;
+    }
 
     Serializer& Serializer::operator=(Serializer&& other) noexcept
     {
-        _state = std::move(other._state);
+        _state = other._state;
         other._state = nullptr;
 
         return *this;

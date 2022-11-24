@@ -8,7 +8,7 @@ namespace zasm::x86
 {
     Assembler::Assembler(Program& program)
         : _program(program)
-        , _generator(std::make_unique<InstrGenerator>(program.getMode()))
+        , _generator(new InstrGenerator(program.getMode()))
     {
         _program.addObserver(*this);
     }
@@ -16,6 +16,8 @@ namespace zasm::x86
     Assembler::~Assembler()
     {
         _program.removeObserver(*this);
+        delete _generator;
+        _generator = nullptr;
     }
 
     void Assembler::setCursor(const Node* pos) noexcept

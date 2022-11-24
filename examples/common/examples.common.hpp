@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
@@ -19,8 +20,12 @@ namespace zasm::examples::utils
         for (size_t i = 0; i < len; i++)
         {
             char temp[3]{};
-            snprintf(temp, std::size(temp), "%02X", buf[i]);
-            res += temp;
+            int len = snprintf(temp, std::size(temp), "%02X", buf[i]);
+            if (len < 0)
+            {
+                return {};
+            }
+            res.append(temp, static_cast<std::size_t>(len));
         }
         return res;
     }
@@ -28,19 +33,26 @@ namespace zasm::examples::utils
     static std::string getFormattedAddress(uint64_t addr)
     {
         char buf[32]{};
-        snprintf(buf, sizeof(buf), "0x%.16llX", (unsigned long long)addr);
-        return buf;
+        int len = snprintf(buf, sizeof(buf), "0x%.16llX", (unsigned long long)addr);
+        if (len < 0)
+        {
+            return {};
+        }
+        return std::string(buf, static_cast<std::size_t>(len));
     }
 
     static std::string getDisassemblyDump(const zasm::Serializer& serializer, const zasm::MachineMode mode)
     {
+        constexpr auto kCountColumns = 3U;
+        constexpr auto kDefaultSecondColSize = 16U;
+
         struct Row
         {
-            std::string values[3];
+            std::array<std::string, kCountColumns> values;
         };
         std::vector<Row> rows;
 
-        size_t columnMaxLength[3]{ 0, 16, 0 };
+        std::array<std::size_t, kCountColumns> columnMaxLength{ 0U, kDefaultSecondColSize, 0U };
 
         const auto addRow = [&](const std::string& col0, const std::string& col1, const std::string& col2) {
             Row row;
