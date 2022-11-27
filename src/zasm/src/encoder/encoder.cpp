@@ -597,7 +597,7 @@ namespace zasm
     {
         const auto& ops = instr.getOperands();
         return encodeWithContext(
-            ctx, mode, instr.getAttribs(), instr.getMnemonic(), instr.getExplicitOperandCount(), ops.data());
+            ctx, mode, instr.getAttribs(), instr.getMnemonic(), instr.getVisibleOperandCount(), ops.data());
     }
 
 } // namespace zasm
