@@ -55,7 +55,7 @@ namespace zasm::tests
         ASSERT_TRUE(decoded);
 
         ASSERT_EQ(decoded->getMnemonic(), x86::Mnemonic::Call);
-        ASSERT_EQ(decoded->getExplicitOperandCount(), 1);
+        ASSERT_EQ(decoded->getVisibleOperandCount(), 1);
         ASSERT_EQ(decoded->getOperandCount(), 4);
         ASSERT_EQ(decoded->getOperand<Mem>(0).getBase(), x86::rip);
         ASSERT_EQ(decoded->getOperand<Mem>(0).getDisplacement(), 0x00007FF8833E0679);

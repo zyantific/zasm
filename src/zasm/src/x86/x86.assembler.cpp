@@ -136,7 +136,7 @@ namespace zasm::x86
     Error Assembler::emit(const Instruction& instr)
     {
         const auto& ops = instr.getOperands();
-        const auto numOps = std::min<std::size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getExplicitOperandCount());
+        const auto numOps = std::min<std::size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getVisibleOperandCount());
 
         return emit(static_cast<x86::Attribs>(instr.getAttribs()), instr.getMnemonic(), numOps, ops.data());
     }

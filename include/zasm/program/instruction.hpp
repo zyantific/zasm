@@ -214,7 +214,7 @@ namespace zasm
         /// <summary>
         /// Returns the amount of operands that are not hidden.
         /// </summary>
-        constexpr std::size_t getExplicitOperandCount() const noexcept
+        constexpr std::size_t getVisibleOperandCount() const noexcept
         {
             auto opCount = _opCount;
             while (opCount > 0 && _opsVisibility.get(opCount - 1) == Operand::Visibility::Hidden)
