@@ -196,9 +196,7 @@ namespace zasm
         const auto attribs = getAttribs(instr.attributes);
         const auto category = getCategory(instr.meta.category);
 
-        return Instruction(
-            attribs, static_cast<Instruction::Mnemonic>(instr.mnemonic), instr.operand_count, ops, access, vis, flags, category,
-            instr.length);
+        return Instruction(attribs, instr.mnemonic, instr.operand_count, ops, access, vis, flags, category, instr.length);
     }
 
 } // namespace zasm

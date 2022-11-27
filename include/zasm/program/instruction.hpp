@@ -11,12 +11,28 @@
 
 namespace zasm
 {
+    class Mnemonic
+    {
+        std::uint16_t _id{};
+
+    public:
+        constexpr Mnemonic() = default;
+        constexpr Mnemonic(std::uint16_t id)
+            : _id{ id }
+        {
+        }
+
+        constexpr operator std::uint32_t() const
+        {
+            return _id;
+        }
+    };
+
     class Instruction final
     {
         static constexpr std::size_t kMaxOperands = 10;
 
     public:
-        enum class Mnemonic : std::uint16_t;
         enum class Encoding : std::uint8_t;
         enum class Attribs : std::uint16_t;
         enum class Category : std::uint8_t;

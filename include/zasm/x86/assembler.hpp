@@ -104,7 +104,7 @@ namespace zasm::x86
         Error embedLabelRel(Label label, Label relativeTo, BitSize size);
 
     public:
-        template<typename... TArgs> Error emit(Mnemonic mnemonic, TArgs&&... args)
+        template<typename... TArgs> Error emit(zasm::Mnemonic mnemonic, TArgs&&... args)
         {
             const auto attribs = _attribState;
             _attribState = Attribs::None;
@@ -112,7 +112,7 @@ namespace zasm::x86
             return emit(attribs, mnemonic, ops.size(), ops.data());
         }
 
-        Error emit(Attribs attribs, Mnemonic mnemonic, std::size_t numOps, const Operand* ops);
+        Error emit(Attribs attribs, zasm::Mnemonic mnemonic, std::size_t numOps, const Operand* ops);
         Error emit(const Instruction& instr);
 
     private:

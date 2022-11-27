@@ -6,9 +6,9 @@
 namespace zasm
 {
     // FIXME: Duplicate code, move this somewhere.
-    static bool isImmediateControlFlow(Instruction::Mnemonic mnemonic) noexcept
+    static bool isImmediateControlFlow(Mnemonic mnemonic) noexcept
     {
-        switch (static_cast<x86::Mnemonic>(mnemonic))
+        switch (mnemonic)
         {
             case x86::Mnemonic::Call:
             case x86::Mnemonic::Jb:
@@ -50,11 +50,9 @@ namespace zasm
     }
 
     InstrGenerator::Result InstrGenerator::generate(
-        Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, size_t numOps, const Operand* operands)
+        Instruction::Attribs attribs, Mnemonic mnemonic, size_t numOps, const Operand* operands)
     {
-        auto encodeResult = encode(
-            _mode, static_cast<zasm::Instruction::Attribs>(attribs), static_cast<zasm::Instruction::Mnemonic>(mnemonic), numOps,
-            operands);
+        auto encodeResult = encode(_mode, static_cast<zasm::Instruction::Attribs>(attribs), mnemonic, numOps, operands);
         if (!encodeResult)
         {
             return zasm::makeUnexpected(encodeResult.error());
@@ -79,7 +77,7 @@ namespace zasm
 
             const auto& opSrc = operands[i];
             const auto& opDecoded = newInstr.getOperand(i);
-            
+
             if (opSrc.holds<Label>() && opDecoded.holds<Imm>())
             {
                 // Input operand is label but encoded its always an immediate, replace.
@@ -92,7 +90,7 @@ namespace zasm
                 // Create copy of input operand in order to modify it.
                 Mem mem = *opMem;
                 mem.setSegment(opDecodedMem.getSegment());
-                    
+
                 newInstr.setOperand(i, mem);
             }
             else if (opSrc.holds<Imm>())

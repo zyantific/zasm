@@ -155,9 +155,9 @@ namespace zasm::formatter
             }
         };
 
-        static void mnemonictoString(Context& ctx, const Instruction::Mnemonic mnemonic)
+        static void mnemonictoString(Context& ctx, const Mnemonic mnemonic)
         {
-            const char* str = ZydisMnemonicGetString(static_cast<ZydisMnemonic>(mnemonic));
+            const char* str = ZydisMnemonicGetString(static_cast<ZydisMnemonic>(static_cast<std::uint32_t>(mnemonic)));
             ctx.appendString(str);
         }
 

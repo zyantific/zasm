@@ -11,7 +11,7 @@ namespace zasm::x86
 {
     template<typename T> class Emitter
     {
-        template<typename... TArgs> inline Error emit(x86::Mnemonic id, TArgs&&... args)
+        template<typename... TArgs> inline Error emit(zasm::Mnemonic id, TArgs&&... args)
         {
             auto& cls = static_cast<T&>(*this);
             return cls.emit(id, std::forward<TArgs>(args)...);

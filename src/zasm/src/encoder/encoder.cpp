@@ -366,7 +366,7 @@ namespace zasm
                     // Causes to re-encode again with instruction size available.
                     ctx->instrSize = kHintRequiresSize;
                 }
-                
+
                 // Ensure this encodes.
                 displacement = kTemporaryRel32Value;
             }
@@ -474,8 +474,8 @@ namespace zasm
     }
 
     static Error encode_(
-        EncoderResult& res, EncoderContext* ctx, MachineMode mode, x86::Attribs attribs, Instruction::Mnemonic mnemonic,
-        size_t numOps, const Operand* operands)
+        EncoderResult& res, EncoderContext* ctx, MachineMode mode, x86::Attribs attribs, Mnemonic mnemonic, size_t numOps,
+        const Operand* operands)
     {
         res.length = 0;
 
@@ -491,7 +491,7 @@ namespace zasm
         {
             req.machine_mode = ZYDIS_MACHINE_MODE_LONG_COMPAT_32;
         }
-        req.mnemonic = static_cast<ZydisMnemonic>(mnemonic);
+        req.mnemonic = static_cast<ZydisMnemonic>(static_cast<uint32_t>(mnemonic));
         req.prefixes = getAttribs(attribs);
 
         if (hasAttrib(attribs, x86::Attribs::OperandSize8))
@@ -544,8 +544,7 @@ namespace zasm
     }
 
     Expected<EncoderResult, Error> encode(
-        MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, std::size_t numOps,
-        const Operand* operands)
+        MachineMode mode, Instruction::Attribs attribs, Mnemonic mnemonic, std::size_t numOps, const Operand* operands)
     {
         EncoderResult res;
         if (auto err = encode_(res, nullptr, mode, static_cast<x86::Attribs>(attribs), mnemonic, numOps, operands);
@@ -557,8 +556,8 @@ namespace zasm
     }
 
     static Expected<EncoderResult, Error> encodeWithContext(
-        EncoderContext& ctx, MachineMode mode, Instruction::Attribs prefixes, Instruction::Mnemonic mnemonic,
-        std::size_t numOps, const Operand* operands)
+        EncoderContext& ctx, MachineMode mode, Instruction::Attribs prefixes, Mnemonic mnemonic, std::size_t numOps,
+        const Operand* operands)
     {
         EncoderResult res;
 
