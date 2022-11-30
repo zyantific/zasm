@@ -152,6 +152,36 @@ namespace zasm::x86
             return *this;
         }
 
+        Assembler& rep() noexcept
+        {
+            addAttrib(Attribs::Rep);
+            return *this;
+        }
+
+        Assembler& repe() noexcept
+        {
+            addAttrib(Attribs::Repe);
+            return *this;
+        }
+
+        Assembler& repne() noexcept
+        {
+            addAttrib(Attribs::Repne);
+            return *this;
+        }
+
+        Assembler& xacquire() noexcept
+        {
+            addAttrib(Attribs::Xacquire);
+            return *this;
+        }
+
+        Assembler& xrelease() noexcept
+        {
+            addAttrib(Attribs::Xrelease);
+            return *this;
+        }
+
     private:
         /// <summary>
         /// Observer events, this ensures the cursor remains valid.
