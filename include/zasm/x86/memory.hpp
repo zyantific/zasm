@@ -34,11 +34,6 @@ namespace zasm::x86
         return Mem(bitSize, Seg{}, Reg{}, Reg{}, 0, base);
     }
 
-    static constexpr Mem ptr(BitSize bitSize, int64_t base, const Gp& index, int32_t scale) noexcept
-    {
-        return Mem(bitSize, Seg{}, Reg{}, index, scale, base);
-    }
-
     // Explicit Segment
     static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Gp& base, int64_t disp = 0) noexcept
     {
@@ -64,11 +59,6 @@ namespace zasm::x86
     static constexpr Mem ptr(BitSize bitSize, const Seg& seg, int64_t disp) noexcept
     {
         return Mem(bitSize, seg, Reg{}, Reg{}, 0, disp);
-    }
-
-    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, int64_t base, const Gp& index, int32_t scale) noexcept
-    {
-        return Mem(bitSize, seg, Reg{}, index, scale, base);
     }
 
     // Generic.
