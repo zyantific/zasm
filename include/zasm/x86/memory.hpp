@@ -8,60 +8,79 @@ namespace zasm::x86
 {
     using Mem = zasm::Mem;
 
-    // Default Segment.
+    // ptr [base + disp]
+    // ex.: mov eax, ptr [edx+0xC]
     static constexpr Mem ptr(BitSize bitSize, const Gp& base, int64_t disp = 0) noexcept
     {
         return Mem(bitSize, Seg{}, base, {}, 0, disp);
     }
 
+    // ptr [base + index * scale + disp]
+    // ex.: mov eax, ptr [ecx+edx*2+0xC]
     static constexpr Mem ptr(BitSize bitSize, const Gp& base, const Gp& index, int32_t scale, int64_t disp) noexcept
     {
         return Mem(bitSize, Seg{}, base, index, scale, disp);
     }
 
+    // ptr [label + disp]
+    // ex.: mov eax, ptr [label + 0xC]
     static constexpr Mem ptr(BitSize bitSize, const Label& base, int64_t disp = 0) noexcept
     {
         return Mem(bitSize, Seg{}, base, Reg{}, Reg{}, 0, disp);
     }
 
-    static constexpr Mem ptr(BitSize bitSize, const Rip& rip_, const Label& base, int64_t disp = 0) noexcept
+    // ptr [rel label + disp]
+    // ex.: mov eax, ptr [rel label+0xC]
+    static constexpr Mem ptr(BitSize bitSize, const Rip& rip, const Label& base, int64_t disp = 0) noexcept
     {
-        return Mem(bitSize, Seg{}, base, rip_, Reg{}, 0, disp);
+        return Mem(bitSize, Seg{}, base, rip, Reg{}, 0, disp);
     }
 
+    // ptr [disp]
+    // ex.: mov eax, ptr [0x123456]
     static constexpr Mem ptr(BitSize bitSize, int64_t base) noexcept
     {
         return Mem(bitSize, Seg{}, Reg{}, Reg{}, 0, base);
     }
 
-    // Explicit Segment
+    // ptr : seg [base + disp]
+    // ex.: mov eax, ptr:ds [edx+0xC]
     static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Gp& base, int64_t disp = 0) noexcept
     {
         return Mem(bitSize, seg, base, {}, 0, disp);
     }
-
+    
+    // ptr : seg [base + index * scale + disp]
+    // ex.: mov eax, ptr:ds [edx+ecx*2+0xC]
     static constexpr Mem ptr(
         BitSize bitSize, const Seg& seg, const Gp& base, const Gp& index, int32_t scale, int64_t disp) noexcept
     {
         return Mem(bitSize, seg, base, index, scale, disp);
     }
-
+    
+    // ptr : seg [label + disp]
+    // ex.: mov eax, ptr:ds [label+0xC]
     static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Label& base, int64_t disp = 0) noexcept
     {
         return Mem(bitSize, seg, base, Reg{}, Reg{}, 0, disp);
     }
-
-    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Rip& rip_, const Label& base, int64_t disp = 0) noexcept
+    
+    // ptr : seg [rel label + disp]
+    // ex.: mov eax, ptr:ds [rel label+0xC]
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Rip& rip, const Label& base, int64_t disp = 0) noexcept
     {
-        return Mem(bitSize, seg, base, rip_, Reg{}, 0, disp);
+        return Mem(bitSize, seg, base, rip, Reg{}, 0, disp);
     }
-
+    
+    // ptr : seg [disp]
+    // ex.: mov eax, ptr:fs [0]
     static constexpr Mem ptr(BitSize bitSize, const Seg& seg, int64_t disp) noexcept
     {
         return Mem(bitSize, seg, Reg{}, Reg{}, 0, disp);
     }
 
-    // Generic.
+    // Generic helper functions that specify size
+    // See the ptr overloads for all valid forms.
     template<typename... TArgs> static Mem byte_ptr(TArgs&&... args) noexcept
     {
         return ptr(BitSize::_8, std::forward<TArgs>(args)...);
