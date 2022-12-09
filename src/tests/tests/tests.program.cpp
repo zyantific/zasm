@@ -233,7 +233,7 @@ namespace zasm::tests
         ASSERT_EQ(labelFoo.getId(), zasm::Label::Id{ 0 });
         ASSERT_EQ(labelFoo.isValid(), true);
         ASSERT_EQ(assembler.bind(labelFoo), zasm::Error::None);
-        ASSERT_EQ(assembler.mov(x86::dword_ptr(labelFoo), x86::eax), zasm::Error::None);
+        ASSERT_EQ(assembler.mov(x86::dword_ptr(x86::rip, labelFoo), x86::eax), zasm::Error::None);
 
         ASSERT_EQ(program.size(), 7);
 
