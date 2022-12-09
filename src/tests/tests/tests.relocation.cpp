@@ -325,9 +325,9 @@ namespace zasm::tests
 
         ASSERT_EQ(a.section(".text"), Error::None);
         {
-            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(labelA)), Error::None);
-            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(labelB)), Error::None);
-            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelC)), Error::None);
+            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rip, labelA)), Error::None);
+            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(x86::rip, labelB)), Error::None);
+            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(x86::rip, labelC)), Error::None);
         }
 
         ASSERT_EQ(a.section(".data", Section::Attribs::Data), Error::None);

@@ -79,7 +79,7 @@ namespace zasm::tests
         const auto labelImpExitProcess = program.getOrCreateImportLabel("kernel32.dll", "ExitProcess");
         ASSERT_TRUE(labelImpExitProcess.isValid());
 
-        ASSERT_EQ(assembler.mov(x86::rax, x86::qword_ptr(labelImpExitProcess)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::rax, x86::qword_ptr(x86::rip, labelImpExitProcess)), Error::None);
 
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);

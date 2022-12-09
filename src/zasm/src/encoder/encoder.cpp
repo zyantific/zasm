@@ -335,16 +335,6 @@ namespace zasm
             usingLabel = true;
         }
 
-        // For 64 bit we default to rip rel.
-        if (state.req.machine_mode == ZYDIS_MACHINE_MODE_LONG_64)
-        {
-            if (dst.mem.base == ZYDIS_REGISTER_NONE && dst.mem.index == ZYDIS_REGISTER_NONE && usingLabel)
-            {
-                // Turn into rip-rel.
-                dst.mem.base = ZYDIS_REGISTER_RIP;
-            }
-        }
-
         if (dst.mem.base == ZYDIS_REGISTER_NONE && dst.mem.index == ZYDIS_REGISTER_NONE)
         {
             // Memory ABS, mark relocatable.

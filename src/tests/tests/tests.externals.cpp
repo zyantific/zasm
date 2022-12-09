@@ -5,7 +5,7 @@
 
 namespace zasm::tests
 {
-    TEST(ExternalLabelTests, BasicTestX64)
+    TEST(ExternalLabelTests, BasicTestX64Rel)
     {
         Program program(MachineMode::AMD64);
 
@@ -13,7 +13,7 @@ namespace zasm::tests
 
         auto externalLabel = program.createExternalLabel("external");
 
-        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(externalLabel)), Error::None);
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(x86::rip, externalLabel)), Error::None);
 
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), Error::None);
@@ -39,7 +39,39 @@ namespace zasm::tests
         ASSERT_EQ(relocInfo->offset, 3);
     }
 
-    TEST(ExternalLabelTests, EmbeddedExternalLabelX64)
+    TEST(ExternalLabelTests, BasicTestX64Abs)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto externalLabel = program.createExternalLabel("external");
+
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(externalLabel)), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), Error::None);
+
+        const std::array<uint8_t, 8> expected = { 0x48, 0x8d, 0x04, 0x25, 0x00, 0x00, 0x00, 0x00 };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+
+        ASSERT_EQ(serializer.getRelocationCount(), 0);
+        ASSERT_EQ(serializer.getExternalRelocationCount(), 1);
+        const auto* relocInfo = serializer.getExternalRelocation(0);
+        ASSERT_EQ(relocInfo->kind, RelocationType::Abs);
+        ASSERT_EQ(relocInfo->address, 0x0000000000400004);
+        ASSERT_EQ(relocInfo->size, BitSize::_32);
+        ASSERT_EQ(relocInfo->offset, 4);
+    }
+
+    TEST(ExternalLabelTests, EmbeddedExternalLabelX64Rel)
     {
         Program program(MachineMode::AMD64);
 
@@ -47,7 +79,7 @@ namespace zasm::tests
 
         auto externalLabel = program.createExternalLabel("external");
         auto labelData = assembler.createLabel("EmbeddedLabelPos");
-        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(labelData)), Error::None);
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(x86::rip, labelData)), Error::None);
         ASSERT_EQ(assembler.mov(x86::rdx, x86::qword_ptr(x86::rax)), Error::None);
         ASSERT_EQ(assembler.bind(labelData), Error::None);
         ASSERT_EQ(assembler.embedLabel(externalLabel), Error::None);
@@ -74,6 +106,42 @@ namespace zasm::tests
         ASSERT_EQ(relocInfo->address, 0x000000000040000A);
         ASSERT_EQ(relocInfo->size, BitSize::_64);
         ASSERT_EQ(relocInfo->offset, 10);
+    }
+
+    TEST(ExternalLabelTests, EmbeddedExternalLabelX64Abs)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto externalLabel = program.createExternalLabel("external");
+        auto labelData = assembler.createLabel("EmbeddedLabelPos");
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(labelData)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::rdx, x86::qword_ptr(x86::rax)), Error::None);
+        ASSERT_EQ(assembler.bind(labelData), Error::None);
+        ASSERT_EQ(assembler.embedLabel(externalLabel), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), Error::None);
+
+        const std::array<uint8_t, 19> expected = { 0x48, 0x8d, 0x04, 0x25, 0x0b, 0x00, 0x40, 0x00, 0x48, 0x8b,
+                                                   0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+
+        ASSERT_EQ(serializer.getRelocationCount(), 1);
+        ASSERT_EQ(serializer.getExternalRelocationCount(), 1);
+        const auto* relocInfo = serializer.getExternalRelocation(0);
+        ASSERT_EQ(relocInfo->kind, RelocationType::Abs);
+        ASSERT_EQ(relocInfo->address, 0x000000000040000B);
+        ASSERT_EQ(relocInfo->size, BitSize::_64);
+        ASSERT_EQ(relocInfo->offset, 11);
     }
 
     TEST(ExternalLabelTests, EmbeddedExternalLabelX86)
