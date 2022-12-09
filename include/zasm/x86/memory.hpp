@@ -9,7 +9,7 @@ namespace zasm::x86
     using Mem = zasm::Mem;
 
     // ptr [base]
-    // ex.: mov eax, ptr [edx+0xC]
+    // ex.: mov eax, ptr [edx]
     static constexpr Mem ptr(BitSize bitSize, const Gp& base) noexcept
     {
         return Mem(bitSize, Seg{}, base, {}, 0, 0);
@@ -37,7 +37,7 @@ namespace zasm::x86
     }
 
     // ptr [label]
-    // ex.: mov eax, ptr [label + 0xC]
+    // ex.: mov eax, ptr [label]
     static constexpr Mem ptr(BitSize bitSize, const Label& base) noexcept
     {
         return Mem(bitSize, Seg{}, base, Reg{}, Reg{}, 0, 0);
@@ -51,7 +51,7 @@ namespace zasm::x86
     }
 
     // ptr [rel label]
-    // ex.: mov eax, ptr [rel label+0xC]
+    // ex.: mov eax, ptr [rel label]
     static constexpr Mem ptr(BitSize bitSize, const Rip& rip, const Label& base) noexcept
     {
         return Mem(bitSize, Seg{}, base, rip, Reg{}, 0, 0);
@@ -72,7 +72,7 @@ namespace zasm::x86
     }
 
     // ptr : seg [base]
-    // ex.: mov eax, ptr:ds [edx+0xC]
+    // ex.: mov eax, ptr:ds [edx]
     static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Gp& base) noexcept
     {
         return Mem(bitSize, seg, base, {}, 0, 0);

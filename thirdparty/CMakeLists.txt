@@ -27,7 +27,7 @@ FetchContent_Declare(Zydis
 )
 FetchContent_MakeAvailable(Zydis)
 
-if(ZASM_BUILD_TESTS) # tests
+if(ZASM_BUILD_TESTS OR CMKR_ROOT_PROJECT) # tests
 	message(STATUS "Fetching GTest (release-1.11.0)...")
 	FetchContent_Declare(GTest
 		GIT_REPOSITORY
@@ -38,7 +38,7 @@ if(ZASM_BUILD_TESTS) # tests
 	FetchContent_MakeAvailable(GTest)
 
 endif()
-if(ZASM_BUILD_TESTS) # tests
+if(ZASM_BUILD_TESTS OR CMKR_ROOT_PROJECT) # tests
 	message(STATUS "Fetching GBenchmark (v1.6.1)...")
 	FetchContent_Declare(GBenchmark
 		GIT_REPOSITORY

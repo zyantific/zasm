@@ -2,6 +2,7 @@
 [project]
 name = "zasm"
 languages = ["CXX"]
+msvc-runtime = "static"
 
 [options]
 ZASM_BUILD_TESTS = false
@@ -9,9 +10,9 @@ ZASM_BUILD_BENCHMARKS = false
 ZASM_BUILD_EXAMPLES = false
 
 [conditions]
-tests = "ZASM_BUILD_TESTS"
-benchmarks = "ZASM_BUILD_BENCHMARKS"
-examples = "ZASM_BUILD_EXAMPLES"
+tests = "ZASM_BUILD_TESTS OR CMKR_ROOT_PROJECT"
+benchmarks = "ZASM_BUILD_BENCHMARKS OR CMKR_ROOT_PROJECT"
+examples = "ZASM_BUILD_EXAMPLES OR CMKR_ROOT_PROJECT"
 
 [subdir.thirdparty]
 
@@ -182,6 +183,18 @@ link-libraries = [
 FOLDER = "examples"
 PROJECT_LABEL = "modify_instruction"
 RUNTIME_OUTPUT_NAME = "example.modify_instruction"
+
+[target.zasm_example_memory_operands]
+condition = "examples"
+type = "executable"
+sources = ["examples/memory_operands/main.cpp"]
+link-libraries = [
+    "zasm::examples::common",
+]
+[target.zasm_example_memory_operands.properties]
+FOLDER = "examples"
+PROJECT_LABEL = "memory_operands"
+RUNTIME_OUTPUT_NAME = "example.memory_operands"
 
 [[test]]
 condition = "tests"
