@@ -8,11 +8,25 @@ namespace zasm::x86
 {
     using Mem = zasm::Mem;
 
+    // ptr [base]
+    // ex.: mov eax, ptr [edx+0xC]
+    static constexpr Mem ptr(BitSize bitSize, const Gp& base) noexcept
+    {
+        return Mem(bitSize, Seg{}, base, {}, 0, 0);
+    }
+    
     // ptr [base + disp]
     // ex.: mov eax, ptr [edx+0xC]
-    static constexpr Mem ptr(BitSize bitSize, const Gp& base, int64_t disp = 0) noexcept
+    static constexpr Mem ptr(BitSize bitSize, const Gp& base, int64_t disp) noexcept
     {
         return Mem(bitSize, Seg{}, base, {}, 0, disp);
+    }
+
+    // ptr [base + index]
+    // ex.: mov eax, ptr [ecx+edx]
+    static constexpr Mem ptr(BitSize bitSize, const Gp& base, const Gp& index) noexcept
+    {
+        return Mem(bitSize, Seg{}, base, index, 0, 0);
     }
 
     // ptr [base + index * scale + disp]
@@ -22,16 +36,30 @@ namespace zasm::x86
         return Mem(bitSize, Seg{}, base, index, scale, disp);
     }
 
+    // ptr [label]
+    // ex.: mov eax, ptr [label + 0xC]
+    static constexpr Mem ptr(BitSize bitSize, const Label& base) noexcept
+    {
+        return Mem(bitSize, Seg{}, base, Reg{}, Reg{}, 0, 0);
+    }
+
     // ptr [label + disp]
     // ex.: mov eax, ptr [label + 0xC]
-    static constexpr Mem ptr(BitSize bitSize, const Label& base, int64_t disp = 0) noexcept
+    static constexpr Mem ptr(BitSize bitSize, const Label& base, int64_t disp) noexcept
     {
         return Mem(bitSize, Seg{}, base, Reg{}, Reg{}, 0, disp);
     }
 
+    // ptr [rel label]
+    // ex.: mov eax, ptr [rel label+0xC]
+    static constexpr Mem ptr(BitSize bitSize, const Rip& rip, const Label& base) noexcept
+    {
+        return Mem(bitSize, Seg{}, base, rip, Reg{}, 0, 0);
+    }
+    
     // ptr [rel label + disp]
     // ex.: mov eax, ptr [rel label+0xC]
-    static constexpr Mem ptr(BitSize bitSize, const Rip& rip, const Label& base, int64_t disp = 0) noexcept
+    static constexpr Mem ptr(BitSize bitSize, const Rip& rip, const Label& base, int64_t disp) noexcept
     {
         return Mem(bitSize, Seg{}, base, rip, Reg{}, 0, disp);
     }
@@ -43,13 +71,28 @@ namespace zasm::x86
         return Mem(bitSize, Seg{}, Reg{}, Reg{}, 0, base);
     }
 
+    // ptr : seg [base]
+    // ex.: mov eax, ptr:ds [edx+0xC]
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Gp& base) noexcept
+    {
+        return Mem(bitSize, seg, base, {}, 0, 0);
+    }
+
     // ptr : seg [base + disp]
     // ex.: mov eax, ptr:ds [edx+0xC]
-    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Gp& base, int64_t disp = 0) noexcept
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Gp& base, int64_t disp) noexcept
     {
         return Mem(bitSize, seg, base, {}, 0, disp);
     }
     
+    // ptr : seg [base + index]
+    // ex.: mov eax, ptr:ds [edx+ecx]
+    static constexpr Mem ptr(
+        BitSize bitSize, const Seg& seg, const Gp& base, const Gp& index) noexcept
+    {
+        return Mem(bitSize, seg, base, index, 0, 0);
+    }
+
     // ptr : seg [base + index * scale + disp]
     // ex.: mov eax, ptr:ds [edx+ecx*2+0xC]
     static constexpr Mem ptr(
@@ -60,14 +103,21 @@ namespace zasm::x86
     
     // ptr : seg [label + disp]
     // ex.: mov eax, ptr:ds [label+0xC]
-    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Label& base, int64_t disp = 0) noexcept
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Label& base, int64_t disp) noexcept
     {
         return Mem(bitSize, seg, base, Reg{}, Reg{}, 0, disp);
     }
     
+    // ptr : seg [rel label]
+    // ex.: mov eax, ptr:ds [rel label]
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Rip& rip, const Label& base) noexcept
+    {
+        return Mem(bitSize, seg, base, rip, Reg{}, 0, 0);
+    }
+    
     // ptr : seg [rel label + disp]
     // ex.: mov eax, ptr:ds [rel label+0xC]
-    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Rip& rip, const Label& base, int64_t disp = 0) noexcept
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Rip& rip, const Label& base, int64_t disp) noexcept
     {
         return Mem(bitSize, seg, base, rip, Reg{}, 0, disp);
     }
