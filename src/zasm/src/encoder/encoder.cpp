@@ -301,6 +301,12 @@ namespace zasm
         dst.mem.scale = src.getScale();
         dst.mem.size = static_cast<uint16_t>(src.getByteSize());
 
+        // Scale has to be zero if no index is assigned.
+        if (dst.mem.index == ZydisRegister::ZYDIS_REGISTER_NONE)
+        {
+            dst.mem.scale = 0;
+        }
+        
         std::int64_t displacement = src.getDisplacement();
 
         const auto address = ctx != nullptr ? ctx->va : 0;
