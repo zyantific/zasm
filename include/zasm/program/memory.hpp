@@ -78,12 +78,6 @@ namespace zasm
 
         constexpr uint8_t getScale() const noexcept
         {
-            // In case no index is assigned scale has to be zero.
-            if (_segBaseIndex.get<1>() == Reg::Id::None)
-            {
-                return 0;
-            }
-
             return _scale;
         }
 
