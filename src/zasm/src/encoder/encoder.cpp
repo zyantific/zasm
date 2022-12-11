@@ -144,8 +144,16 @@ namespace zasm
 
         if (ctx == nullptr)
         {
-            desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NEAR;
-            res = kTemporaryRel32Value;
+            if (!info.canEncodeRel32())
+            {
+                desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_SHORT;
+                res = kTemporaryRel8Value;
+            }
+            else
+            {
+                desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NEAR;
+                res = kTemporaryRel32Value;
+            }
         }
         else
         {
