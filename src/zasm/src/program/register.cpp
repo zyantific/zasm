@@ -143,10 +143,15 @@ namespace zasm
     {
         return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_GPR64;
     }
-
+    
     bool Reg::isGp() const noexcept
     {
         return isGp8() || isGp16() || isGp32() || isGp64();
+    }
+
+    bool Reg::isSeg() const noexcept
+    {
+        return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_SEGMENT;
     }
 
     bool Reg::isXmm() const noexcept
@@ -162,6 +167,36 @@ namespace zasm
     bool Reg::isZmm() const noexcept
     {
         return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_ZMM;
+    }
+
+    bool Reg::isBnd() const noexcept
+    {
+        return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_BOUND;
+    }
+    
+    bool Reg::isControl() const noexcept
+    {
+        return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_CONTROL;
+    }
+
+    bool Reg::isDebug() const noexcept
+    {
+        return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_DEBUG;
+    }
+
+    bool Reg::isMask() const noexcept
+    {
+        return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_MASK;
+    }
+    
+    bool Reg::isMmx() const noexcept
+    {
+        return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_MMX;
+    }
+    
+    bool Reg::isTmm() const noexcept
+    {
+        return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_TMM;
     }
 
 } // namespace zasm

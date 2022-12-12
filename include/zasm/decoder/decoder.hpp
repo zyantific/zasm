@@ -12,10 +12,11 @@ namespace zasm
     class Decoder final
     {
         ZydisDecoder _decoder{};
+        MachineMode _mode{};
         Error _status{};
 
     public:
-        using Result = zasm::Expected<Instruction, Error>;
+        using Result = zasm::Expected<InstructionInfo, Error>;
 
         Decoder(MachineMode mode) noexcept;
 

@@ -31,6 +31,16 @@ namespace zasm
             }
         }
 
+        constexpr bool operator==(const Packed& other) const noexcept
+        {
+            return _data == other._data;
+        }
+        
+        constexpr bool operator!=(const Packed& other) const noexcept
+        {
+            return _data == other._data;
+        }
+
         template<std::size_t TIndex> constexpr void set(const TElement& val) noexcept
         {
             constexpr auto bitIndex = (TIndex * TElementBitSize);

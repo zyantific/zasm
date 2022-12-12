@@ -10,7 +10,9 @@
 #include <zasm/program/node.hpp>
 #include <zasm/program/program.hpp>
 #include <zasm/program/register.hpp>
-#include <zasm/x86/instruction.hpp>
+#include <zasm/x86/meta.hpp>
+#include <zasm/x86/mnemonic.hpp>
+#include <zasm/x86/register.hpp>
 
 namespace zasm::formatter
 {
@@ -155,7 +157,7 @@ namespace zasm::formatter
             }
         };
 
-        static void mnemonictoString(Context& ctx, const Mnemonic mnemonic)
+        static void mnemonictoString(Context& ctx, const Instruction::Mnemonic mnemonic)
         {
             const char* str = ZydisMnemonicGetString(static_cast<ZydisMnemonic>(static_cast<std::uint32_t>(mnemonic)));
             ctx.appendString(str);
@@ -211,6 +213,23 @@ namespace zasm::formatter
             return labelToString(ctx, label);
         }
 
+        static Reg getDefaultMemSegment(const Mem& mem)
+        {
+            if (const auto seg = mem.getSegment(); seg.isValid())
+            {
+                return seg;
+            }
+            if (const auto base = mem.getBase(); base.isValid())
+            {
+                if (base.getPhysicalIndex() == x86::sp.getPhysicalIndex()
+                    || base.getPhysicalIndex() == x86::bp.getPhysicalIndex())
+                {
+                    return x86::ss;
+                }                    
+            }
+            return x86::ds;
+        }
+
         static void opToString(Context& ctx, const Mem& opMem)
         {
             if (opMem.getBitSize() == BitSize::_8)
@@ -246,7 +265,7 @@ namespace zasm::formatter
                 ctx.appendLiteral("zmmword ptr ");
             }
 
-            if (const auto regSeg = opMem.getSegment(); regSeg.isValid())
+            if (const auto regSeg = getDefaultMemSegment(opMem); regSeg.isValid())
             {
                 opToString(ctx, regSeg);
                 ctx.appendLiteral(":");
@@ -497,17 +516,12 @@ namespace zasm::formatter
 
             mnemonictoString(ctx, node.getMnemonic());
 
-            size_t opIndex = 0;
-            for (const auto& operand : node.getOperands())
+            for (std::size_t opIndex = 0; opIndex < node.getOperandCount(); ++opIndex)
             {
+                const auto& operand = node.getOperand(opIndex);
                 if (operand.holds<Operand::None>())
                 {
                     break;
-                }
-
-                if (node.isOperandHidden(opIndex))
-                {
-                    continue;
                 }
 
                 operand.visit([&](auto&& opVal) {
@@ -521,8 +535,6 @@ namespace zasm::formatter
                     }
                     opToString(ctx, opVal);
                 });
-
-                opIndex++;
             }
         }
 

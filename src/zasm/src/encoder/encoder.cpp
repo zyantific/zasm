@@ -2,7 +2,8 @@
 
 #include "../program/program.state.hpp"
 #include "encoder.context.hpp"
-#include "zasm/x86/instruction.hpp"
+#include "zasm/x86/meta.hpp"
+#include "zasm/x86/mnemonic.hpp"
 
 #include <Zydis/Decoder.h>
 #include <Zydis/Encoder.h>
@@ -109,16 +110,17 @@ namespace zasm
         return target - (address + instrSize);
     }
 
-    static bool hasAttrib(x86::Attribs attribs, x86::Attribs other) noexcept
+    static bool hasAttrib(Instruction::Attribs attribs, Instruction::Attribs other) noexcept
     {
         return (attribs & other) != x86::Attribs::None;
     }
 
-    static ZydisInstructionAttributes getAttribs(x86::Attribs attribs) noexcept
+    static ZydisInstructionAttributes getAttribs(Instruction::Attribs attribs) noexcept
     {
         ZydisInstructionAttributes res{};
 
-        const auto translateAttrib = [&res, &attribs](x86::Attribs other, ZydisInstructionAttributes newAttrib) noexcept {
+        const auto translateAttrib = [&res,
+                                      &attribs](Instruction::Attribs other, ZydisInstructionAttributes newAttrib) noexcept {
             if (hasAttrib(attribs, other))
             {
                 res |= newAttrib;
@@ -314,7 +316,7 @@ namespace zasm
         {
             dst.mem.scale = 0;
         }
-        
+
         std::int64_t displacement = src.getDisplacement();
 
         const auto address = ctx != nullptr ? ctx->va : 0;
@@ -478,8 +480,8 @@ namespace zasm
     }
 
     static Error encode_(
-        EncoderResult& res, EncoderContext* ctx, MachineMode mode, x86::Attribs attribs, Mnemonic mnemonic, size_t numOps,
-        const Operand* operands)
+        EncoderResult& res, EncoderContext* ctx, MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic mnemonic,
+        size_t numOps, const Operand* operands)
     {
         res.length = 0;
 
@@ -548,11 +550,11 @@ namespace zasm
     }
 
     Expected<EncoderResult, Error> encode(
-        MachineMode mode, Instruction::Attribs attribs, Mnemonic mnemonic, std::size_t numOps, const Operand* operands)
+        MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, std::size_t numOps,
+        const Operand* operands)
     {
         EncoderResult res;
-        if (auto err = encode_(res, nullptr, mode, static_cast<x86::Attribs>(attribs), mnemonic, numOps, operands);
-            err != Error::None)
+        if (auto err = encode_(res, nullptr, mode, attribs, mnemonic, numOps, operands); err != Error::None)
         {
             return makeUnexpected(err);
         }
@@ -560,16 +562,15 @@ namespace zasm
     }
 
     static Expected<EncoderResult, Error> encodeWithContext(
-        EncoderContext& ctx, MachineMode mode, Instruction::Attribs prefixes, Mnemonic mnemonic, std::size_t numOps,
-        const Operand* operands)
+        EncoderContext& ctx, MachineMode mode, Instruction::Attribs prefixes, Instruction::Mnemonic mnemonic,
+        std::size_t numOps, const Operand* operands)
     {
         EncoderResult res;
 
         // encode_ will set this to kHintRequiresSize in case a length is required for correct encoding.
         ctx.instrSize = 0;
 
-        if (const auto encodeError = encode_(res, &ctx, mode, static_cast<x86::Attribs>(prefixes), mnemonic, numOps, operands);
-            encodeError != Error::None)
+        if (const auto encodeError = encode_(res, &ctx, mode, prefixes, mnemonic, numOps, operands); encodeError != Error::None)
         {
             return makeUnexpected(encodeError);
         }
@@ -578,8 +579,7 @@ namespace zasm
         {
             // Encode with now known size, instruction size can change again in this call.
             ctx.instrSize = res.length;
-            if (const auto encodeError = encode_(
-                    res, &ctx, mode, static_cast<x86::Attribs>(prefixes), mnemonic, numOps, operands);
+            if (const auto encodeError = encode_(res, &ctx, mode, prefixes, mnemonic, numOps, operands);
                 encodeError != Error::None)
             {
                 return makeUnexpected(encodeError);
@@ -600,8 +600,7 @@ namespace zasm
     Expected<EncoderResult, Error> encode(EncoderContext& ctx, MachineMode mode, const Instruction& instr)
     {
         const auto& ops = instr.getOperands();
-        return encodeWithContext(
-            ctx, mode, instr.getAttribs(), instr.getMnemonic(), instr.getVisibleOperandCount(), ops.data());
+        return encodeWithContext(ctx, mode, instr.getAttribs(), instr.getMnemonic(), instr.getOperandCount(), ops.data());
     }
 
 } // namespace zasm

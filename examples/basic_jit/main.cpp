@@ -42,7 +42,7 @@ static std::size_t estimateCodeSize(const zasm::Program& program)
         }
         else if (auto* nodeInstr = node->getIf<zasm::Instruction>(); nodeInstr != nullptr)
         {
-            size += nodeInstr->getLength();
+            size += 15;
         }
         else if (auto* nodeEmbeddedLabel = node->getIf<zasm::EmbeddedLabel>(); nodeEmbeddedLabel != nullptr)
         {

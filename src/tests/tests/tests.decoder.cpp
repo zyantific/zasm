@@ -22,7 +22,7 @@ namespace zasm::tests
         ASSERT_EQ(decoded->getMnemonic(), x86::Mnemonic::Mov);
         ASSERT_EQ(decoded->getOperandCount(), 2);
 
-        ASSERT_EQ(assembler.emit(decoded.value()), Error::None);
+        ASSERT_EQ(assembler.emit(decoded.value().getInstruction()), Error::None);
 
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
@@ -60,7 +60,7 @@ namespace zasm::tests
         ASSERT_EQ(decoded->getOperand<Mem>(0).getBase(), x86::rip);
         ASSERT_EQ(decoded->getOperand<Mem>(0).getDisplacement(), 0x00007FF8833E0679);
 
-        ASSERT_EQ(assembler.emit(decoded.value()), Error::None);
+        ASSERT_EQ(assembler.emit(decoded.value().getInstruction()), Error::None);
 
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x00007FF8833DF000), Error::None);

@@ -16,12 +16,10 @@ namespace zasm::tests
                                .addOperand(x86::eax)            //
                                .addOperand(zasm::Imm(1));       //
 
-        ASSERT_EQ(instr.isMetaDataValid(), false);
         ASSERT_EQ(assembler.emit(instr), Error::None);
 
         const auto* instrNode = assembler.getCursor();
         ASSERT_NE(instrNode, nullptr);
-        ASSERT_EQ(instrNode->get<Instruction>().isMetaDataValid(), true);
 
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
@@ -51,11 +49,9 @@ namespace zasm::tests
 
         // Make copy.
         Instruction instr = assembler.getCursor()->get<Instruction>();
-        ASSERT_EQ(instr.isMetaDataValid(), true);
 
         // Modify operand.
         instr.setOperand(1, zasm::Imm(1));
-        ASSERT_EQ(instr.isMetaDataValid(), true);
 
         // Emit modified
         ASSERT_EQ(assembler.emit(instr), Error::None);
@@ -65,7 +61,6 @@ namespace zasm::tests
 
         instrNode = assembler.getCursor();
         ASSERT_NE(instrNode, nullptr);
-        ASSERT_EQ(instrNode->get<Instruction>().isMetaDataValid(), true);
 
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);

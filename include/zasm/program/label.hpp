@@ -25,6 +25,16 @@ namespace zasm
         {
         }
 
+        constexpr bool operator==(const Label& other) const noexcept
+        {
+            return _id == other._id;
+        }
+        
+        constexpr bool operator!=(const Label& other) const noexcept
+        {
+            return _id != other._id;
+        }
+
         constexpr Id getId() const noexcept
         {
             return _id;
@@ -35,7 +45,7 @@ namespace zasm
             return _id != Id::Invalid;
         }
 
-        static BitSize getBitSize() noexcept
+        static constexpr BitSize getBitSize() noexcept
         {
             return BitSize::_0;
         }

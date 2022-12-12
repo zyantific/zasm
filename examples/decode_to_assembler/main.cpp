@@ -30,20 +30,22 @@ int main()
     {
         const auto curAddress = baseAddr + bytesDecoded;
 
-        auto decoderRes = decoder.decode(code.data() + bytesDecoded, code.size() - bytesDecoded, curAddress);
+        const auto decoderRes = decoder.decode(code.data() + bytesDecoded, code.size() - bytesDecoded, curAddress);
         if (!decoderRes)
         {
             std::cout << "Failed to decode at " << std::hex << curAddress << ", " << getErrorName(decoderRes.error()) << "\n";
             return EXIT_FAILURE;
         }
 
-        const auto& instr = decoderRes.value();
+        const auto& instrInfo = *decoderRes;
+        
+        const auto instr = instrInfo.getInstruction();
         if (auto res = assembler.emit(instr); res != zasm::Error::None)
         {
             std::cout << "Failed to emit instruction " << std::hex << curAddress << ", " << getErrorName(res) << "\n";
         }
 
-        bytesDecoded += instr.getLength();
+        bytesDecoded += instrInfo.getLength();
     }
 
     Serializer serializer;

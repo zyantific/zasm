@@ -2,14 +2,21 @@
 
 #include <iostream>
 
-static void printInstructionInfo(const zasm::Program& program, const zasm::Instruction& instr)
+static void printInstructionInfo(zasm::MachineMode mode, const zasm::Instruction& instr)
 {
     using namespace zasm;
 
-    std::cout << "Instruction: " << formatter::toString(&instr) << "\n";
-    for (size_t i = 0; i < instr.getOperandCount(); ++i)
+    const auto& info = zasm::x86::getInstructionInfo(mode, instr);
+    if (!info.hasValue())
     {
-        const Operand& op = instr.getOperand(i);
+        std::cout << "Failed to get instruction info\n";
+        return;
+    }
+
+    std::cout << "Instruction: " << formatter::toString(&instr) << "\n";
+    for (size_t i = 0; i < info->getOperandCount(); ++i)
+    {
+        const Operand& op = info->getOperand(i);
 
         std::cout << "  Operand[" << i << "] = {\n";
 
@@ -29,7 +36,7 @@ static void printInstructionInfo(const zasm::Program& program, const zasm::Instr
             std::cout << "      " << formatter::toString(*opReg) << "\n";
             std::cout << "    ),\n";
         }
-        else if (auto* opImm = op.getIf<Imm>(); opReg != nullptr)
+        else if (auto* opImm = op.getIf<Imm>(); opImm != nullptr)
         {
             std::cout << "    Imm(\n";
             std::cout << "      " << opImm->value<int64_t>() << "\n";
@@ -43,7 +50,7 @@ static void printInstructionInfo(const zasm::Program& program, const zasm::Instr
         }
 
         std::cout << "    Access = ";
-        const auto opAccess = instr.getOperandAccess(i);
+        const auto opAccess = info->getOperandAccess(i);
         if (opAccess == Operand::Access::None)
             std::cout << "none\n";
         else
@@ -62,7 +69,7 @@ static void printInstructionInfo(const zasm::Program& program, const zasm::Instr
         }
 
         std::cout << "    Visibility = ";
-        const Operand::Visibility opVis = instr.getOperandVisibility(i);
+        const Operand::Visibility opVis = info->getOperandVisibility(i);
         switch (opVis)
         {
             case Operand::Visibility::Invalid:
@@ -80,8 +87,8 @@ static void printInstructionInfo(const zasm::Program& program, const zasm::Instr
         }
         std::cout << "\n";
 
-        std::cout << "    Size = " << getBitSize(instr.getOperand(i).getBitSize(program.getMode())) << "b\n";
-        
+        std::cout << "    Size = " << getBitSize(op.getBitSize(mode)) << "b\n";
+
         std::cout << "  }\n";
     }
 }
@@ -90,28 +97,31 @@ int main()
 {
     using namespace zasm;
 
-    Program program(MachineMode::AMD64);
-
-    Decoder decoder(program.getMode());
-
-    x86::Assembler assembler(program);
-
     {
-        assembler.call(Imm(0));
-        auto& instr = assembler.getCursor()->get<Instruction>();
-        printInstructionInfo(program, instr);
+        const auto instr = Instruction()                         //
+                               .setMnemonic(x86::Mnemonic::Call) //
+                               .addOperand(Label(Label::Id(1))); //
+        printInstructionInfo(MachineMode::AMD64, instr);
     }
 
     {
-        assembler.ret();
-        auto& instr = assembler.getCursor()->get<Instruction>();
-        printInstructionInfo(program, instr);
+        const auto instr = Instruction()                         //
+                               .setMnemonic(x86::Mnemonic::Call) //
+                               .addOperand(Imm(0));              //
+        printInstructionInfo(MachineMode::AMD64, instr);
     }
 
     {
-        auto lbl = assembler.createLabel();
-        assembler.jmp(lbl);
-        auto& instr = assembler.getCursor()->get<Instruction>();
-        printInstructionInfo(program, instr);
+        const auto instr = Instruction()                         //
+                               .setMnemonic(x86::Mnemonic::Ret); //
+        printInstructionInfo(MachineMode::AMD64, instr);
+    }
+
+    {
+        const auto instr = Instruction(x86::Mnemonic::Inc)            //
+                               .addAttribs(x86::Attribs::Lock)        //
+                               .addOperand(x86::dword_ptr(x86::eax)); //
+
+        printInstructionInfo(MachineMode::AMD64, instr);
     }
 }

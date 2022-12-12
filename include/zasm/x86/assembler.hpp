@@ -9,13 +9,13 @@
 #include <zasm/program/observer.hpp>
 #include <zasm/program/operand.hpp>
 #include <zasm/program/section.hpp>
-#include <zasm/x86/instruction.hpp>
+#include <zasm/x86/meta.hpp>
+#include <zasm/x86/mnemonic.hpp>
 
 namespace zasm
 {
     class Program;
     class Node;
-    class InstrGenerator;
 } // namespace zasm
 
 namespace zasm::x86
@@ -24,8 +24,7 @@ namespace zasm::x86
     {
         Program& _program;
         const Node* _cursor{};
-        Attribs _attribState{};
-        InstrGenerator* _generator{};
+        InstrAttribs _attribState{};
 
     public:
         Assembler(Program& _program);
@@ -104,7 +103,7 @@ namespace zasm::x86
         Error embedLabelRel(Label label, Label relativeTo, BitSize size);
 
     public:
-        template<typename... TArgs> Error emit(zasm::Mnemonic mnemonic, TArgs&&... args)
+        template<typename... TArgs> Error emit(Instruction::Mnemonic mnemonic, TArgs&&... args)
         {
             const auto attribs = _attribState;
             _attribState = Attribs::None;
@@ -112,11 +111,11 @@ namespace zasm::x86
             return emit(attribs, mnemonic, ops.size(), ops.data());
         }
 
-        Error emit(Attribs attribs, zasm::Mnemonic mnemonic, std::size_t numOps, const Operand* ops);
+        Error emit(Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, std::size_t numOps, const Operand* ops);
         Error emit(const Instruction& instr);
 
     private:
-        void addAttrib(Attribs attrib) noexcept
+        void addAttrib(Instruction::Attribs attrib) noexcept
         {
             _attribState = _attribState | attrib;
         }
