@@ -54,7 +54,7 @@ namespace zasm::x86
 
         if (decoded.getVisibleOperandCount() != opCount)
         {
-            return Error::InvalidOperation;
+            return zasm::makeUnexpected(Error::InvalidOperation);
         }
 
         // Replace the decoded operands with user specified operands.
