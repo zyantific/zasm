@@ -23,7 +23,7 @@ namespace zasm::x86
     class Assembler final : public Emitter<Assembler>, public Observer
     {
         Program& _program;
-        const Node* _cursor{};
+        Node* _cursor{};
         InstrAttribs _attribState{};
 
     public:
@@ -34,13 +34,13 @@ namespace zasm::x86
         /// Sets the node at where the next node will be inserted after.
         /// </summary>
         /// <param name="pos">The position to insert the next node after</param>
-        void setCursor(const Node* pos) noexcept;
+        void setCursor(Node* pos) noexcept;
 
         /// <summary>
         /// Returns the current node, this is typically the last node created.
         /// </summary>
         /// <returns>Position in Program</returns>
-        const Node* getCursor() const noexcept;
+        Node* getCursor() const noexcept;
 
     public:
         /// <summary>
@@ -186,8 +186,8 @@ namespace zasm::x86
         /// Observer events, this ensures the cursor remains valid.
         /// </summary>
         /// <param name="node"></param>
-        void onNodeDetach(const Node* node) noexcept override;
-        void onNodeDestroy(const Node* node) noexcept override;
+        void onNodeDetach(Node* node) noexcept override;
+        void onNodeDestroy(Node* node) noexcept override;
     };
 
 } // namespace zasm::x86

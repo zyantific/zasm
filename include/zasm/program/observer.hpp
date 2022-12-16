@@ -16,7 +16,7 @@ namespace zasm
         /// This is called after a node has been created.
         /// </summary>
         /// <param name="node">The node which has been created</param>
-        virtual void onNodeCreated(const Node* node)
+        virtual void onNodeCreated(Node* node)
         {
         }
 
@@ -24,7 +24,7 @@ namespace zasm
         /// This is called before the node is destroyed.
         /// </summary>
         /// <param name="node">The node which will be destroyed</param>
-        virtual void onNodeDestroy(const Node* node)
+        virtual void onNodeDestroy(Node* node)
         {
         }
 
@@ -32,7 +32,7 @@ namespace zasm
         /// This is called before a node is detached.
         /// </summary>
         /// <param name="node">The node which will be detached</param>
-        virtual void onNodeDetach(const Node* node)
+        virtual void onNodeDetach(Node* node)
         {
         }
 
@@ -40,7 +40,7 @@ namespace zasm
         /// This is called after a node has been inserted.
         /// </summary>
         /// <param name="node">The node which was inserted</param>
-        virtual void onNodeInserted(const Node* node)
+        virtual void onNodeInserted(Node* node)
         {
         }
     };

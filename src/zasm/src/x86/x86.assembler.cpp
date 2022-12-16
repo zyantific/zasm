@@ -16,12 +16,12 @@ namespace zasm::x86
         _program.removeObserver(*this);
     }
 
-    void Assembler::setCursor(const Node* pos) noexcept
+    void Assembler::setCursor(Node* pos) noexcept
     {
         _cursor = pos;
     }
 
-    const Node* Assembler::getCursor() const noexcept
+    Node* Assembler::getCursor() const noexcept
     {
         return _cursor;
     }
@@ -69,7 +69,7 @@ namespace zasm::x86
     {
         Data data(val, repeatCount);
 
-        const auto* dataNode = _program.createNode(std::move(data));
+        auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -79,7 +79,7 @@ namespace zasm::x86
     {
         Data data(val, repeatCount);
 
-        const auto* dataNode = _program.createNode(std::move(data));
+        auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -89,7 +89,7 @@ namespace zasm::x86
     {
         Data data(val, repeatCount);
 
-        const auto* dataNode = _program.createNode(std::move(data));
+        auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -99,7 +99,7 @@ namespace zasm::x86
     {
         Data data(val, repeatCount);
 
-        const auto* dataNode = _program.createNode(std::move(data));
+        auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -109,7 +109,7 @@ namespace zasm::x86
     {
         Data data(ptr, len);
 
-        const auto* dataNode = _program.createNode(std::move(data));
+        auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -123,7 +123,7 @@ namespace zasm::x86
             instr.addOperand(ops[i]);
         }
 
-        const auto* node = _program.createNode(std::move(instr));
+        auto* node = _program.createNode(std::move(instr));
         _cursor = _program.insertAfter(_cursor, node);
 
         return Error::None;
@@ -151,7 +151,7 @@ namespace zasm::x86
             return Error::InvalidMode;
         }
 
-        const auto* node = _program.createNode(EmbeddedLabel(label, size));
+        auto* node = _program.createNode(EmbeddedLabel(label, size));
         _cursor = _program.insertAfter(_cursor, node);
 
         return Error::None;
@@ -159,13 +159,13 @@ namespace zasm::x86
 
     Error Assembler::embedLabelRel(Label label, Label relativeTo, BitSize size)
     {
-        const auto* node = _program.createNode(EmbeddedLabel(label, relativeTo, size));
+        auto* node = _program.createNode(EmbeddedLabel(label, relativeTo, size));
         _cursor = _program.insertAfter(_cursor, node);
 
         return Error::None;
     }
 
-    void Assembler::onNodeDetach(const Node* node) noexcept
+    void Assembler::onNodeDetach(Node* node) noexcept
     {
         if (node != _cursor)
         {
@@ -174,7 +174,7 @@ namespace zasm::x86
         _cursor = node->getPrev();
     }
 
-    void Assembler::onNodeDestroy(const Node* node) noexcept
+    void Assembler::onNodeDestroy(Node* node) noexcept
     {
         if (node != _cursor)
         {

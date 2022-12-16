@@ -15,19 +15,19 @@ namespace zasm
                 : ::zasm::Node(id, std::forward<T>(val))
             {
             }
-            void setPrev(const ::zasm::Node* node) noexcept
+            void setPrev(::zasm::Node* node) noexcept
             {
                 _prev = node;
             }
-            void setNext(const ::zasm::Node* node) noexcept
+            void setNext(::zasm::Node* node) noexcept
             {
                 _next = node;
             }
         };
 
         static_assert(sizeof(Node) == sizeof(::zasm::Node));
-
-        static Node* toInternal(const zasm::Node* node) noexcept
+        
+        static Node* toInternal(zasm::Node* node) noexcept
         {
             return static_cast<Node*>(const_cast<zasm::Node*>(node));
         }

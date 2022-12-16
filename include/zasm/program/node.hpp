@@ -29,9 +29,9 @@ namespace zasm
 
     protected:
         const Id _id{ Id::Invalid };
-        const Node* _prev{};
-        const Node* _next{};
-        const std::variant<NodePoint, Instruction, Label, EmbeddedLabel, Data, Section> _data{};
+        Node* _prev{};
+        Node* _next{};
+        std::variant<NodePoint, Instruction, Label, EmbeddedLabel, Data, Section> _data{};
 
     protected:
         template<typename T>
@@ -44,12 +44,22 @@ namespace zasm
     public:
         constexpr Node() = default;
 
-        const Node* getPrev() const noexcept
+        Node* getPrev() const noexcept
         {
             return _prev;
         }
 
-        const Node* getNext() const noexcept
+        Node* getPrev() noexcept
+        {
+            return _prev;
+        }
+
+        Node* getNext() const noexcept
+        {
+            return _next;
+        }
+
+        Node* getNext() noexcept
         {
             return _next;
         }
@@ -64,12 +74,27 @@ namespace zasm
             return std::get<T>(_data);
         }
 
+        template<typename T> constexpr T& get()
+        {
+            return std::get<T>(_data);
+        }
+
         template<typename T> constexpr const T* getIf() const noexcept
+        {
+            return std::get_if<T>(&_data);
+        }
+        
+        template<typename T> constexpr T* getIf() noexcept
         {
             return std::get_if<T>(&_data);
         }
 
         template<typename F> constexpr auto visit(F&& func) const
+        {
+            return std::visit(std::forward<F>(func), _data);
+        }
+
+        template<typename F> constexpr auto visit(F&& func)
         {
             return std::visit(std::forward<F>(func), _data);
         }

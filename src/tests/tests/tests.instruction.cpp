@@ -45,7 +45,7 @@ namespace zasm::tests
 
         assembler.mov(x86::eax, zasm::Imm(2));
 
-        const auto* instrNode = assembler.getCursor();
+        auto* instrNode = assembler.getCursor();
 
         // Make copy.
         Instruction instr = assembler.getCursor()->get<Instruction>();
