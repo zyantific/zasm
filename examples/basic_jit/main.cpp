@@ -42,7 +42,15 @@ static std::size_t estimateCodeSize(const zasm::Program& program)
         }
         else if (auto* nodeInstr = node->getIf<zasm::Instruction>(); nodeInstr != nullptr)
         {
-            size += 15;
+            const auto& instrInfo = zasm::x86::getInstructionInfo(program.getMode(), *nodeInstr);
+            if (instrInfo.hasValue())
+            {
+                size += instrInfo->getLength();
+            }
+            else
+            {
+                std::cout << "Error: Unable to get instruction info\n";
+            }
         }
         else if (auto* nodeEmbeddedLabel = node->getIf<zasm::EmbeddedLabel>(); nodeEmbeddedLabel != nullptr)
         {
