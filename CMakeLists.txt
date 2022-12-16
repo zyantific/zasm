@@ -99,7 +99,6 @@ set(zasm_SOURCES
 	"include/zasm/program/label.hpp"
 	"include/zasm/program/labeldata.hpp"
 	"include/zasm/program/memory.hpp"
-	"include/zasm/program/meta.hpp"
 	"include/zasm/program/node.hpp"
 	"include/zasm/program/observer.hpp"
 	"include/zasm/program/operand.hpp"
