@@ -6,7 +6,7 @@ static void printInstructionInfo(zasm::MachineMode mode, const zasm::Instruction
 {
     using namespace zasm;
 
-    const auto& info = instr.getDetail(mode);
+    const auto info = instr.getDetail(mode);
     if (!info.hasValue())
     {
         std::cout << "Failed to get instruction info\n";
