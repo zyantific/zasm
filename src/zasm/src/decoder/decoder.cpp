@@ -88,9 +88,9 @@ namespace zasm
         return res;
     }
 
-    static constexpr InstructionInfo::Category getCategory(ZydisInstructionCategory category) noexcept
+    static constexpr InstructionDetail::Category getCategory(ZydisInstructionCategory category) noexcept
     {
-        return static_cast<InstructionInfo::Category>(category);
+        return static_cast<InstructionDetail::Category>(category);
     }
 
     Decoder::Decoder(MachineMode mode) noexcept
@@ -173,7 +173,7 @@ namespace zasm
             return zasm::makeUnexpected(Error::InvalidOperation);
         }
 
-        InstructionInfo::CPUFlags flags{};
+        InstructionDetail::CPUFlags flags{};
         if (instr.cpu_flags != nullptr)
         {
             flags.set0 = instr.cpu_flags->set_0 ;
@@ -183,9 +183,9 @@ namespace zasm
             flags.undefined = instr.cpu_flags->undefined;
         }
 
-        InstructionInfo::Operands ops;
-        InstructionInfo::OperandsVisibility vis;
-        InstructionInfo::OperandsAccess access;
+        InstructionDetail::Operands ops;
+        InstructionDetail::OperandsVisibility vis;
+        InstructionDetail::OperandsAccess access;
 
         for (int i = 0; i < instr.operand_count; ++i)
         {
@@ -201,7 +201,7 @@ namespace zasm
         const auto attribs = getAttribs(instr.attributes);
         const auto category = getCategory(instr.meta.category);
 
-        const auto res = InstructionInfo(
+        const auto res = InstructionDetail(
             attribs, instr.mnemonic, instr.operand_count, ops, access, vis, flags, category, instr.length);
 
         return res;

@@ -16,7 +16,7 @@ namespace zasm
         Error _status{};
 
     public:
-        using Result = zasm::Expected<InstructionInfo, Error>;
+        using Result = zasm::Expected<InstructionDetail, Error>;
 
         Decoder(MachineMode mode) noexcept;
 

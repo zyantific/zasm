@@ -30,7 +30,7 @@ namespace zasm::benchmarks
                 const auto& instr = assembler.getCursor()->get<Instruction>();
                 state.ResumeTiming();
                 
-                const auto instrInfo = x86::getInstructionInfo(program.getMode(), instr);
+                const auto instrInfo = instr.getDetail(program.getMode());
                 benchmark::DoNotOptimize(instrInfo);
 
             }

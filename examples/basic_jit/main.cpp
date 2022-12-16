@@ -42,7 +42,7 @@ static std::size_t estimateCodeSize(const zasm::Program& program)
         }
         else if (auto* nodeInstr = node->getIf<zasm::Instruction>(); nodeInstr != nullptr)
         {
-            const auto& instrInfo = zasm::x86::getInstructionInfo(program.getMode(), *nodeInstr);
+            const auto& instrInfo = nodeInstr->getDetail(program.getMode());
             if (instrInfo.hasValue())
             {
                 size += instrInfo->getLength();

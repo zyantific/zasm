@@ -497,7 +497,7 @@ namespace zasm
         {
             req.machine_mode = ZYDIS_MACHINE_MODE_LONG_COMPAT_32;
         }
-        req.mnemonic = static_cast<ZydisMnemonic>(static_cast<uint32_t>(mnemonic));
+        req.mnemonic = static_cast<ZydisMnemonic>(mnemonic.value());
         req.prefixes = getAttribs(attribs);
 
         if (hasAttrib(attribs, x86::Attribs::OperandSize8))

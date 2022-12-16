@@ -6,7 +6,7 @@ static void printInstructionInfo(zasm::MachineMode mode, const zasm::Instruction
 {
     using namespace zasm;
 
-    const auto& info = zasm::x86::getInstructionInfo(mode, instr);
+    const auto& info = instr.getDetail(mode);
     if (!info.hasValue())
     {
         std::cout << "Failed to get instruction info\n";
@@ -121,7 +121,6 @@ int main()
         const auto instr = Instruction(x86::Mnemonic::Inc)            //
                                .addAttribs(x86::Attribs::Lock)        //
                                .addOperand(x86::dword_ptr(x86::eax)); //
-
         printInstructionInfo(MachineMode::AMD64, instr);
     }
 }

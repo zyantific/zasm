@@ -162,6 +162,4 @@ namespace zasm::x86
 
     } // namespace Attribs
 
-    zasm::Expected<zasm::InstructionInfo, zasm::Error> getInstructionInfo(MachineMode mode, const Instruction& instr);
-
 } // namespace zasm::x86

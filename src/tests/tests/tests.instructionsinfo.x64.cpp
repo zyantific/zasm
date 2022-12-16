@@ -24,7 +24,7 @@ namespace zasm::tests
 
         const auto& instr = node->get<Instruction>();
 
-        const auto info = x86::getInstructionInfo(program.getMode(), instr);
+        const auto info = instr.getDetail(program.getMode());
         ASSERT_EQ(info.hasValue(), true);
 
         ASSERT_EQ(instr.getOperandCount(), info->getVisibleOperandCount());
