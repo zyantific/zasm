@@ -40,6 +40,17 @@ namespace zasm
         }
 
     public:
+        constexpr bool operator==(const InstructionBase& other) const
+        {
+            return _attribs == other._attribs && _mnemonic == other._mnemonic && _opCount == other._opCount
+                && _operands == other._operands;
+        }
+
+        constexpr bool operator!=(const InstructionBase& other) const
+        {
+            return !(*this == other);
+        }
+
         /// <summary>
         /// Returns the architecture specific mnemonic for this instructions ex.: x86::Mnemonic::Mov
         /// </summary>

@@ -98,6 +98,14 @@ int main()
     using namespace zasm;
 
     {
+        const auto instr = Instruction()                        //
+                               .setMnemonic(x86::Mnemonic::Mov) //
+                               .addOperand(x86::rax)            //
+                               .addOperand(Imm(1));             //
+        printInstructionInfo(MachineMode::AMD64, instr);
+    }
+
+    {
         const auto instr = Instruction()                         //
                                .setMnemonic(x86::Mnemonic::Call) //
                                .addOperand(Label(Label::Id(1))); //

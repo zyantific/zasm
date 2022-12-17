@@ -39,7 +39,17 @@ namespace zasm
             : InstructionBase(attribs, mnemonic, opCount, operands)
         {
         }
-        
+
+        constexpr bool operator==(const Instruction& other) const
+        {
+            return InstructionBase::operator==(other);
+        }
+
+        constexpr bool operator!=(const Instruction& other) const
+        {
+            return !(*this == other);
+        }
+
         /// <summary>
         /// Returns InstructionInfo or zasm::Error for given mode and instruction.
         /// </summary>
@@ -56,11 +66,22 @@ namespace zasm
 
         struct CPUFlags
         {
-            std::uint32_t set1;
-            std::uint32_t set0;
-            std::uint32_t modified;
-            std::uint32_t tested;
-            std::uint32_t undefined;
+            std::uint32_t set1{};
+            std::uint32_t set0{};
+            std::uint32_t modified{};
+            std::uint32_t tested{};
+            std::uint32_t undefined{};
+
+            constexpr bool operator==(const CPUFlags& other) const
+            {
+                return set1 == other.set1 && set0 == other.set0 && modified == other.modified && tested == other.tested
+                    && undefined == other.undefined;
+            }
+            
+            constexpr bool operator!=(const CPUFlags& other) const
+            {
+                return !(*this == other);
+            }
         };
 
     private:
@@ -83,6 +104,17 @@ namespace zasm
             , _category{ category }
             , _length{ length }
         {
+        }
+
+        constexpr bool operator==(const InstructionDetail& other) const
+        {
+            return InstructionBase::operator==(other) && _access == other._access && _opsVisibility == other._opsVisibility
+                && _cpuFlags == other._cpuFlags && _category == other._category && _length == other._length;
+        }
+
+        constexpr bool operator!=(const InstructionDetail& other) const
+        {
+            return !(*this == other);
         }
 
         constexpr Category getCategory() const noexcept
