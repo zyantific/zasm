@@ -17,18 +17,23 @@ namespace zasm
         _48,
         _64,
         _80,
+        _96,
         _128,
         _160,
+        _192,
+        _224,
         _256,
         _320,
+        _384,
         _512,
+        _864,
         _1024,
         _2048,
         _4096,
+        _4608,
     };
 
-    template<typename T>
-    constexpr BitSize toBitSize(const T numBits) noexcept
+    template<typename T> constexpr BitSize toBitSize(const T numBits) noexcept
     {
 #define SWITCH_BIT(n)                                                                                                          \
     case n:                                                                                                                    \
@@ -45,14 +50,20 @@ namespace zasm
             SWITCH_BIT(48);
             SWITCH_BIT(64);
             SWITCH_BIT(80);
+            SWITCH_BIT(96);
             SWITCH_BIT(128);
             SWITCH_BIT(160);
+            SWITCH_BIT(192);
+            SWITCH_BIT(224);
             SWITCH_BIT(256);
             SWITCH_BIT(320);
+            SWITCH_BIT(384);
             SWITCH_BIT(512);
+            SWITCH_BIT(864);
             SWITCH_BIT(1024);
             SWITCH_BIT(2048);
             SWITCH_BIT(4096);
+            SWITCH_BIT(4608);
             default:
                 assert(false);
         }
@@ -77,14 +88,20 @@ namespace zasm
             SWITCH_BIT(48);
             SWITCH_BIT(64);
             SWITCH_BIT(80);
+            SWITCH_BIT(96);
             SWITCH_BIT(128);
             SWITCH_BIT(160);
+            SWITCH_BIT(192);
+            SWITCH_BIT(224);
             SWITCH_BIT(256);
             SWITCH_BIT(320);
+            SWITCH_BIT(384);
             SWITCH_BIT(512);
+            SWITCH_BIT(864);
             SWITCH_BIT(1024);
             SWITCH_BIT(2048);
             SWITCH_BIT(4096);
+            SWITCH_BIT(4608);
             default:
                 assert(false);
         }
