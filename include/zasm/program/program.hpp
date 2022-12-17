@@ -165,6 +165,8 @@ namespace zasm
         Node* createNode(Instruction&& instr);
         Node* createNode(const Data& data);
         Node* createNode(Data&& data);
+        Node* createNode(const Align& align);
+        Node* createNode(Align&& data);
         Node* createNode(const EmbeddedLabel& label);
 
     public:

@@ -1,13 +1,14 @@
 #pragma once
 
+#include "align.hpp"
 #include "data.hpp"
 #include "embeddedlabel.hpp"
 #include "instruction.hpp"
 #include "label.hpp"
 #include "section.hpp"
 
-#include <cstddef>
 #include <climits>
+#include <cstddef>
 #include <variant>
 
 namespace zasm
@@ -31,7 +32,7 @@ namespace zasm
         const Id _id{ Id::Invalid };
         Node* _prev{};
         Node* _next{};
-        std::variant<NodePoint, Instruction, Label, EmbeddedLabel, Data, Section> _data{};
+        std::variant<NodePoint, Instruction, Label, EmbeddedLabel, Data, Section, Align> _data{};
 
     protected:
         template<typename T>
@@ -83,7 +84,7 @@ namespace zasm
         {
             return std::get_if<T>(&_data);
         }
-        
+
         template<typename T> constexpr T* getIf() noexcept
         {
             return std::get_if<T>(&_data);

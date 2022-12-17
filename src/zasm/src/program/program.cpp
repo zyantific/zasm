@@ -354,6 +354,16 @@ namespace zasm
         return createNode_(*_state, std::move(data));
     }
 
+    Node* Program::createNode(const Align& align)
+    {
+        return createNode_(*_state, align);
+    }
+
+    Node* Program::createNode(Align&& data)
+    {
+        return createNode_(*_state, std::move(data));
+    }
+
     Node* Program::createNode(const EmbeddedLabel& label)
     {
         return createNode_(*_state, label);

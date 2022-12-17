@@ -371,6 +371,14 @@ namespace zasm::formatter
         {
         }
 
+        static void nodeToString(Context& ctx, const Align& node) noexcept
+        {
+            if (node.getType() == Align::Type::Code)
+                ctx.format(".align %u, nop", node.getAlign());
+            else
+                ctx.format(".align %u", node.getAlign());
+        }
+
         static void dataPrefix(Context& ctx, BitSize size)
         {
             switch (size)
