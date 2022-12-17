@@ -66,11 +66,11 @@ namespace zasm
 
         struct CPUFlags
         {
-            std::uint32_t set1{};
-            std::uint32_t set0{};
-            std::uint32_t modified{};
-            std::uint32_t tested{};
-            std::uint32_t undefined{};
+            InstrCPUFlags set1{};
+            InstrCPUFlags set0{};
+            InstrCPUFlags modified{};
+            InstrCPUFlags tested{};
+            InstrCPUFlags undefined{};
 
             constexpr bool operator==(const CPUFlags& other) const
             {

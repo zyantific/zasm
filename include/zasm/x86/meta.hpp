@@ -162,4 +162,53 @@ namespace zasm::x86
 
     } // namespace Attribs
 
+    namespace CPUFlags
+    {
+        namespace detail
+        {
+            template<std::uint32_t TID> class CPUFlags : public zasm::InstrCPUFlags
+            {
+            public:
+                constexpr CPUFlags()
+                    : zasm::InstrCPUFlags{ TID }
+                {
+                }
+            };
+        } // namespace detail
+
+        static constexpr detail::CPUFlags<0U> None{};
+        static constexpr detail::CPUFlags<1U << 0U> CF{};
+        static constexpr detail::CPUFlags<1U << 1U> Reserved0{};
+        static constexpr detail::CPUFlags<1U << 2U> PF{};
+        static constexpr detail::CPUFlags<1U << 3U> Reserved1{};
+        static constexpr detail::CPUFlags<1U << 4U> AF{};
+        static constexpr detail::CPUFlags<1U << 5U> Reserved2{};
+        static constexpr detail::CPUFlags<1U << 6U> ZF{};
+        static constexpr detail::CPUFlags<1U << 7U> SF{};
+        static constexpr detail::CPUFlags<1U << 8U> TF{};
+        static constexpr detail::CPUFlags<1U << 9U> IF{};
+        static constexpr detail::CPUFlags<1U << 10U> DF{};
+        static constexpr detail::CPUFlags<1U << 11U> OF{};
+        static constexpr detail::CPUFlags<1U << 12U> IOPL1{};
+        static constexpr detail::CPUFlags<1U << 13U> IOPL2{};
+        static constexpr detail::CPUFlags<1U << 14U> NT{};
+        static constexpr detail::CPUFlags<1U << 15U> MD{};
+        static constexpr detail::CPUFlags<1U << 16U> RF{};
+        static constexpr detail::CPUFlags<1U << 17U> VM{};
+        static constexpr detail::CPUFlags<1U << 18U> AC{};
+        static constexpr detail::CPUFlags<1U << 19U> VIF{};
+        static constexpr detail::CPUFlags<1U << 20U> VIP{};
+        static constexpr detail::CPUFlags<1U << 21U> ID{};
+        static constexpr detail::CPUFlags<1U << 22U> Reserved3{};
+        static constexpr detail::CPUFlags<1U << 23U> Reserved4{};
+        static constexpr detail::CPUFlags<1U << 24U> Reserved5{};
+        static constexpr detail::CPUFlags<1U << 25U> Reserved6{};
+        static constexpr detail::CPUFlags<1U << 26U> Reserved7{};
+        static constexpr detail::CPUFlags<1U << 27U> Reserved8{};
+        static constexpr detail::CPUFlags<1U << 28U> Reserved9{};
+        static constexpr detail::CPUFlags<1U << 29U> Reserved10{};
+        static constexpr detail::CPUFlags<1U << 30U> AES{};
+        static constexpr detail::CPUFlags<1U << 31U> Reserved11{};
+    }
+
 } // namespace zasm::x86

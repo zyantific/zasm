@@ -11,4 +11,6 @@ namespace zasm
 
     using InstrMnemonic = StrongType<std::uint16_t>;
 
+    using InstrCPUFlags = StrongType<std::uint32_t>;
+
 } // namespace zasm
