@@ -62,6 +62,7 @@ Decodes binary data into the Instruction object which can be either directly use
 
 ## Examples
 The project provides a few basic examples that can be found [here](https://github.com/zyantific/zasm/tree/master/examples). There are also various tests for almost everything zasm provides, if there is an something missing checkout the tests first, they provide also good examples. If you still have questions you can contact us via Discord.
+
 ---
 
 <!-- markdownlint-enable -->
