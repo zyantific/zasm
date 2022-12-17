@@ -152,22 +152,66 @@ namespace zasm::tests
         auto label = assembler.createLabel();
 
         ASSERT_EQ(assembler.jmp(label), Error::None);
-        for (int i = 0; i < 124; i++)
+        for (int i = 0; i < 100; i++)
             ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.align(Align::Type::Code, 16), Error::None);
         ASSERT_EQ(assembler.bind(label), Error::None);
         ASSERT_EQ(assembler.int3(), Error::None);
 
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<std::uint8_t, 127> expected = {
-            0xEB, 0x7C, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+        const std::array<std::uint8_t, 113> expected = {
+            0xEB, 0x6E, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
-            0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
-            0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0xCC,
+            0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x66, 0x90, 0xCC,
+        };
+
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (std::size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+
+        const auto labelVA = serializer.getLabelAddress(label.getId());
+        ASSERT_EQ(labelVA % 16, 0);
+        ASSERT_EQ(labelVA, 0x0000000000401070);
+    }
+
+    TEST(SerializationTests, JmpLabelRel32FrontX86)
+    {
+        Program program(MachineMode::I386);
+
+        x86::Assembler assembler(program);
+
+        auto label = assembler.createLabel();
+
+        ASSERT_EQ(assembler.jmp(label), Error::None);
+        for (int i = 0; i < 124; i++)
+            ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.align(Align::Type::Code, 32), Error::None);
+        ASSERT_EQ(assembler.bind(label), Error::None);
+        ASSERT_EQ(assembler.int3(), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<std::uint8_t, 161> expected = {
+            0xE9, 0x9B, 0x00, 0x00, 0x00, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+            0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+            0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+            0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+            0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+            0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+            0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+            0x90, 0x90, 0x90, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00, 0xCC,
         };
 
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -796,6 +840,200 @@ namespace zasm::tests
         {
             ASSERT_EQ(data[i], expected[i]);
         }
+    }
+
+    TEST(SerializationTests, AlignDataTest8)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto label01 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.db(0xCC, 4), Error::None);
+
+        ASSERT_EQ(assembler.align(Align::Type::Data, 8), Error::None);
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<std::uint8_t, 8> expected = {
+            0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (std::size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+
+        ASSERT_EQ(serializer.getLabelAddress(label01.getId()), 0x0000000000401008);
+    }
+
+    TEST(SerializationTests, AlignDataTest16)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto label01 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.db(0xCC, 4), Error::None);
+
+        ASSERT_EQ(assembler.align(Align::Type::Data, 16), Error::None);
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<std::uint8_t, 16> expected = {
+            0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (std::size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+
+        ASSERT_EQ(serializer.getLabelAddress(label01.getId()), 0x0000000000401010);
+    }
+
+    TEST(SerializationTests, AlignDataTest32)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto label01 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.db(0xCC, 4), Error::None);
+
+        ASSERT_EQ(assembler.align(Align::Type::Data, 32), Error::None);
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<std::uint8_t, 32> expected = {
+            0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+            0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (std::size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+
+        ASSERT_EQ(serializer.getLabelAddress(label01.getId()), 0x0000000000401020);
+    }
+
+    TEST(SerializationTests, AlignCodeTest8)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto label01 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.inc(x86::eax), Error::None);
+
+        ASSERT_EQ(assembler.align(Align::Type::Code, 8), Error::None);
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<std::uint8_t, 8> expected = {
+            0xFF, 0xC0, 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00,
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (std::size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+
+        ASSERT_EQ(serializer.getLabelAddress(label01.getId()), 0x0000000000401008);
+    }
+
+    TEST(SerializationTests, AlignCodeTest16)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto label01 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.inc(x86::eax), Error::None);
+
+        ASSERT_EQ(assembler.align(Align::Type::Code, 16), Error::None);
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<std::uint8_t, 16> expected = {
+            0xFF, 0xC0, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00,
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (std::size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+
+        ASSERT_EQ(serializer.getLabelAddress(label01.getId()), 0x0000000000401010);
+    }
+
+    TEST(SerializationTests, AlignCodeTest32)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto label01 = assembler.createLabel();
+
+        ASSERT_EQ(assembler.inc(x86::eax), Error::None);
+
+        ASSERT_EQ(assembler.align(Align::Type::Code, 32), Error::None);
+
+        ASSERT_EQ(assembler.bind(label01), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<std::uint8_t, 32> expected = {
+            0xFF, 0xC0, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00,
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (std::size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+
+        ASSERT_EQ(serializer.getLabelAddress(label01.getId()), 0x0000000000401020);
     }
 
 } // namespace zasm::tests

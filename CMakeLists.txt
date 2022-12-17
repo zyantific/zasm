@@ -92,6 +92,7 @@ set(zasm_SOURCES
 	"include/zasm/decoder/decoder.hpp"
 	"include/zasm/encoder/encoder.hpp"
 	"include/zasm/formatter/formatter.hpp"
+	"include/zasm/program/align.hpp"
 	"include/zasm/program/data.hpp"
 	"include/zasm/program/embeddedlabel.hpp"
 	"include/zasm/program/immediate.hpp"

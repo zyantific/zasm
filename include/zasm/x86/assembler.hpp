@@ -5,10 +5,8 @@
 #include <cstddef>
 #include <memory>
 #include <zasm/core/errors.hpp>
-#include <zasm/program/instruction.hpp>
+#include <zasm/program/node.hpp>
 #include <zasm/program/observer.hpp>
-#include <zasm/program/operand.hpp>
-#include <zasm/program/section.hpp>
 #include <zasm/x86/meta.hpp>
 #include <zasm/x86/mnemonic.hpp>
 
@@ -86,6 +84,13 @@ namespace zasm::x86
         /// <param name="len">Size in bytes of the data</param>
         /// <returns>Error</returns>
         Error embed(const void* ptr, std::size_t len);
+
+        /// <summary>
+        /// Creates a new alignment node that will align the next node to the specified alignment when
+        /// serialized. 
+        /// To align code the type should be Align::Type::Code otherwise Align::Type::Data
+        /// </summary>
+        Error align(Align::Type type, std::uint32_t align);
 
         // NOLINTNEXTLINE
         template<std::size_t N> Error embed(const char (&str)[N])

@@ -115,6 +115,16 @@ namespace zasm::x86
         return Error::None;
     }
 
+    Error Assembler::align(Align::Type type, std::uint32_t align)
+    {
+        Align data(type, align);
+
+        auto* node = _program.createNode(std::move(data));
+        _cursor = _program.insertAfter(_cursor, node);
+
+        return Error::None;
+    }
+
     Error Assembler::emit(Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, std::size_t numOps, const Operand* ops)
     {
         auto instr = Instruction().addAttribs(attribs).setMnemonic(mnemonic);
