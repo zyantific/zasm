@@ -2,9 +2,11 @@
 
 #include "zasm/program/instruction.hpp"
 #include "zasm/program/operand.hpp"
-#include "zasm/x86/instruction.hpp"
+#include "zasm/x86/meta.hpp"
+#include "zasm/x86/mnemonic.hpp"
 
 #include <Zydis/Decoder.h>
+#include <cassert>
 
 namespace zasm
 {
@@ -68,7 +70,7 @@ namespace zasm
     static constexpr Instruction::Attribs getAttribs(ZydisInstructionAttributes attribs) noexcept
     {
         Instruction::Attribs res{};
-        const auto translateAttrib = [&](ZydisInstructionAttributes test, x86::Attribs newAttrib) {
+        const auto translateAttrib = [&](ZydisInstructionAttributes test, Instruction::Attribs newAttrib) {
             if (!hasAttrib(attribs, test))
             {
                 return;
@@ -86,12 +88,13 @@ namespace zasm
         return res;
     }
 
-    static constexpr Instruction::Category getCategory(ZydisInstructionCategory category) noexcept
+    static constexpr InstructionDetail::Category getCategory(ZydisInstructionCategory category) noexcept
     {
-        return static_cast<Instruction::Category>(category);
+        return static_cast<InstructionDetail::Category>(category);
     }
 
     Decoder::Decoder(MachineMode mode) noexcept
+        : _mode(mode)
     {
         ZyanStatus status{};
         switch (mode)
@@ -170,17 +173,19 @@ namespace zasm
             return zasm::makeUnexpected(Error::InvalidOperation);
         }
 
-        Instruction::CPUFlags flags{};
+        InstructionDetail::CPUFlags flags{};
         if (instr.cpu_flags != nullptr)
         {
-            flags.read = instr.cpu_flags->tested;
-            flags.write = instr.cpu_flags->modified | instr.cpu_flags->set_0 | instr.cpu_flags->set_1;
+            flags.set0 = instr.cpu_flags->set_0 ;
+            flags.set1 = instr.cpu_flags->set_1;
+            flags.modified = instr.cpu_flags->modified;
+            flags.tested = instr.cpu_flags->tested;
             flags.undefined = instr.cpu_flags->undefined;
         }
 
-        Instruction::Operands ops;
-        Instruction::OperandsVisibility vis;
-        Instruction::OperandsAccess access;
+        InstructionDetail::Operands ops;
+        InstructionDetail::OperandsVisibility vis;
+        InstructionDetail::OperandsAccess access;
 
         for (int i = 0; i < instr.operand_count; ++i)
         {
@@ -196,7 +201,10 @@ namespace zasm
         const auto attribs = getAttribs(instr.attributes);
         const auto category = getCategory(instr.meta.category);
 
-        return Instruction(attribs, instr.mnemonic, instr.operand_count, ops, access, vis, flags, category, instr.length);
+        const auto res = InstructionDetail(
+            attribs, instr.mnemonic, instr.operand_count, ops, access, vis, flags, category, instr.length);
+
+        return res;
     }
 
 } // namespace zasm

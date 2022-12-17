@@ -8,19 +8,18 @@ namespace zasm::x86
 {
     namespace detail
     {
-        template<std::uint32_t TID> class Mnemonic : public zasm::Mnemonic
+        template<std::uint32_t TID> class Mnemonic : public zasm::InstrMnemonic
         {
         public:
             constexpr Mnemonic()
-                : zasm::Mnemonic{ TID }
+                : zasm::InstrMnemonic{ TID }
             {
             }
         };
-    }
+    } // namespace detail
 
-    class Mnemonic : public zasm::Mnemonic
+    namespace Mnemonic
     {
-    public:
         static constexpr detail::Mnemonic<ZYDIS_MNEMONIC_INVALID> Invalid{};
         static constexpr detail::Mnemonic<ZYDIS_MNEMONIC_AAA> Aaa{};
         static constexpr detail::Mnemonic<ZYDIS_MNEMONIC_AAD> Aad{};
@@ -1776,166 +1775,6 @@ namespace zasm::x86
         static constexpr detail::Mnemonic<ZYDIS_MNEMONIC_XSTORE> Xstore{};
         static constexpr detail::Mnemonic<ZYDIS_MNEMONIC_XSUSLDTRK> Xsusldtrk{};
         static constexpr detail::Mnemonic<ZYDIS_MNEMONIC_XTEST> Xtest{};
-    };
-    
-    enum class Category : std::underlying_type_t<zasm::Instruction::Category>
-    {
-        Invalid = ZYDIS_CATEGORY_INVALID,
-        AdoxAdcx = ZYDIS_CATEGORY_ADOX_ADCX,
-        Aes = ZYDIS_CATEGORY_AES,
-        Amd3DNow = ZYDIS_CATEGORY_AMD3DNOW,
-        AMXTile = ZYDIS_CATEGORY_AMX_TILE,
-        AVX = ZYDIS_CATEGORY_AVX,
-        AVX2 = ZYDIS_CATEGORY_AVX2,
-        AVX2Gather = ZYDIS_CATEGORY_AVX2GATHER,
-        AVX512 = ZYDIS_CATEGORY_AVX512,
-        AVX5124FMAPS = ZYDIS_CATEGORY_AVX512_4FMAPS,
-        AVX5124VNIW = ZYDIS_CATEGORY_AVX512_4VNNIW,
-        AVX512BITALG = ZYDIS_CATEGORY_AVX512_BITALG,
-        AVX512VBMI = ZYDIS_CATEGORY_AVX512_VBMI,
-        AVX512VP2INTERSECT = ZYDIS_CATEGORY_AVX512_VP2INTERSECT,
-        Binary = ZYDIS_CATEGORY_BINARY,
-        BitByte = ZYDIS_CATEGORY_BITBYTE,
-        Blend = ZYDIS_CATEGORY_BLEND,
-        BMI1 = ZYDIS_CATEGORY_BMI1,
-        BMI2 = ZYDIS_CATEGORY_BMI2,
-        Broadcast = ZYDIS_CATEGORY_BROADCAST,
-        Call = ZYDIS_CATEGORY_CALL,
-        Cet = ZYDIS_CATEGORY_CET,
-        CldEmote = ZYDIS_CATEGORY_CLDEMOTE,
-        CLFlushOpt = ZYDIS_CATEGORY_CLFLUSHOPT,
-        ClWb = ZYDIS_CATEGORY_CLWB,
-        ClZero = ZYDIS_CATEGORY_CLZERO,
-        Cmov = ZYDIS_CATEGORY_CMOV,
-        Compress = ZYDIS_CATEGORY_COMPRESS,
-        CondBr = ZYDIS_CATEGORY_COND_BR,
-        Conflict = ZYDIS_CATEGORY_CONFLICT,
-        Convert = ZYDIS_CATEGORY_CONVERT,
-        DataXfer = ZYDIS_CATEGORY_DATAXFER,
-        Decimal = ZYDIS_CATEGORY_DECIMAL,
-        EnqCmd = ZYDIS_CATEGORY_ENQCMD,
-        Expand = ZYDIS_CATEGORY_EXPAND,
-        FCmov = ZYDIS_CATEGORY_FCMOV,
-        FlagOp = ZYDIS_CATEGORY_FLAGOP,
-        FMA4 = ZYDIS_CATEGORY_FMA4,
-        FP16 = ZYDIS_CATEGORY_FP16,
-        Gather = ZYDIS_CATEGORY_GATHER,
-        GFNI = ZYDIS_CATEGORY_GFNI,
-        HReset = ZYDIS_CATEGORY_HRESET,
-        IFMA = ZYDIS_CATEGORY_IFMA,
-        Interrupt = ZYDIS_CATEGORY_INTERRUPT,
-        IO = ZYDIS_CATEGORY_IO,
-        IOStringOp = ZYDIS_CATEGORY_IOSTRINGOP,
-        KeyLocker = ZYDIS_CATEGORY_KEYLOCKER,
-        KeyLockerWide = ZYDIS_CATEGORY_KEYLOCKER_WIDE,
-        KMask = ZYDIS_CATEGORY_KMASK,
-        KNC = ZYDIS_CATEGORY_KNC,
-        KNCMask = ZYDIS_CATEGORY_KNCMASK,
-        KNCScalar = ZYDIS_CATEGORY_KNCSCALAR,
-        Legacy = ZYDIS_CATEGORY_LEGACY,
-        Logical = ZYDIS_CATEGORY_LOGICAL,
-        LogicalFP = ZYDIS_CATEGORY_LOGICAL_FP,
-        LZCNT = ZYDIS_CATEGORY_LZCNT,
-        Misc = ZYDIS_CATEGORY_MISC,
-        MMX = ZYDIS_CATEGORY_MMX,
-        MovDir = ZYDIS_CATEGORY_MOVDIR,
-        MPX = ZYDIS_CATEGORY_MPX,
-        NOP = ZYDIS_CATEGORY_NOP,
-        PadLock = ZYDIS_CATEGORY_PADLOCK,
-        PCLMulqDq = ZYDIS_CATEGORY_PCLMULQDQ,
-        PConfig = ZYDIS_CATEGORY_PCONFIG,
-        PKU = ZYDIS_CATEGORY_PKU,
-        Pop = ZYDIS_CATEGORY_POP,
-        Prefetch = ZYDIS_CATEGORY_PREFETCH,
-        PrefetchWt1 = ZYDIS_CATEGORY_PREFETCHWT1,
-        Pt = ZYDIS_CATEGORY_PT,
-        Push = ZYDIS_CATEGORY_PUSH,
-        Rdpid = ZYDIS_CATEGORY_RDPID,
-        Rdpru = ZYDIS_CATEGORY_RDPRU,
-        Rdrand = ZYDIS_CATEGORY_RDRAND,
-        Rdseed = ZYDIS_CATEGORY_RDSEED,
-        RdWrFsGs = ZYDIS_CATEGORY_RDWRFSGS,
-        Ret = ZYDIS_CATEGORY_RET,
-        Rotate = ZYDIS_CATEGORY_ROTATE,
-        Scatter = ZYDIS_CATEGORY_SCATTER,
-        SegOp = ZYDIS_CATEGORY_SEGOP,
-        Semaphore = ZYDIS_CATEGORY_SEMAPHORE,
-        Serialize = ZYDIS_CATEGORY_SERIALIZE,
-        SetCC = ZYDIS_CATEGORY_SETCC,
-        SGX = ZYDIS_CATEGORY_SGX,
-        SHA = ZYDIS_CATEGORY_SHA,
-        Shift = ZYDIS_CATEGORY_SHIFT,
-        Smap = ZYDIS_CATEGORY_SMAP,
-        SSE = ZYDIS_CATEGORY_SSE,
-        StringOp = ZYDIS_CATEGORY_STRINGOP,
-        STTNI = ZYDIS_CATEGORY_STTNI,
-        Syscall = ZYDIS_CATEGORY_SYSCALL,
-        Sysret = ZYDIS_CATEGORY_SYSRET,
-        System = ZYDIS_CATEGORY_SYSTEM,
-        TBM = ZYDIS_CATEGORY_TBM,
-        TSXLdtrk = ZYDIS_CATEGORY_TSX_LDTRK,
-        UFMA = ZYDIS_CATEGORY_UFMA,
-        UINTR = ZYDIS_CATEGORY_UINTR,
-        UncondBR = ZYDIS_CATEGORY_UNCOND_BR,
-        VAES = ZYDIS_CATEGORY_VAES,
-        VBMI2 = ZYDIS_CATEGORY_VBMI2,
-        VEX = ZYDIS_CATEGORY_VEX,
-        VFMA = ZYDIS_CATEGORY_VFMA,
-        VPCLMulqDq = ZYDIS_CATEGORY_VPCLMULQDQ,
-        VTX = ZYDIS_CATEGORY_VTX,
-        WaitPkg = ZYDIS_CATEGORY_WAITPKG,
-        WideNop = ZYDIS_CATEGORY_WIDENOP,
-        X86ALU = ZYDIS_CATEGORY_X87_ALU,
-        XOP = ZYDIS_CATEGORY_XOP,
-        XSAVE = ZYDIS_CATEGORY_XSAVE,
-        XSAVEOPT = ZYDIS_CATEGORY_XSAVEOPT,
-    };
-
-    inline bool operator==(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs) noexcept
-    {
-        return static_cast<uint32_t>(lhs) == static_cast<uint32_t>(rhs);
-    }
-
-    inline bool operator!=(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs) noexcept
-    {
-        return static_cast<uint32_t>(lhs) != static_cast<uint32_t>(rhs);
-    }
-
-    inline bool operator<(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs) noexcept
-    {
-        return static_cast<uint32_t>(lhs) < static_cast<uint32_t>(rhs);
-    }
-
-    inline bool operator>(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs) noexcept
-    {
-        return static_cast<uint32_t>(lhs) > static_cast<uint32_t>(rhs);
-    }
-
-    inline bool operator<=(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs) noexcept
-    {
-        return static_cast<uint32_t>(lhs) <= static_cast<uint32_t>(rhs);
-    }
-
-    inline bool operator>=(const zasm::Instruction::Category lhs, const zasm::x86::Category rhs) noexcept
-    {
-        return static_cast<uint32_t>(lhs) >= static_cast<uint32_t>(rhs);
-    }
-
-    enum class Attribs : std::underlying_type_t<zasm::Instruction::Attribs>
-    {
-        None = 0,
-        Lock = (1U << 0),
-        Rep = (1U << 1),
-        Repe = (1U << 2),
-        Repne = (1U << 3),
-        Bnd = (1U << 4),
-        Xacquire = (1U << 5),
-        Xrelease = (1U << 6),
-        OperandSize8 = (1U << 7),
-        OperandSize16 = (1U << 8),
-        OperandSize32 = (1U << 9),
-        OperandSize64 = (1U << 10),
-    };
-    ZASM_ENABLE_ENUM_OPERATORS(Attribs);
+    } // namespace Mnemonic
 
 } // namespace zasm::x86

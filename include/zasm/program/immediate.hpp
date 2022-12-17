@@ -38,6 +38,16 @@ namespace zasm
         {
         }
 
+        constexpr bool operator==(const Imm& other) const noexcept
+        {
+            return u == other.u;
+        }
+
+        constexpr bool operator!=(const Imm& other) const noexcept
+        {
+            return u != other.u;
+        }
+
         template<typename T> constexpr T value() const noexcept
         {
             return static_cast<T>(s);
@@ -52,15 +62,15 @@ namespace zasm
 
         constexpr BitSize getBitSize() const noexcept
         {
-            if (math::abs(s) > std::numeric_limits<std::int32_t>::max())
+            if (math::abs(s) > std::numeric_limits<std::uint32_t>::max())
             {
                 return BitSize::_64;
             }
-            if (math::abs(s) > std::numeric_limits<std::int16_t>::max())
+            if (math::abs(s) > std::numeric_limits<std::uint16_t>::max())
             {
                 return BitSize::_32;
             }
-            if (math::abs(s) > std::numeric_limits<std::int8_t>::max())
+            if (math::abs(s) > std::numeric_limits<std::uint8_t>::max())
             {
                 return BitSize::_16;
             }

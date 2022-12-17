@@ -80,17 +80,17 @@ namespace zasm
         }
     }
 
-    const Node* Program::getHead() const noexcept
+    Node* Program::getHead() const noexcept
     {
         return _state->head;
     }
 
-    const Node* Program::getTail() const noexcept
+    Node* Program::getTail() const noexcept
     {
         return _state->tail;
     }
 
-    template<bool TNotify> const Node* prepend_(const Node* n, detail::ProgramState& state) noexcept
+    template<bool TNotify> Node* prepend_(Node* n, detail::ProgramState& state) noexcept
     {
         auto* head = detail::toInternal(state.head);
 
@@ -115,12 +115,12 @@ namespace zasm
         return state.head;
     }
 
-    const Node* Program::prepend(const Node* n) noexcept
+    Node* Program::prepend(Node* n) noexcept
     {
         return prepend_<true>(n, *_state);
     }
 
-    template<bool TNotify> const Node* append_(const Node* n, detail::ProgramState& state) noexcept
+    template<bool TNotify> Node* append_(Node* n, detail::ProgramState& state) noexcept
     {
         auto* tail = detail::toInternal(state.tail);
         auto* node = detail::toInternal(n);
@@ -145,13 +145,13 @@ namespace zasm
         return node;
     }
 
-    const Node* Program::append(const Node* n) noexcept
+    Node* Program::append(Node* n) noexcept
     {
         return append_<true>(n, *_state);
     }
 
     template<bool TNotify>
-    const Node* insertBefore_(const Node* nodePos, const Node* nodeToInsert, detail::ProgramState& state) noexcept
+    Node* insertBefore_(Node* nodePos, Node* nodeToInsert, detail::ProgramState& state) noexcept
     {
         auto* pos = detail::toInternal(nodePos);
         if (pos == nullptr)
@@ -179,13 +179,13 @@ namespace zasm
         return node;
     }
 
-    const Node* Program::insertBefore(const Node* pos, const Node* node) noexcept
+    Node* Program::insertBefore(Node* pos, Node* node) noexcept
     {
         return insertBefore_<true>(pos, node, *_state);
     }
 
     template<bool TNotify>
-    const Node* insertAfter_(const Node* nodePos, const Node* nodeToInsert, detail::ProgramState& state) noexcept
+    Node* insertAfter_(Node* nodePos, Node* nodeToInsert, detail::ProgramState& state) noexcept
     {
         auto* pos = detail::toInternal(nodePos);
         if (pos == nullptr)
@@ -217,12 +217,12 @@ namespace zasm
         return node;
     }
 
-    const Node* Program::insertAfter(const Node* pos, const Node* node) noexcept
+    Node* Program::insertAfter(Node* pos, Node* node) noexcept
     {
         return insertAfter_<true>(pos, node, *_state);
     }
 
-    template<bool TNotify> static Node* detach_(const Node* nodeToDetach, detail::ProgramState& state) noexcept
+    template<bool TNotify> static Node* detach_(Node* nodeToDetach, detail::ProgramState& state) noexcept
     {
         notifyObservers<TNotify>(&Observer::onNodeDetach, state.observer, nodeToDetach);
 
@@ -255,24 +255,24 @@ namespace zasm
         return post;
     }
 
-    const Node* Program::detach(const Node* node) noexcept
+    Node* Program::detach(Node* node) noexcept
     {
         return detach_<true>(node, *_state);
     }
 
-    const Node* Program::moveAfter(const Node* pos, const Node* node) noexcept
+    Node* Program::moveAfter(Node* pos, Node* node) noexcept
     {
         detach_<false>(node, *_state);
         return insertAfter_<false>(pos, node, *_state);
     }
 
-    const Node* Program::moveBefore(const Node* pos, const Node* node) noexcept
+    Node* Program::moveBefore(Node* pos, Node* node) noexcept
     {
         detach_<false>(node, *_state);
         return insertBefore_<false>(pos, node, *_state);
     }
 
-    void Program::destroy(const Node* node)
+    void Program::destroy(Node* node)
     {
         notifyObservers<true>(&Observer::onNodeDestroy, _state->observer, node);
 
@@ -292,10 +292,10 @@ namespace zasm
 
     void Program::clear() noexcept
     {
-        const Node* node = _state->head;
+        Node* node = _state->head;
         while (node != nullptr)
         {
-            const auto* next = node->getNext();
+            auto* next = node->getNext();
             destroy(node);
             node = next;
         }
@@ -315,7 +315,7 @@ namespace zasm
         return _state->entryPoint;
     }
 
-    template<typename... TArgs> const Node* createNode_(detail::ProgramState& state, TArgs&&... args)
+    template<typename... TArgs> Node* createNode_(detail::ProgramState& state, TArgs&&... args)
     {
         const auto nextId = state.nextNodeId;
         state.nextNodeId = static_cast<Node::Id>(static_cast<std::underlying_type_t<Node::Id>>(nextId) + 1U);
@@ -334,27 +334,27 @@ namespace zasm
         return node;
     }
 
-    const Node* Program::createNode(const Instruction& instr)
+    Node* Program::createNode(const Instruction& instr)
     {
         return createNode_(*_state, instr);
     }
 
-    const Node* Program::createNode(Instruction&& instr)
+    Node* Program::createNode(Instruction&& instr)
     {
         return createNode_(*_state, std::move(instr));
     }
 
-    const Node* Program::createNode(const Data& data)
+    Node* Program::createNode(const Data& data)
     {
         return createNode_(*_state, data);
     }
 
-    const Node* Program::createNode(Data&& data)
+    Node* Program::createNode(Data&& data)
     {
         return createNode_(*_state, std::move(data));
     }
 
-    const Node* Program::createNode(const EmbeddedLabel& label)
+    Node* Program::createNode(const EmbeddedLabel& label)
     {
         return createNode_(*_state, label);
     }
@@ -398,7 +398,7 @@ namespace zasm
         return createLabel_(*_state, getStringId(*_state, name), StringPool::Id::Invalid, LabelFlags::None);
     }
 
-    Expected<const Node*, Error> Program::bindLabel(const Label& label)
+    Expected<Node*, Error> Program::bindLabel(const Label& label)
     {
         const auto entryIdx = static_cast<std::size_t>(label.getId());
         if (entryIdx >= _state->labels.size())
@@ -417,7 +417,7 @@ namespace zasm
             return makeUnexpected(Error::LabelAlreadyBound);
         }
 
-        const auto* node = createNode_(*_state, label);
+        auto* node = createNode_(*_state, label);
         entry.node = node;
 
         return node;
@@ -518,7 +518,7 @@ namespace zasm
         return &prog.sections[entryIdx];
     }
 
-    Expected<const Node*, Error> Program::bindSection(const Section& section)
+    Expected<Node*, Error> Program::bindSection(const Section& section)
     {
         auto sectEntry = getSectionData(*_state, section.getId());
         if (!sectEntry.hasValue())
@@ -532,7 +532,7 @@ namespace zasm
             return makeUnexpected(Error::SectionAlreadyBound);
         }
 
-        const auto* node = createNode_(*_state, section);
+        auto* node = createNode_(*_state, section);
         entry->node = node;
 
         return node;

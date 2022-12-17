@@ -15,25 +15,25 @@ int main()
     auto labelC = a.createLabel();
 
     a.mov(x86::rax, Imm(1));
-    const auto* nodeInstr1 = a.getCursor();
+    auto* nodeInstr1 = a.getCursor();
 
     a.mov(x86::rax, Imm(2));
-    const auto* nodeInstr2 = a.getCursor();
+    auto* nodeInstr2 = a.getCursor();
 
     a.mov(x86::rax, Imm(3));
-    const auto* nodeInstr3 = a.getCursor();
+    auto* nodeInstr3 = a.getCursor();
 
     a.mov(x86::rax, Imm(4));
-    const auto* nodeInstr4 = a.getCursor();
+    auto* nodeInstr4 = a.getCursor();
 
     a.mov(x86::rax, Imm(5));
-    const auto* nodeInstr5 = a.getCursor();
+    auto* nodeInstr5 = a.getCursor();
 
     a.mov(x86::rax, Imm(6));
-    const auto* nodeInstr6 = a.getCursor();
+    auto* nodeInstr6 = a.getCursor();
 
     a.mov(x86::rax, Imm(7));
-    const auto* nodeInstr7 = a.getCursor();
+    auto* nodeInstr7 = a.getCursor();
 
     std::cout << "Program Before:\n" << formatter::toString(program) << "\n";
     

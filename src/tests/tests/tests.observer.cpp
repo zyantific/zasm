@@ -12,19 +12,19 @@ namespace zasm::tests
         size_t nodesDestroyed{};
         size_t nodesDetached{};
         
-        void onNodeCreated(const Node* node) override
+        void onNodeCreated(Node* node) override
         {
             nodesCreated++;
         }
-        void onNodeDestroy(const Node* node) override
+        void onNodeDestroy(Node* node) override
         {
             nodesDestroyed++;
         }
-        void onNodeInserted(const Node* node) override
+        void onNodeInserted(Node* node) override
         {
             nodesInserted++;
         }
-        void onNodeDetach(const Node* node) override
+        void onNodeDetach(Node* node) override
         {
             nodesDetached++;
         }

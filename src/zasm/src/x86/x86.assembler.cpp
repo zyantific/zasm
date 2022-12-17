@@ -1,6 +1,5 @@
-#include "../encoder/generator.hpp"
-
 #include <algorithm>
+#include <chrono>
 #include <zasm/program/program.hpp>
 #include <zasm/x86/assembler.hpp>
 
@@ -8,7 +7,6 @@ namespace zasm::x86
 {
     Assembler::Assembler(Program& program)
         : _program(program)
-        , _generator(new InstrGenerator(program.getMode()))
     {
         _program.addObserver(*this);
     }
@@ -16,16 +14,14 @@ namespace zasm::x86
     Assembler::~Assembler()
     {
         _program.removeObserver(*this);
-        delete _generator;
-        _generator = nullptr;
     }
 
-    void Assembler::setCursor(const Node* pos) noexcept
+    void Assembler::setCursor(Node* pos) noexcept
     {
         _cursor = pos;
     }
 
-    const Node* Assembler::getCursor() const noexcept
+    Node* Assembler::getCursor() const noexcept
     {
         return _cursor;
     }
@@ -73,7 +69,7 @@ namespace zasm::x86
     {
         Data data(val, repeatCount);
 
-        const auto* dataNode = _program.createNode(std::move(data));
+        auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -83,7 +79,7 @@ namespace zasm::x86
     {
         Data data(val, repeatCount);
 
-        const auto* dataNode = _program.createNode(std::move(data));
+        auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -93,7 +89,7 @@ namespace zasm::x86
     {
         Data data(val, repeatCount);
 
-        const auto* dataNode = _program.createNode(std::move(data));
+        auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -103,7 +99,7 @@ namespace zasm::x86
     {
         Data data(val, repeatCount);
 
-        const auto* dataNode = _program.createNode(std::move(data));
+        auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
@@ -113,21 +109,21 @@ namespace zasm::x86
     {
         Data data(ptr, len);
 
-        const auto* dataNode = _program.createNode(std::move(data));
+        auto* dataNode = _program.createNode(std::move(data));
         _cursor = _program.insertAfter(_cursor, dataNode);
 
         return Error::None;
     }
 
-    Error Assembler::emit(Attribs attribs, zasm::Mnemonic mnemonic, std::size_t numOps, const Operand* ops)
+    Error Assembler::emit(Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, std::size_t numOps, const Operand* ops)
     {
-        auto genResult = _generator->generate(static_cast<Instruction::Attribs>(attribs), mnemonic, numOps, ops);
-        if (!genResult)
+        auto instr = Instruction().addAttribs(attribs).setMnemonic(mnemonic);
+        for (std::size_t i = 0; i < numOps; ++i)
         {
-            return genResult.error();
+            instr.addOperand(ops[i]);
         }
 
-        const auto* node = _program.createNode(std::move(*genResult));
+        auto* node = _program.createNode(std::move(instr));
         _cursor = _program.insertAfter(_cursor, node);
 
         return Error::None;
@@ -136,9 +132,7 @@ namespace zasm::x86
     Error Assembler::emit(const Instruction& instr)
     {
         const auto& ops = instr.getOperands();
-        const auto numOps = std::min<std::size_t>(ZYDIS_ENCODER_MAX_OPERANDS, instr.getVisibleOperandCount());
-
-        return emit(static_cast<x86::Attribs>(instr.getAttribs()), instr.getMnemonic(), numOps, ops.data());
+        return emit(instr.getAttribs(), instr.getMnemonic(), instr.getOperandCount(), ops.data());
     }
 
     Error Assembler::embedLabel(Label label)
@@ -157,7 +151,7 @@ namespace zasm::x86
             return Error::InvalidMode;
         }
 
-        const auto* node = _program.createNode(EmbeddedLabel(label, size));
+        auto* node = _program.createNode(EmbeddedLabel(label, size));
         _cursor = _program.insertAfter(_cursor, node);
 
         return Error::None;
@@ -165,13 +159,13 @@ namespace zasm::x86
 
     Error Assembler::embedLabelRel(Label label, Label relativeTo, BitSize size)
     {
-        const auto* node = _program.createNode(EmbeddedLabel(label, relativeTo, size));
+        auto* node = _program.createNode(EmbeddedLabel(label, relativeTo, size));
         _cursor = _program.insertAfter(_cursor, node);
 
         return Error::None;
     }
 
-    void Assembler::onNodeDetach(const Node* node) noexcept
+    void Assembler::onNodeDetach(Node* node) noexcept
     {
         if (node != _cursor)
         {
@@ -180,7 +174,7 @@ namespace zasm::x86
         _cursor = node->getPrev();
     }
 
-    void Assembler::onNodeDestroy(const Node* node) noexcept
+    void Assembler::onNodeDestroy(Node* node) noexcept
     {
         if (node != _cursor)
         {

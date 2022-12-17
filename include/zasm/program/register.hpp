@@ -69,10 +69,17 @@ namespace zasm
         bool isGp32() const noexcept;
         bool isGp64() const noexcept;
         bool isGp() const noexcept;
+        bool isSeg() const noexcept;
         bool isXmm() const noexcept;
         bool isYmm() const noexcept;
         bool isZmm() const noexcept;
-
+        bool isBnd() const noexcept;
+        bool isControl() const noexcept;
+        bool isDebug() const noexcept;
+        bool isMask() const noexcept;
+        bool isMmx() const noexcept;
+        bool isTmm() const noexcept;
+        
         constexpr Id getId() const noexcept
         {
             return _reg;

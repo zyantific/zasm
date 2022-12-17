@@ -56,9 +56,19 @@ namespace zasm
     public:
         struct None final
         {
-            static BitSize getBitSize(MachineMode /*unused*/) noexcept
+            static BitSize getBitSize(MachineMode) noexcept
             {
                 return BitSize::_0;
+            }
+
+            constexpr bool operator==(const None& other) const noexcept
+            {
+                return true;
+            }
+            
+            constexpr bool operator!=(const None& other) const noexcept
+            {
+                return false;
             }
         };
 
@@ -130,6 +140,21 @@ namespace zasm
         constexpr Operand(const Label& other) noexcept
             : _data{ other }
         {
+        }
+
+        constexpr bool operator==(const Operand& other) const noexcept
+        {
+            if (_data.index() != other._data.index())
+                return false;
+            const auto isEq = std::visit([&](auto&& lhs) {
+                return lhs == std::get<std::decay_t<decltype(lhs)>>(other._data);
+            }, _data);
+            return isEq;
+        }
+
+        constexpr bool operator!=(const Operand& other) const noexcept
+        {
+            return _data != other._data;
         }
 
         Operand& operator=(Operand&& other) noexcept

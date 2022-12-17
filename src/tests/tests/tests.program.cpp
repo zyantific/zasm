@@ -151,7 +151,7 @@ namespace zasm::tests
 
         x86::Assembler assembler(program);
 
-        const Node* fifthNode = nullptr;
+        Node* fifthNode = nullptr;
         for (int i = 0; i < 10; i++)
         {
             ASSERT_EQ(assembler.mov(x86::eax, Imm(i)), Error::None);
@@ -187,7 +187,7 @@ namespace zasm::tests
 
         x86::Assembler assembler(program);
 
-        const Node* fifthNode = nullptr;
+        Node* fifthNode = nullptr;
         for (int i = 0; i < 10; i++)
         {
             ASSERT_EQ(assembler.mov(x86::eax, Imm(i)), Error::None);

@@ -88,9 +88,10 @@ namespace zasm::examples::utils
                         break;
                     }
 
+                    const auto decodedInstr = res.value().getInstruction();
                     addRow(
                         getFormattedAddress(curAddress), getHexDump(sectBuf + sectOffset, res->getLength()),
-                        zasm::formatter::toString(&res.value()));
+                        zasm::formatter::toString(&decodedInstr));
 
                     sectOffset += res->getLength();
                 }
