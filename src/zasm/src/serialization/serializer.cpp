@@ -112,11 +112,14 @@ namespace zasm
         });
 
         const auto alignedVA = math::alignTo<std::int64_t>(ctx.va, node.getAlign());
-        const auto alignSize = alignedVA - ctx.va;
+
+        assert(alignedVA - ctx.va < std::numeric_limits<std::int32_t>::max());
+        const auto alignSize = static_cast<std::int32_t>(alignedVA - ctx.va);
 
         for (auto alignBytesMissing = alignSize; alignBytesMissing > 0;)
         {
-            const auto dataIndex = std::min<std::uint32_t>(std::size(table) - 1, alignBytesMissing);
+            const auto tableSize = static_cast<std::int32_t>(table.size());
+            const auto dataIndex = std::min<std::int32_t>(tableSize - 1, alignBytesMissing);
             const auto& dataEntry = table[dataIndex];
 
             auto& buffer = state.buffer;
@@ -129,7 +132,7 @@ namespace zasm
         {
             if (alignSize < nodeEntry.length)
             {
-                ctx.drift += nodeEntry.length - static_cast<std::int64_t>(alignSize);
+                ctx.drift += nodeEntry.length - alignSize;
             }
             else if (alignSize > nodeEntry.length)
             {
@@ -137,7 +140,7 @@ namespace zasm
             }
         }
         nodeEntry.length = alignSize;
-        
+
         auto& sect = ctx.sections[ctx.sectionIndex];
         sect.rawSize += alignSize;
 

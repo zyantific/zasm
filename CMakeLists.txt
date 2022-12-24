@@ -52,6 +52,10 @@ set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
 add_library(zasm_common INTERFACE)
 
 add_library(zasm::common ALIAS zasm_common)
+target_compile_features(zasm_common INTERFACE
+	cxx_std_17
+)
+
 if(MSVC) # msvc
 	target_compile_options(zasm_common INTERFACE
 		"/bigobj"
@@ -124,15 +128,12 @@ target_sources(zasm PRIVATE ${zasm_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${zasm_SOURCES})
 
 add_library(zasm::zasm ALIAS zasm)
-target_compile_features(zasm PUBLIC
-	cxx_std_17
-)
-
 target_include_directories(zasm PUBLIC
 	include
 )
 
 target_link_libraries(zasm PUBLIC
+	zasm::common
 	Zydis
 )
 
