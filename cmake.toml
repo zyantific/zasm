@@ -19,6 +19,7 @@ examples = "ZASM_BUILD_EXAMPLES OR CMKR_ROOT_PROJECT"
 [target.zasm_common]
 type = "interface"
 msvc.compile-options = ["/bigobj", "/MP", "/W3", "/permissive-"]
+compile-features = ["cxx_std_17"]
 alias = "zasm::common"
 
 [target.zasm]
@@ -32,8 +33,10 @@ headers = [
     "include/zasm/**.hpp",
 ]
 include-directories = ["include"]
-compile-features = ["cxx_std_17"]
-link-libraries = ["Zydis"]
+link-libraries = [
+    "zasm::common",
+    "Zydis",
+]
 
 [target.zasm_testdata]
 condition = "tests"
