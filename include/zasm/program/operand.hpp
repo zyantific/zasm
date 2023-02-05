@@ -65,7 +65,7 @@ namespace zasm
             {
                 return true;
             }
-            
+
             constexpr bool operator!=(const None& other) const noexcept
             {
                 return false;
@@ -146,9 +146,8 @@ namespace zasm
         {
             if (_data.index() != other._data.index())
                 return false;
-            const auto isEq = std::visit([&](auto&& lhs) {
-                return lhs == std::get<std::decay_t<decltype(lhs)>>(other._data);
-            }, _data);
+            const auto isEq = std::visit(
+                [&](auto&& lhs) { return lhs == std::get<std::decay_t<decltype(lhs)>>(other._data); }, _data);
             return isEq;
         }
 
@@ -225,11 +224,20 @@ namespace zasm
             return *this;
         }
 
+        /// <summary>
+        /// Returns true if the operands holds nothing.
+        /// </summary>
+        /// <returns>True if the operand is not set.</returns>
         bool isEmpty() const noexcept
         {
             return std::holds_alternative<Operand::None>(_data);
         }
-
+        
+        /// <summary>
+        /// Returns a reference with given type, throws if type mismatches.
+        /// </summary>
+        /// <typeparam name="T">Operand Type</typeparam>
+        /// <returns>Reference to operand or throws std::bad_variant_access if type mismatches</returns>
         template<typename T> T& get()
         {
             if constexpr (std::is_same_v<T, Operand>)
@@ -242,6 +250,11 @@ namespace zasm
             }
         }
 
+        /// <summary>
+        /// Returns a reference with given type, throws if type mismatches.
+        /// </summary>
+        /// <typeparam name="T">Operand Type</typeparam>
+        /// <returns>Reference to operand or throws std::bad_variant_access if type mismatches</returns>
         template<typename T> const T& get() const
         {
             if constexpr (std::is_same_v<T, Operand>)
@@ -254,6 +267,29 @@ namespace zasm
             }
         }
 
+        /// <summary>
+        /// Returns a pointer with the type specified if the type matches.
+        /// </summary>
+        /// <typeparam name="T">Operand Type</typeparam>
+        /// <returns>Returns T* if type matches nullptr otherwise</returns>
+        template<typename T> T* getIf() noexcept
+        {
+            if constexpr (std::is_same_v<T, Operand>)
+            {
+                return this;
+            }
+            else
+            {
+                return std::get_if<T>(&_data);
+            }
+            return nullptr;
+        }
+        
+        /// <summary>
+        /// Returns a pointer with the type specified if the type matches.
+        /// </summary>
+        /// <typeparam name="T">Type to test</typeparam>
+        /// <returns>Returns T* if type matches nullptr otherwise</returns>
         template<typename T> const T* getIf() const noexcept
         {
             if constexpr (std::is_same_v<T, Operand>)
@@ -267,6 +303,11 @@ namespace zasm
             return nullptr;
         }
 
+        /// <summary>
+        /// Checks if the operand holds the specified type.
+        /// </summary>
+        /// <typeparam name="T">Operand Type</typeparam>
+        /// <returns>True if the operand holds the specified type.</returns>
         template<typename T> constexpr bool holds() const noexcept
         {
             if constexpr (std::is_same_v<T, Operand>)
@@ -280,11 +321,22 @@ namespace zasm
             return false;
         }
 
+        /// <summary>
+        /// Returns the current internal index for the operand type.
+        /// This may change from version to version.
+        /// </summary>
+        /// <returns>Index of the operand type</returns>
         constexpr std::size_t getTypeIndex() const noexcept
         {
             return _data.index();
         }
 
+        /// <summary>
+        /// Checks if the operand can be exchanged without changing the encoding.
+        /// Currently this only applies to Imm and Label operands.
+        /// </summary>
+        /// <param name="other">Other operand to check</param>
+        /// <returns>True if this operand can be exchanged with the other operand</returns>
         constexpr bool isExchangableType(const Operand& other) const noexcept
         {
             if ((holds<Label>() && other.holds<Imm>()) || (holds<Imm>() && other.holds<Label>()))
@@ -294,11 +346,23 @@ namespace zasm
             return getTypeIndex() == other.getTypeIndex();
         }
 
+        /// <summary>
+        /// Works like std::visit, calls the specified function with the current operand type.
+        /// </summary>
+        /// <typeparam name="F">Visitor</typeparam>
+        /// <param name="f">Visitor</param>
+        /// <returns>Result of the visitor</returns>
         template<typename F> constexpr auto visit(F&& f) const
         {
             return std::visit(std::forward<F>(f), _data);
         }
 
+        /// <summary>
+        /// Returns the size of the operand, some operands can have different sizes 
+        /// depending on the machine mode.
+        /// </summary>
+        /// <param name="mode">Machine mode</param>
+        /// <returns>Size of the operand in bits</returns>
         BitSize getBitSize(MachineMode mode) const noexcept
         {
             return visit([mode](auto&& op) { return op.getBitSize(mode); });
