@@ -23,7 +23,7 @@ namespace zasm
             return _value;
         }
                 
-        constexpr explicit operator T() const
+        constexpr operator T() const
         {
             return _value;
         }
