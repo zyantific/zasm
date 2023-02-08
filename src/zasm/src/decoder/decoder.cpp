@@ -96,7 +96,7 @@ namespace zasm
     Decoder::Decoder(MachineMode mode) noexcept
         : _mode(mode)
     {
-        ZyanStatus status{};
+        ZyanStatus status = ZYAN_STATUS_INVALID_OPERATION;
         switch (mode)
         {
             case MachineMode::AMD64:
@@ -176,7 +176,7 @@ namespace zasm
         InstructionDetail::CPUFlags flags{};
         if (instr.cpu_flags != nullptr)
         {
-            flags.set0 = instr.cpu_flags->set_0 ;
+            flags.set0 = instr.cpu_flags->set_0;
             flags.set1 = instr.cpu_flags->set_1;
             flags.modified = instr.cpu_flags->modified;
             flags.tested = instr.cpu_flags->tested;

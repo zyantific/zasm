@@ -41,6 +41,11 @@ namespace zasm
         return _state->mode;
     }
 
+    void Program::setMode(MachineMode mode) noexcept
+    {
+        _state->mode = mode;
+    }
+
     detail::ProgramState& Program::getState() const noexcept
     {
         return *_state;
@@ -150,8 +155,7 @@ namespace zasm
         return append_<true>(n, *_state);
     }
 
-    template<bool TNotify>
-    Node* insertBefore_(Node* nodePos, Node* nodeToInsert, detail::ProgramState& state) noexcept
+    template<bool TNotify> Node* insertBefore_(Node* nodePos, Node* nodeToInsert, detail::ProgramState& state) noexcept
     {
         auto* pos = detail::toInternal(nodePos);
         if (pos == nullptr)
@@ -184,8 +188,7 @@ namespace zasm
         return insertBefore_<true>(pos, node, *_state);
     }
 
-    template<bool TNotify>
-    Node* insertAfter_(Node* nodePos, Node* nodeToInsert, detail::ProgramState& state) noexcept
+    template<bool TNotify> Node* insertAfter_(Node* nodePos, Node* nodeToInsert, detail::ProgramState& state) noexcept
     {
         auto* pos = detail::toInternal(nodePos);
         if (pos == nullptr)

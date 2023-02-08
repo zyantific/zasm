@@ -479,10 +479,30 @@ namespace zasm
         }
     }
 
+    static constexpr bool validateMachineMode(MachineMode mode)
+    {
+        switch (mode)
+        {
+            case MachineMode::Invalid:
+                return false;
+            case MachineMode::I386:
+            case MachineMode::AMD64:
+                return true;
+            default:
+                break;
+        }
+        return false;
+    }
+
     static Error encode_(
         EncoderResult& res, EncoderContext* ctx, MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic mnemonic,
         size_t numOps, const Operand* operands)
     {
+        if (!validateMachineMode(mode))
+        {
+            return Error::InvalidMode;
+        }
+        
         res.length = 0;
 
         EncoderState state{};
