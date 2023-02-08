@@ -36,7 +36,17 @@ namespace zasm
         Program& operator=(const Program&) = delete;
         Program& operator=(Program&& other) noexcept;
 
+        /// <summary>
+        /// Gets the current machine mode.
+        /// </summary>
+        /// <returns>Machine mode</returns>
         MachineMode getMode() const noexcept;
+
+        /// <summary>
+        /// Sets the current machine mode.
+        /// </summary>
+        /// <param name="mode">New mode</param>
+        void setMode(MachineMode mode) noexcept;
 
         /// <summary>
         /// This is primarily used by other components, this should not be directly used.
