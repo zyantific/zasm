@@ -13,7 +13,7 @@ namespace zasm
         constexpr std::size_t kDefaultBlockCount = 0xFFFF;
     }
 
-    template<typename T, std::size_t TBlockCount = detail::kDefaultBlockCount> class ObjectPool
+    template<typename T, std::size_t TEntriesInBlock = detail::kDefaultBlockCount> class ObjectPool
     {
 #pragma pack(push, 1)
         union Entry
@@ -32,7 +32,7 @@ namespace zasm
 
         struct Block
         {
-            std::array<Entry, TBlockCount> storage;
+            std::array<Entry, TEntriesInBlock> storage;
             std::size_t slot;
         };
 
@@ -110,7 +110,7 @@ namespace zasm
             }
 
             auto* block = _blocks.back().get();
-            if (block->slot >= TBlockCount)
+            if (block->slot >= TEntriesInBlock)
             {
                 block = _blocks.emplace_back(std::make_unique<Block>()).get();
             }

@@ -105,17 +105,17 @@ namespace zasm
         return (data.flags & LabelFlags::External) != LabelFlags::None;
     }
 
-    static int64_t getRelativeAddress(std::int64_t address, std::int64_t target, std::int32_t instrSize) noexcept
+    static constexpr int64_t getRelativeAddress(std::int64_t address, std::int64_t target, std::int32_t instrSize) noexcept
     {
         return target - (address + instrSize);
     }
 
-    static bool hasAttrib(Instruction::Attribs attribs, Instruction::Attribs other) noexcept
+    static constexpr bool hasAttrib(Instruction::Attribs attribs, Instruction::Attribs other) noexcept
     {
         return (attribs & other) != x86::Attribs::None;
     }
 
-    static ZydisInstructionAttributes getAttribs(Instruction::Attribs attribs) noexcept
+    static constexpr ZydisInstructionAttributes getAttribs(Instruction::Attribs attribs) noexcept
     {
         ZydisInstructionAttributes res{};
 
@@ -138,7 +138,7 @@ namespace zasm
         return res;
     }
 
-    static std::pair<int64_t, ZydisBranchType> processRelAddress(
+    static constexpr std::pair<int64_t, ZydisBranchType> processRelAddress(
         const EncodeVariantsInfo& info, EncoderContext* ctx, int64_t targetAddress)
     {
         std::int64_t res{};
@@ -502,8 +502,8 @@ namespace zasm
         {
             return Error::InvalidMode;
         }
-        
-        res.length = 0;
+
+        res.buffer.length = 0;
 
         EncoderState state{};
         state.ctx = ctx;
@@ -551,8 +551,8 @@ namespace zasm
 
         fixupIs4Operands(req);
 
-        std::size_t bufLen = res.data.size();
-        switch (auto status = ZydisEncoderEncodeInstruction(&req, res.data.data(), &bufLen); status)
+        std::size_t bufLen = res.buffer.data.size();
+        switch (auto status = ZydisEncoderEncodeInstruction(&req, res.buffer.data.data(), &bufLen); status)
         {
             case ZYAN_STATUS_SUCCESS:
                 break;
@@ -561,7 +561,7 @@ namespace zasm
                 return Error::ImpossibleInstruction;
         }
 
-        res.length = static_cast<std::uint8_t>(bufLen);
+        res.buffer.length = static_cast<std::uint8_t>(bufLen);
         res.relocKind = state.relocKind;
         res.relocData = state.relocData;
         res.relocLabel = state.relocLabel;
@@ -598,7 +598,7 @@ namespace zasm
         while (ctx.instrSize == kHintRequiresSize)
         {
             // Encode with now known size, instruction size can change again in this call.
-            ctx.instrSize = res.length;
+            ctx.instrSize = res.buffer.length;
             if (const auto encodeError = encode_(res, &ctx, mode, prefixes, mnemonic, numOps, operands);
                 encodeError != Error::None)
             {
@@ -608,7 +608,7 @@ namespace zasm
             // If the instruction size does not match what we previously specified
             // we need to re-encode it with the now known size, this can happen near
             // the limits of rel8/32 but is unlikely.
-            if (res.length != ctx.instrSize)
+            if (res.buffer.length != ctx.instrSize)
             {
                 ctx.instrSize = kHintRequiresSize;
             }

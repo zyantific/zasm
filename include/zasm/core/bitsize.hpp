@@ -33,6 +33,12 @@ namespace zasm
         _4608,
     };
 
+    /// <summary>
+    /// Returns the BitSize enum value for the given number of bits.
+    /// </summary>
+    /// <typeparam name="T">Type</typeparam>
+    /// <param name="numBits">Number of bits</param>
+    /// <returns>Number of bits as BitSize</returns>
     template<typename T> constexpr BitSize toBitSize(const T numBits) noexcept
     {
 #define SWITCH_BIT(n)                                                                                                          \
@@ -71,6 +77,11 @@ namespace zasm
         return BitSize::_0;
     }
 
+    /// <summary>
+    /// Returns the number of bits for the given BitSize enum value.
+    /// </summary>
+    /// <param name="bitSize">Bit Size</param>
+    /// <returns>Number of bits</returns>
     constexpr int32_t getBitSize(BitSize bitSize) noexcept
     {
 #define SWITCH_BIT(n)                                                                                                          \

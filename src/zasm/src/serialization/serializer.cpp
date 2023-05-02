@@ -57,7 +57,7 @@ namespace zasm
     }
 
     static Error serializeNode(
-        [[maybe_unused]] detail::ProgramState& program, SerializeContext& state, [[maybe_unused]] const NodePoint& node)
+        [[maybe_unused]] detail::ProgramState& program, SerializeContext& state, [[maybe_unused]] const Sentinel& node)
     {
         auto& ctx = state.ctx;
 
@@ -166,16 +166,16 @@ namespace zasm
 
             if (nodeEntry.length != 0)
             {
-                if (res->length < nodeEntry.length)
+                if (res->buffer.length < nodeEntry.length)
                 {
-                    ctx.drift += nodeEntry.length - static_cast<std::int64_t>(res->length);
+                    ctx.drift += nodeEntry.length - static_cast<std::int64_t>(res->buffer.length);
                 }
-                else if (res->length > nodeEntry.length)
+                else if (res->buffer.length > nodeEntry.length)
                 {
-                    ctx.drift -= static_cast<std::int64_t>(res->length) - nodeEntry.length;
+                    ctx.drift -= static_cast<std::int64_t>(res->buffer.length) - nodeEntry.length;
                 }
             }
-            nodeEntry.length = res->length;
+            nodeEntry.length = res->buffer.length;
             nodeEntry.offset = ctx.offset;
             nodeEntry.address = ctx.va;
             nodeEntry.relocKind = res->relocKind;
@@ -184,13 +184,13 @@ namespace zasm
         }
 
         auto& sect = ctx.sections[ctx.sectionIndex];
-        sect.rawSize += res->length;
+        sect.rawSize += res->buffer.length;
 
-        ctx.va += res->length;
-        ctx.offset += res->length;
+        ctx.va += res->buffer.length;
+        ctx.offset += res->buffer.length;
 
         auto& buffer = state.buffer;
-        buffer.insert(buffer.end(), std::begin(res->data), std::begin(res->data) + res->length);
+        buffer.insert(buffer.end(), std::begin(res->buffer.data), std::begin(res->buffer.data) + res->buffer.length);
 
         return Error::None;
     }
