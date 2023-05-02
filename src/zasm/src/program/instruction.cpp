@@ -39,7 +39,7 @@ namespace zasm
         Decoder* decoder = getDecoder(mode);
         assert(decoder != nullptr);
 
-        auto decodeResult = decoder->decode(encodeResult->data.data(), encodeResult->length, 0);
+        auto decodeResult = decoder->decode(encodeResult->buffer.data.data(), encodeResult->buffer.length, 0);
         if (!decodeResult)
         {
             return zasm::makeUnexpected(decodeResult.error());

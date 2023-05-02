@@ -7,6 +7,7 @@ namespace zasm
 {
     namespace detail
     {
+        // Internal wrapper type for unexpected.
         template<typename T> struct Unexpected
         {
             const T failure;
@@ -18,6 +19,13 @@ namespace zasm
         };
     } // namespace detail
 
+    /// <summary>
+    /// Provides a way to return a value or an error.
+    /// This is not an exact replacement for std::expected but it is close enough.
+    /// To return an error you can use the makeUnexpected function.
+    /// </summary>
+    /// <typeparam name="TSuccess">Success Type</typeparam>
+    /// <typeparam name="TFailure">Failure Type</typeparam>
     template<typename TSuccess, typename TFailure> class Expected
     {
         std::variant<TSuccess, ::zasm::detail::Unexpected<TFailure>> data;

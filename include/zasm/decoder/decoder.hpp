@@ -11,16 +11,17 @@ namespace zasm
 {
     class Decoder final
     {
-        ZydisDecoder _decoder{};
-        MachineMode _mode{};
-        Error _status{};
-
     public:
         using Result = zasm::Expected<InstructionDetail, Error>;
 
         Decoder(MachineMode mode) noexcept;
 
         Result decode(const void* data, std::size_t len, std::uint64_t address) noexcept;
+
+    private:
+        ZydisDecoder _decoder{};
+        MachineMode _mode{};
+        Error _status{};
     };
 
 } // namespace zasm

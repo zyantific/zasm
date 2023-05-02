@@ -29,12 +29,17 @@ namespace zasm
     };
 
     // A small buffer which holds the bytes of a single encoded instruction and the length.
-    struct EncoderResult
+    struct EncoderBuffer
     {
         static constexpr std::size_t kMaxInstructionSize = 15;
 
         std::array<std::uint8_t, kMaxInstructionSize> data{};
         std::uint8_t length{};
+    };
+
+    struct EncoderResult
+    {
+        EncoderBuffer buffer{};
         RelocationType relocKind{};
         RelocationData relocData{};
         Label::Id relocLabel{ Label::Id::Invalid };

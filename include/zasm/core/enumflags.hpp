@@ -6,6 +6,10 @@
 namespace zasm
 {
 
+    /// <summary>
+    /// Enables enum operators for the given enum type.
+    /// </summary>
+    /// <typeparam name="ENM">Enum type</typeparam>
 #define ZASM_ENABLE_ENUM_OPERATORS(ENM)                                                                                        \
     static_assert(std::is_unsigned_v<std::underlying_type_t<ENM>> == true, "Underlying enum type must be unsignd");            \
     inline constexpr ENM operator|(const ENM a, const ENM b) noexcept                                                          \

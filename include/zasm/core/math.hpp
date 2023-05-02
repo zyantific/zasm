@@ -5,6 +5,13 @@
 namespace zasm::math
 {
 
+    /// <summary>
+    /// Aligns a value to the given alignment.
+    /// </summary>
+    /// <typeparam name="T">Value type</typeparam>
+    /// <param name="val">Value</param>
+    /// <param name="align">Align</param>
+    /// <returns>Aligned value</returns>
     template<typename T> static constexpr T alignTo(T val, T align) noexcept
     {
         if (val % align == 0)
@@ -14,6 +21,9 @@ namespace zasm::math
         return val + (align - (val % align));
     }
 
+    /// <summary>
+    /// Same as std::abs but constexpr.
+    /// </summary>
     template<typename T> static constexpr T abs(T value) noexcept
     {
         if constexpr (std::is_integral_v<std::decay_t<T>>)
