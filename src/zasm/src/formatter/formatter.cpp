@@ -367,7 +367,7 @@ namespace zasm::formatter
             ctx.appendLiteral("]");
         }
 
-        static void nodeToString([[maybe_unused]] Context& ctx, [[maybe_unused]] const NodePoint& node) noexcept
+        static void nodeToString([[maybe_unused]] Context& ctx, [[maybe_unused]] const Sentinel& node) noexcept
         {
         }
 

@@ -6,6 +6,7 @@
 #include "instruction.hpp"
 #include "label.hpp"
 #include "section.hpp"
+#include "sentinel.hpp"
 
 #include <climits>
 #include <cstddef>
@@ -14,20 +15,11 @@
 namespace zasm
 {
     /// <summary>
-    /// Placeholder type that represents an empty node.
-    /// This type can be useful for scenarios where the user wants to keep track
-    /// of a volatile range by having this at the start and end as markers.
-    /// </summary>
-    struct NodePoint final
-    {
-    };
-
-    /// <summary>
     /// A type to hold data such as Instruction, Label, Data etc. within a doubly
     /// linked list managed by the Program. The data is internally stored as a variant
     /// of the possible types a node can hold.
     /// </summary>
-    class Node final
+    class Node
     {
     public:
         enum class Id : uint32_t
@@ -39,7 +31,7 @@ namespace zasm
         const Id _id{ Id::Invalid };
         Node* _prev{};
         Node* _next{};
-        std::variant<NodePoint, Instruction, Label, EmbeddedLabel, Data, Section, Align> _data{};
+        std::variant<Sentinel, Instruction, Label, EmbeddedLabel, Data, Section, Align> _data{};
 
     private:
         union

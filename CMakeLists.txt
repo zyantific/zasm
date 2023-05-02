@@ -110,6 +110,7 @@ set(zasm_SOURCES
 	"include/zasm/program/program.hpp"
 	"include/zasm/program/register.hpp"
 	"include/zasm/program/section.hpp"
+	"include/zasm/program/sentinel.hpp"
 	"include/zasm/serialization/serializer.hpp"
 	"include/zasm/x86/assembler.hpp"
 	"include/zasm/x86/emitter.hpp"

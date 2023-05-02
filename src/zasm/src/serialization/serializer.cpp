@@ -57,7 +57,7 @@ namespace zasm
     }
 
     static Error serializeNode(
-        [[maybe_unused]] detail::ProgramState& program, SerializeContext& state, [[maybe_unused]] const NodePoint& node)
+        [[maybe_unused]] detail::ProgramState& program, SerializeContext& state, [[maybe_unused]] const Sentinel& node)
     {
         auto& ctx = state.ctx;
 
