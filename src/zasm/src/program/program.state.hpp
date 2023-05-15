@@ -40,7 +40,6 @@ namespace zasm::detail
         Section::Id id{ Section::Id::Invalid };
         StringPool::Id nameId{ StringPool::Id::Invalid };
         Section::Attribs attribs{};
-        std::int32_t physicalIndex{ -1 };
         std::int32_t align{};
 
         // The node that holds/binds the label in the list.

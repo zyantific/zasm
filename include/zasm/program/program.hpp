@@ -28,7 +28,19 @@ namespace zasm
         std::unique_ptr<detail::ProgramState> _state;
 
     public:
+        /// <summary>
+        /// Constructs an empty program with no machine mode assigned. It is important
+        /// that a machine mode is set before operating with instructions otherwise it may
+        /// lead to undefined behavior. This constructor is useful for save/restore situations.
+        /// </summary>
+        Program();
+
+        /// <summary>
+        /// Constructs an empty program with the specified machine mode.
+        /// </summary>
+        /// <param name="mode">Machine Mode</param>
         Program(MachineMode mode);
+
         Program(const Program&) = delete;
         Program(Program&& other) noexcept;
         ~Program();
@@ -171,6 +183,9 @@ namespace zasm
         /// </summary>
         /// <param name="value">The data to place inside the node</param>
         /// <returns>Newly allocated node containing value</returns>
+        Node* createNode(const Label& label);
+        Node* createNode(const Section& section);
+        Node* createNode(const Sentinel& sentinel);
         Node* createNode(const Instruction& instr);
         Node* createNode(Instruction&& instr);
         Node* createNode(const Data& data);

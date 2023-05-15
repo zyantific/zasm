@@ -23,13 +23,22 @@ namespace zasm
             {
                 _next = node;
             }
+            void setId(Node::Id id)
+            {
+                _id = id;
+            }
         };
 
         static_assert(sizeof(Node) == sizeof(::zasm::Node));
-        
-        static Node* toInternal(zasm::Node* node) noexcept
+
+        static detail::Node* toInternal(zasm::Node* node) noexcept
         {
-            return static_cast<Node*>(const_cast<zasm::Node*>(node));
+            return static_cast<Node*>(node);
+        }
+
+        static const detail::Node* toInternal(const zasm::Node* node) noexcept
+        {
+            return static_cast<const Node*>(node);
         }
 
     } // namespace detail

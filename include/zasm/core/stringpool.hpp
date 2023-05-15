@@ -6,6 +6,7 @@
 #include <iterator>
 #include <string.h>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace zasm
@@ -111,6 +112,16 @@ namespace zasm
             _data.clear();
         }
 
+        const char* data() const noexcept
+        {
+            return _data.data();
+        }
+
+        std::size_t size() const noexcept
+        {
+            return _entries.size();
+        }
+        
     private:
         template<typename TSelf>
         static auto getEntry(TSelf&& self, Id stringId) noexcept

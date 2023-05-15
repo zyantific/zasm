@@ -28,7 +28,7 @@ namespace zasm
         };
 
     protected:
-        const Id _id{ Id::Invalid };
+        Id _id{ Id::Invalid };
         Node* _prev{};
         Node* _next{};
         std::variant<Sentinel, Instruction, Label, EmbeddedLabel, Data, Section, Align> _data{};

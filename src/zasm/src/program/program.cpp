@@ -16,9 +16,15 @@ namespace zasm
     {
     }
 
+    Program::Program()
+        : Program(MachineMode::Invalid)
+    {
+    }
+
     Program::Program(Program&& other) noexcept
     {
-        *this = std::move(other);
+        _state = std::move(other._state);
+        other._state = std::make_unique<detail::ProgramState>(MachineMode::Invalid);
     }
 
     Program::~Program()
@@ -31,7 +37,7 @@ namespace zasm
         clear();
 
         _state = std::move(other._state);
-        other._state = nullptr;
+        other._state = std::make_unique<detail::ProgramState>(MachineMode::Invalid);
 
         return *this;
     }
@@ -335,6 +341,21 @@ namespace zasm
         notifyObservers<true>(&Observer::onNodeCreated, state.observer, node);
 
         return node;
+    }
+
+    Node* Program::createNode(const Section& section)
+    {
+        return createNode_(*_state, section);
+    }
+
+    Node* Program::createNode(const Label& label)
+    {
+        return createNode_(*_state, label);
+    }
+
+    Node* Program::createNode(const Sentinel& sentinel)
+    {
+        return createNode_(*_state, sentinel);
     }
 
     Node* Program::createNode(const Instruction& instr)
