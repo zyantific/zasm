@@ -67,6 +67,8 @@ endif()
 
 # Target: zasm
 set(zasm_SOURCES
+	"src/zasm/src/core/filestream.cpp"
+	"src/zasm/src/core/memorystream.cpp"
 	"src/zasm/src/decoder/decoder.cpp"
 	"src/zasm/src/encoder/encoder.cpp"
 	"src/zasm/src/formatter/formatter.cpp"
@@ -93,9 +95,12 @@ set(zasm_SOURCES
 	"include/zasm/core/enumflags.hpp"
 	"include/zasm/core/errors.hpp"
 	"include/zasm/core/expected.hpp"
+	"include/zasm/core/filestream.hpp"
 	"include/zasm/core/math.hpp"
+	"include/zasm/core/memorystream.hpp"
 	"include/zasm/core/objectpool.hpp"
 	"include/zasm/core/packed.hpp"
+	"include/zasm/core/stream.hpp"
 	"include/zasm/core/stringpool.hpp"
 	"include/zasm/core/strongtype.hpp"
 	"include/zasm/decoder/decoder.hpp"

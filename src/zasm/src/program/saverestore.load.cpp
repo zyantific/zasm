@@ -7,6 +7,7 @@
 #include "zasm/program/program.hpp"
 
 #include <fstream>
+#include <zasm/core/filestream.hpp>
 
 namespace zasm
 {
@@ -46,7 +47,7 @@ namespace zasm
         helper >> size;
         helper >> repeats;
 
-        std::vector<uint8_t> buf;
+        std::vector<std::uint8_t> buf;
         buf.resize(size);
         if (auto err = helper.read(buf.data(), size); err != Error::None)
         {
@@ -335,7 +336,7 @@ namespace zasm
         return Error::None;
     }
 
-    zasm::Expected<Program, Error> load(std::iostream& stream)
+    zasm::Expected<Program, Error> load(IStream& stream)
     {
         try
         {
@@ -357,8 +358,8 @@ namespace zasm
 
     zasm::Expected<Program, Error> load(std::filesystem::path inputFilePath)
     {
-        std::fstream stream(inputFilePath, std::ios::binary | std::ios::in);
-        if (!stream.is_open())
+        FileStream stream(inputFilePath, StreamMode::Read);
+        if (!stream.isOpen())
         {
             return makeUnexpected(Error::AccessDenied);
         }

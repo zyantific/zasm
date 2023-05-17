@@ -7,6 +7,7 @@
 #include "zasm/program/program.hpp"
 
 #include <fstream>
+#include <zasm/core/filestream.hpp>
 
 namespace zasm
 {
@@ -259,7 +260,7 @@ namespace zasm
         return Error::None;
     }
 
-    Error save(const Program& program, std::iostream& stream)
+    Error save(const Program& program, IStream& stream)
     {
         try
         {
@@ -280,13 +281,13 @@ namespace zasm
 
     Error save(const Program& program, std::filesystem::path outputFilePath)
     {
-        std::fstream stream(outputFilePath, std::ios::binary | std::ios::out);
-        if (!stream.is_open())
+        FileStream fs(outputFilePath, StreamMode::Write);
+        if (!fs.isOpen())
         {
             return Error::AccessDenied;
         }
 
-        return save(program, stream);
+        return save(program, fs);
     }
 
 } // namespace zasm

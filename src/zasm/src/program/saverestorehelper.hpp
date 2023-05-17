@@ -14,11 +14,11 @@ namespace zasm
     {
         static constexpr bool kEnableVariableLengthEncoding = true;
 
-        std::iostream& _stream;
+        IStream& _stream;
         bool _isLoad{};
 
     public:
-        SaveRestore(std::iostream& stream, bool isLoad)
+        SaveRestore(IStream& stream, bool isLoad)
             : _stream(stream)
             , _isLoad(isLoad)
         {
@@ -26,7 +26,7 @@ namespace zasm
 
         Error write(const void* src, size_t length)
         {
-            if (!_stream.good() || _isLoad)
+            if (_isLoad)
             {
                 return Error::InvalidOperation;
             }
@@ -36,7 +36,7 @@ namespace zasm
 
         Error read(void* src, size_t length)
         {
-            if (!_stream.good() || !_isLoad)
+            if (!_isLoad)
             {
                 return Error::InvalidOperation;
             }

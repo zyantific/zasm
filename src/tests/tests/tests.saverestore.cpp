@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include <sstream>
 #include <testdata/instructions.hpp>
+#include <zasm/core/memorystream.hpp>
 #include <zasm/program/saverestore.hpp>
 #include <zasm/zasm.hpp>
 
@@ -89,15 +90,12 @@ namespace zasm::tests
         createTestInstructions(outputProgram, kTestDataRepeats);
 
         // Save Program.
-        std::stringstream buf;
+        MemoryStream buf;
         ASSERT_EQ(save(outputProgram, buf), Error::None);
-
-        const auto data = buf.str();
-        ASSERT_EQ(data.empty(), false);
 
         // Read the serialized data back into a separate program.
 
-        buf.seekg(0);
+        buf.seek(0, SeekType::Begin);
         auto inputProgram = load(buf);
         ASSERT_EQ(inputProgram.hasValue(), true);
 
