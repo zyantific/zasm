@@ -247,6 +247,11 @@ namespace zasm
             return err;
         }
 
+        if (auto err = saveSections(helper, program); err != Error::None)
+        {
+            return err;
+        }
+
         if (auto err = saveLabels(helper, program); err != Error::None)
         {
             return err;

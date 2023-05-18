@@ -271,21 +271,57 @@ namespace zasm
         return Error::None;
     }
 
-    static Error saveLabels(SaveRestore& helper, const Program& program)
+    static Error loadLabels(SaveRestore& helper, Program& program)
     {
-        const auto& programState = program.getState();
+        auto& programState = program.getState();
+        auto& labels = programState.labels;
+
+        std::uint64_t labelCount{};
+        helper >> labelCount;
+
+        for (std::uint64_t i = 0; i < labelCount; ++i)
+        {
+            detail::LabelData labelData;
+            helper >> labelData.flags;
+            helper >> labelData.id;
+            helper >> labelData.moduleId;
+            helper >> labelData.nameId;
+
+            Node::Id nodeId;
+            helper >> nodeId;
+
+            labels.push_back(labelData);
+        }
 
         return Error::None;
     }
 
-    static Error saveSections(SaveRestore& helper, const Program& program)
+    static Error loadSections(SaveRestore& helper, Program& program)
     {
-        const auto& programState = program.getState();
+        auto& programState = program.getState();
+        auto& sections = programState.sections;
+        
+        std::uint64_t sectionCount{};
+
+        helper >> sectionCount;
+        for (std::uint64_t i = 0; i < sectionCount; ++i)
+        {
+            detail::SectionData sectData;
+            helper >> sectData.align;
+            helper >> sectData.attribs;
+            helper >> sectData.id;
+            helper >> sectData.nameId;
+            
+            Node::Id nodeId;
+            helper >> nodeId;
+
+            sections.push_back(sectData);
+        }
 
         return Error::None;
     }
 
-    static Error saveSymbols(SaveRestore& helper, const Program& program)
+    static Error loadSymbols(SaveRestore& helper, Program& program)
     {
         const auto& programState = program.getState();
 
@@ -319,12 +355,17 @@ namespace zasm
             return err;
         }
 
-        if (auto err = saveLabels(helper, program); err != Error::None)
+        if (auto err = loadLabels(helper, program); err != Error::None)
         {
             return err;
         }
 
-        if (auto err = saveSymbols(helper, program); err != Error::None)
+        if (auto err = loadSections(helper, program); err != Error::None)
+        {
+            return err;
+        }
+
+        if (auto err = loadSymbols(helper, program); err != Error::None)
         {
             return err;
         }

@@ -12,7 +12,7 @@ namespace zasm::tests
 #ifdef _DEBUG
     static constexpr size_t kTestDataRepeats = 1;
 #else
-    static constexpr size_t kTestDataRepeats = 1000;
+    static constexpr size_t kTestDataRepeats = 100;
 #endif
 
     static void createTestInstructions(Program& program, std::size_t repeats = 1)

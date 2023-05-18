@@ -30,17 +30,17 @@ namespace zasm
             {
                 return Error::InvalidOperation;
             }
-            _stream.write(reinterpret_cast<const char*>(src), length);
+            _stream.write(src, length);
             return Error::None;
         }
 
-        Error read(void* src, size_t length)
+        Error read(void* dst, size_t length)
         {
-            if (!_isLoad)
+            if (!_isLoad || _stream.isEnd())
             {
                 return Error::InvalidOperation;
             }
-            _stream.read(reinterpret_cast<char*>(src), length);
+            _stream.read(dst, length);
             return Error::None;
         }
 
