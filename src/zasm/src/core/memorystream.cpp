@@ -2,7 +2,9 @@
 
 #include "zasm/core/math.hpp"
 
-#include <vector>
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
 
 namespace zasm
 {

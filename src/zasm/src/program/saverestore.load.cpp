@@ -11,14 +11,14 @@
 
 namespace zasm
 {
-    template<typename T> Node* loadNode_(SaveRestore& helper, Program& program);
+    template<typename T> static Node* loadNode_(SaveRestore& helper, Program& program);
 
-    template<> static Node* loadNode_<Sentinel>(SaveRestore& helper, Program& program)
+    template<> Node* loadNode_<Sentinel>(SaveRestore& helper, Program& program)
     {
         return program.createNode(Sentinel{});
     }
 
-    template<> static Node* loadNode_<Label>(SaveRestore& helper, Program& program)
+    template<> Node* loadNode_<Label>(SaveRestore& helper, Program& program)
     {
         Label::Id id{};
         helper >> id;
@@ -26,7 +26,7 @@ namespace zasm
         return program.createNode(Label(id));
     }
 
-    template<> static Node* loadNode_<EmbeddedLabel>(SaveRestore& helper, Program& program)
+    template<> Node* loadNode_<EmbeddedLabel>(SaveRestore& helper, Program& program)
     {
         Label::Id labelId{};
         Label::Id relLabelId{};
@@ -39,7 +39,7 @@ namespace zasm
         return program.createNode(EmbeddedLabel(Label(labelId), Label(relLabelId), size));
     }
 
-    template<> static Node* loadNode_<Data>(SaveRestore& helper, Program& program)
+    template<> Node* loadNode_<Data>(SaveRestore& helper, Program& program)
     {
         std::uint64_t size{};
         std::uint64_t repeats{};
@@ -60,7 +60,7 @@ namespace zasm
         return program.createNode(std::move(data));
     }
 
-    template<> static Node* loadNode_<Section>(SaveRestore& helper, Program& program)
+    template<> Node* loadNode_<Section>(SaveRestore& helper, Program& program)
     {
         Section::Id id{};
         helper >> id;
@@ -68,7 +68,7 @@ namespace zasm
         return program.createNode(Section(id));
     }
 
-    template<> static Node* loadNode_<Align>(SaveRestore& helper, Program& program)
+    template<> Node* loadNode_<Align>(SaveRestore& helper, Program& program)
     {
         std::uint32_t alignVal{};
         Align::Type alignType{};
@@ -81,12 +81,12 @@ namespace zasm
 
     template<typename T> static Error loadOperand_(SaveRestore& helper, Operand& op);
 
-    template<> static Error loadOperand_<Operand::None>(SaveRestore& helper, Operand&)
+    template<> Error loadOperand_<Operand::None>(SaveRestore& helper, Operand&)
     {
         return Error::None;
     }
 
-    template<> static Error loadOperand_<Reg>(SaveRestore& helper, Operand& op)
+    template<> Error loadOperand_<Reg>(SaveRestore& helper, Operand& op)
     {
         Reg::Id regId{};
         helper >> regId;
@@ -96,7 +96,7 @@ namespace zasm
         return Error::None;
     }
 
-    template<> static Error loadOperand_<Mem>(SaveRestore& helper, Operand& op)
+    template<> Error loadOperand_<Mem>(SaveRestore& helper, Operand& op)
     {
         BitSize bitSize{};
         Reg::Id regSeg{};
@@ -119,7 +119,7 @@ namespace zasm
         return Error::None;
     }
 
-    template<> static Error loadOperand_<Imm>(SaveRestore& helper, Operand& op)
+    template<> Error loadOperand_<Imm>(SaveRestore& helper, Operand& op)
     {
         std::int64_t val{};
         helper >> val;
@@ -129,7 +129,7 @@ namespace zasm
         return Error::None;
     }
 
-    template<> static Error loadOperand_<Label>(SaveRestore& helper, Operand& op)
+    template<> Error loadOperand_<Label>(SaveRestore& helper, Operand& op)
     {
         Label::Id labelId{};
         helper >> labelId;
@@ -139,7 +139,7 @@ namespace zasm
         return Error::None;
     }
 
-    template<> static Node* loadNode_<Instruction>(SaveRestore& helper, Program& program)
+    template<> Node* loadNode_<Instruction>(SaveRestore& helper, Program& program)
     {
         Instruction::Mnemonic::ValueType mnemonic{};
         Instruction::Attribs::ValueType attribs{};
