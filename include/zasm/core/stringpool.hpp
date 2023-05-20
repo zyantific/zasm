@@ -162,9 +162,12 @@ namespace zasm
                 return Error::InvalidParameter;
             }
 
-            if (auto len = stream.write(_data.data(), dataSize); len == 0)
+            if (dataSize > 0)
             {
-                return Error::InvalidParameter;
+                if (auto len = stream.write(_data.data(), dataSize); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
             }
 
             return Error::None;
@@ -213,10 +216,13 @@ namespace zasm
             }
 
             std::vector<char> loadedData;
-            loadedData.resize(dataSize);
-            if (auto len = stream.read(loadedData.data(), dataSize); len == 0)
+            if (dataSize > 0)
             {
-                return Error::InvalidParameter;
+                loadedData.resize(dataSize);
+                if (auto len = stream.read(loadedData.data(), dataSize); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
             }
 
             _entries = std::move(loadedEntries);
