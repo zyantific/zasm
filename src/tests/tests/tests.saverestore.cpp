@@ -12,7 +12,7 @@ namespace zasm::tests
 #ifdef _DEBUG
     static constexpr size_t kTestDataRepeats = 1;
 #else
-    static constexpr size_t kTestDataRepeats = 100;
+    static constexpr size_t kTestDataRepeats = 1000;
 #endif
 
     static void createTestInstructions(Program& program, std::size_t repeats = 1)
@@ -20,9 +20,16 @@ namespace zasm::tests
         x86::Assembler assembler(program);
         for (std::size_t i = 0; i < repeats; ++i)
         {
+            std::size_t entries = 0;
             for (const auto& instrEntry : data::Instructions)
             {
+                if (entries % 20 == 0)
+                {
+                    auto label = assembler.createLabel();
+                    assembler.bind(label);
+                }
                 ASSERT_EQ(instrEntry.emitter(assembler), Error::None) << instrEntry.instrBytes << ", " << instrEntry.operation;
+                entries++;
             }
         }
         std::cout << "Program Size: " << program.size() << "\n";

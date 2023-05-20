@@ -177,6 +177,13 @@ namespace zasm
         /// <returns>Label</returns>
         Label getEntryPoint() const noexcept;
 
+        /// <summary>
+        /// Looks for a node with the specified id in the program and returns it.
+        /// </summary>
+        /// <param name="id">Id of the node</param>
+        /// <returns>Node with the id or null when not found</returns>
+        Node* getNodeById(Node::Id id) const noexcept;
+
     public:
         /// <summary>
         /// Allocates a new unlinked node with containing the specified value.

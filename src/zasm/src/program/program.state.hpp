@@ -70,7 +70,12 @@ namespace zasm::detail
 
         std::vector<LabelData> labels;
         std::vector<SectionData> sections;
+
+        // Registered program observer.
         std::vector<Observer*> observer;
+
+        // The index is the id of the node this allows for quick access to nodes by id.
+        std::vector<Node*> nodeMap;
 
         Label entryPoint{ Label::Id::Invalid };
 

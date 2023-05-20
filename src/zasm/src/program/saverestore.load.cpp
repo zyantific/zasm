@@ -6,6 +6,7 @@
 #include "saverestoretypes.hpp"
 #include "zasm/program/program.hpp"
 
+#include <cassert>
 #include <fstream>
 #include <zasm/core/filestream.hpp>
 
@@ -290,6 +291,18 @@ namespace zasm
             Node::Id nodeId;
             helper >> nodeId;
 
+            if (nodeId != Node::Id::Invalid)
+            {
+                Node* labelNode = program.getNodeById(nodeId);
+                assert(labelNode != nullptr);
+
+                labelData.node = labelNode;
+            }
+            else
+            {
+                labelData.node = nullptr;
+            }
+
             labels.push_back(labelData);
         }
 
@@ -300,7 +313,7 @@ namespace zasm
     {
         auto& programState = program.getState();
         auto& sections = programState.sections;
-        
+
         std::uint64_t sectionCount{};
 
         helper >> sectionCount;
@@ -311,9 +324,21 @@ namespace zasm
             helper >> sectData.attribs;
             helper >> sectData.id;
             helper >> sectData.nameId;
-            
+
             Node::Id nodeId;
             helper >> nodeId;
+
+            if (nodeId != Node::Id::Invalid)
+            {
+                Node* sectionNode = program.getNodeById(nodeId);
+                assert(sectionNode != nullptr);
+
+                sectData.node = sectionNode;
+            }
+            else
+            {
+                sectData.node = nullptr;
+            }
 
             sections.push_back(sectData);
         }
