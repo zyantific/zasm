@@ -24,6 +24,11 @@ namespace zasm
         {
         }
 
+        IStream& getStream()
+        {
+            return _stream;
+        }
+
         Error write(const void* src, size_t length)
         {
             if (_isLoad)

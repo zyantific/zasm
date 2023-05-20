@@ -224,10 +224,14 @@ namespace zasm
 
     static Error saveSymbols(SaveRestore& helper, const Program& program)
     {
+        auto& stream = helper.getStream();
         const auto& programState = program.getState();
         const auto& symbols = programState.symbolNames;
 
-        helper << static_cast<std::uint64_t>(symbols.size());
+        if (auto err = symbols.save(stream); err != Error::None)
+        {
+            return err;
+        }
 
         return Error::None;
     }

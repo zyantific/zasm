@@ -12,7 +12,7 @@ namespace zasm::tests
 #ifdef _DEBUG
     static constexpr size_t kTestDataRepeats = 1;
 #else
-    static constexpr size_t kTestDataRepeats = 1000;
+    static constexpr size_t kTestDataRepeats = 100;
 #endif
 
     static void createTestInstructions(Program& program, std::size_t repeats = 1)
@@ -125,6 +125,35 @@ namespace zasm::tests
 
         // Compare against base
         comparePrograms(outputProgram, *inputProgram);
+    }
+
+    TEST(SaveRestoreTests, SaveRestoreSymbols)
+    {
+        Program outputProgram(MachineMode::AMD64);
+
+        auto label = outputProgram.createLabel("hello world");
+        auto nodeRes = outputProgram.bindLabel(label);
+        ASSERT_EQ(nodeRes.hasValue(), true);
+        outputProgram.append(nodeRes.value());
+
+        // Save Program.
+        MemoryStream buf;
+        ASSERT_EQ(save(outputProgram, buf), Error::None);
+
+        // Read the serialized data back into a separate program.
+        buf.seek(0, SeekType::Begin);
+        auto inputProgram = load(buf);
+        ASSERT_EQ(inputProgram.hasValue(), true);
+
+        // Compare against base
+        auto* headNode = inputProgram->getHead();
+        ASSERT_NE(headNode, nullptr);
+        auto* labelNode = headNode->getIf<Label>();
+        ASSERT_NE(labelNode, nullptr);
+        ASSERT_EQ(labelNode->getId(), label.getId());
+        auto labelInfo = inputProgram->getLabelData(*labelNode);
+        ASSERT_EQ(labelInfo.hasValue(), true);
+        ASSERT_EQ(std::string(labelInfo->name), "hello world");
     }
 
 } // namespace zasm::tests

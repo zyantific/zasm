@@ -35,7 +35,17 @@ namespace zasm
 
         virtual std::size_t read(void* buf, size_t length) = 0;
 
+        template<typename T> std::size_t read(T& value)
+        {
+            return read(&value, sizeof(T));
+        }
+
         virtual std::size_t write(const void* buf, size_t length) = 0;
+
+        template<typename T> std::size_t write(const T& value)
+        {
+            return write(&value, sizeof(T));
+        }
 
         virtual std::size_t size() const = 0;
 

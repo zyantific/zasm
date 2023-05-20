@@ -348,7 +348,14 @@ namespace zasm
 
     static Error loadSymbols(SaveRestore& helper, Program& program)
     {
-        const auto& programState = program.getState();
+        auto& stream = helper.getStream();
+        auto& programState = program.getState();
+        auto& symbols = programState.symbolNames;
+
+        if (auto err = symbols.load(stream); err != Error::None)
+        {
+            return err;
+        }
 
         return Error::None;
     }
@@ -380,12 +387,12 @@ namespace zasm
             return err;
         }
 
-        if (auto err = loadLabels(helper, program); err != Error::None)
+        if (auto err = loadSections(helper, program); err != Error::None)
         {
             return err;
         }
-
-        if (auto err = loadSections(helper, program); err != Error::None)
+        
+        if (auto err = loadLabels(helper, program); err != Error::None)
         {
             return err;
         }
