@@ -9,30 +9,21 @@
 
 namespace zasm::tests
 {
-#ifdef _DEBUG
-    static constexpr size_t kTestDataRepeats = 1;
-#else
-    static constexpr size_t kTestDataRepeats = 100;
-#endif
-
-    static void createTestInstructions(Program& program, std::size_t repeats = 1)
+    static void createTestInstructions(Program& program)
     {
         x86::Assembler assembler(program);
-        for (std::size_t i = 0; i < repeats; ++i)
+
+        std::size_t entries = 0;
+        for (const auto& instrEntry : data::Instructions)
         {
-            std::size_t entries = 0;
-            for (const auto& instrEntry : data::Instructions)
+            if (entries % 20 == 0)
             {
-                if (entries % 20 == 0)
-                {
-                    auto label = assembler.createLabel();
-                    assembler.bind(label);
-                }
-                ASSERT_EQ(instrEntry.emitter(assembler), Error::None) << instrEntry.instrBytes << ", " << instrEntry.operation;
-                entries++;
+                auto label = assembler.createLabel();
+                assembler.bind(label);
             }
+            ASSERT_EQ(instrEntry.emitter(assembler), Error::None) << instrEntry.instrBytes << ", " << instrEntry.operation;
+            entries++;
         }
-        std::cout << "Program Size: " << program.size() << "\n";
     }
 
     static void compareNode(const Sentinel& lhs, const Sentinel& rhs)
@@ -94,7 +85,7 @@ namespace zasm::tests
     TEST(SaveRestoreTests, SaveRestoreMemoryBuf)
     {
         Program outputProgram(MachineMode::AMD64);
-        createTestInstructions(outputProgram, kTestDataRepeats);
+        createTestInstructions(outputProgram);
 
         // Save Program.
         MemoryStream buf;
@@ -113,7 +104,7 @@ namespace zasm::tests
     TEST(SaveRestoreTests, SaveRestoreFile)
     {
         Program outputProgram(MachineMode::AMD64);
-        createTestInstructions(outputProgram, kTestDataRepeats);
+        createTestInstructions(outputProgram);
 
         // Save Program.
         const auto filePath = std::filesystem::temp_directory_path() / "saverestoretest.zasm";
