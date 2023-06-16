@@ -84,10 +84,14 @@ namespace zasm
         }
 
         std::memcpy(_state->data + _state->offset, buf, length);
-        _state->offset += length;
 
-        const auto sizeIncrease = _state->offset + length - _state->size;
-        _state->size += length;
+        const auto spaceAvailable = _state->size - _state->offset;
+        if (length > spaceAvailable)
+        {
+            _state->size += length - spaceAvailable;
+        }
+
+        _state->offset += length;
 
         return length;
     }
