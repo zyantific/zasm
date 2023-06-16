@@ -31,6 +31,16 @@ namespace zasm
         {
         }
 
+        constexpr bool operator==(const EmbeddedLabel& other) const noexcept
+        {
+            return _label == other._label && _relativeLabel == other._relativeLabel && _size == other._size;
+        }
+
+        constexpr bool operator!=(const EmbeddedLabel& other) const noexcept
+        {
+            return !(*this == other);
+        }
+
         constexpr Label getLabel() const noexcept
         {
             return Label{ _label };

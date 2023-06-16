@@ -16,9 +16,15 @@ namespace zasm
     {
     }
 
+    Program::Program()
+        : Program(MachineMode::Invalid)
+    {
+    }
+
     Program::Program(Program&& other) noexcept
     {
-        *this = std::move(other);
+        _state = std::move(other._state);
+        other._state = std::make_unique<detail::ProgramState>(MachineMode::Invalid);
     }
 
     Program::~Program()
@@ -31,7 +37,7 @@ namespace zasm
         clear();
 
         _state = std::move(other._state);
-        other._state = nullptr;
+        other._state = std::make_unique<detail::ProgramState>(MachineMode::Invalid);
 
         return *this;
     }
@@ -71,6 +77,19 @@ namespace zasm
         }
         _state->observer.erase(itObserver);
         return true;
+    }
+
+    Node* Program::getNodeById(Node::Id id) const noexcept
+    {
+        auto& nodeMap = _state->nodeMap;
+
+        const auto nodeIdx = static_cast<std::underlying_type_t<Node::Id>>(id);
+        if (nodeIdx >= nodeMap.size())
+        {
+            return nullptr;
+        }
+
+        return nodeMap[nodeIdx];
     }
 
     template<bool TNotify, typename F, typename... TArgs>
@@ -275,17 +294,42 @@ namespace zasm
         return insertBefore_<false>(pos, node, *_state);
     }
 
-    void Program::destroy(Node* node)
+    static void destroyNode(detail::ProgramState& state, Node* node, bool quickDestroy)
     {
-        notifyObservers<true>(&Observer::onNodeDestroy, _state->observer, node);
+        // Keep index before destroying the object.
+        const auto nodeIdx = static_cast<std::size_t>(node->getId());
+
+        notifyObservers<true>(&Observer::onNodeDestroy, state.observer, node);
 
         // Ensure node is not in the list anymore.
-        detach_<false>(node, *_state);
+        detach_<false>(node, state);
 
         // Release.
         auto* nodeToDestroy = detail::toInternal(node);
-        _state->nodePool.destroy(nodeToDestroy);
-        _state->nodePool.deallocate(nodeToDestroy, 1);
+        state.nodePool.destroy(nodeToDestroy);
+
+        if (!quickDestroy)
+        {
+            // Release memory, when quickDestroy is true the entire pool will be cleared at once.
+            state.nodePool.deallocate(nodeToDestroy, 1);
+
+            // Remove mapping.
+            auto& nodeMap = state.nodeMap;
+            assert(nodeIdx < nodeMap.size());
+
+            // Null out the slot.
+            nodeMap[nodeIdx] = nullptr;
+
+            while (!nodeMap.empty() && nodeMap.back() == nullptr)
+            {
+                nodeMap.pop_back();
+            }
+        }
+    }
+
+    void Program::destroy(Node* node)
+    {
+        destroyNode(*_state, node, false);
     }
 
     std::size_t Program::size() const noexcept
@@ -299,13 +343,15 @@ namespace zasm
         while (node != nullptr)
         {
             auto* next = node->getNext();
-            destroy(node);
+            destroyNode(*_state, node, true);
             node = next;
         }
 
+        _state->nodeMap.clear();
         _state->sections.clear();
         _state->labels.clear();
         _state->symbolNames.clear();
+        _state->nodePool.reset();
     }
 
     void Program::setEntryPoint(const Label& label)
@@ -334,7 +380,34 @@ namespace zasm
 
         notifyObservers<true>(&Observer::onNodeCreated, state.observer, node);
 
+        const auto nodeIdx = static_cast<std::size_t>(nextId);
+        auto& nodeMap = state.nodeMap;
+        if (nodeIdx == nodeMap.size())
+        {
+            nodeMap.push_back(node);
+        }
+        else if (nodeIdx > nodeMap.size())
+        {
+            nodeMap.resize(nodeIdx + 1U);
+            nodeMap[nodeIdx] = node;
+        }
+
         return node;
+    }
+
+    Node* Program::createNode(const Section& section)
+    {
+        return createNode_(*_state, section);
+    }
+
+    Node* Program::createNode(const Label& label)
+    {
+        return createNode_(*_state, label);
+    }
+
+    Node* Program::createNode(const Sentinel& sentinel)
+    {
+        return createNode_(*_state, sentinel);
     }
 
     Node* Program::createNode(const Instruction& instr)

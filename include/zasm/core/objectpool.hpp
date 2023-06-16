@@ -69,6 +69,13 @@ namespace zasm
             _blocks.push_back(std::make_unique<Block>());
         }
 
+        void reset()
+        {
+            _blocks.clear();
+            _blocks.push_back(std::make_unique<Block>());
+            _freeItem = nullptr;
+        }
+
         pointer address(reference val) const noexcept
         {
             return std::addressof(val);

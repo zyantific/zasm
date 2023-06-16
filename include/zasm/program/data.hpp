@@ -3,12 +3,12 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <limits>
 
 namespace zasm
 {
     // TODO: Store the current data type and try to eliminate the C union.
-
     class Data final
     {
         static constexpr std::size_t kInlineStorageSize = 32;
@@ -29,8 +29,6 @@ namespace zasm
             std::uint32_t u32;
             std::uint64_t u64;
             std::array<std::uint8_t, kInlineStorageSize> bytes;
-
-            // Test
         } _storage{};
 #pragma pack(pop)
 
@@ -96,13 +94,38 @@ namespace zasm
         /// Returns the amount of times the data should be repeated.
         /// </summary>
         /// <returns></returns>
-        std::size_t getRepeatCount() const noexcept
+        constexpr std::size_t getRepeatCount() const noexcept
         {
             return _repeatCount;
         }
 
+        void setRepeatCount(std::size_t repeats)
+        {
+            _repeatCount = repeats;
+        }
+
         Data& operator=(const Data& other) noexcept;
         Data& operator=(Data&& other) noexcept;
+
+        constexpr bool operator==(const Data& other) const noexcept
+        {
+            if (_size != other._size)
+            {
+                return false;
+            }
+
+            if (getRepeatCount() != other.getRepeatCount())
+            {
+                return false;
+            }
+
+            return std::memcmp(getData(), other.getData(), getSize()) == 0;
+        }
+
+        constexpr bool operator!=(const Data& other) const noexcept
+        {
+            return !(*this == other);
+        }
 
         constexpr bool isU8() const noexcept
         {

@@ -39,11 +39,11 @@ namespace zasm
     /// <typeparam name="T">Type</typeparam>
     /// <param name="numBits">Number of bits</param>
     /// <returns>Number of bits as BitSize</returns>
-    template<typename T> constexpr BitSize toBitSize(const T numBits) noexcept
+    constexpr BitSize toBitSize(const unsigned numBits) noexcept
     {
-#define SWITCH_BIT(n)                                                                                                          \
-    case n:                                                                                                                    \
-        return BitSize::_##n
+#define SWITCH_BIT(BIT_VALUE)                                                                                                  \
+    case BIT_VALUE:                                                                                                            \
+        return BitSize::_##BIT_VALUE
 
         switch (numBits)
         {
@@ -82,11 +82,11 @@ namespace zasm
     /// </summary>
     /// <param name="bitSize">Bit Size</param>
     /// <returns>Number of bits</returns>
-    constexpr int32_t getBitSize(BitSize bitSize) noexcept
+    constexpr unsigned getBitSize(BitSize bitSize) noexcept
     {
-#define SWITCH_BIT(n)                                                                                                          \
-    case BitSize::_##n:                                                                                                        \
-        return n
+#define SWITCH_BIT(BIT_VALUE)                                                                                                  \
+    case BitSize::_##BIT_VALUE:                                                                                                \
+        return BIT_VALUE
 
         switch (bitSize)
         {

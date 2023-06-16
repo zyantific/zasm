@@ -49,6 +49,16 @@ namespace zasm
             : _id{ id }
         {
         }
+        
+        constexpr bool operator==(const Section& other) const noexcept
+        {
+            return _id == other._id;
+        }
+
+        constexpr bool operator!=(const Section& other) const noexcept
+        {
+            return _id != other._id;
+        }
 
         constexpr Id getId() const noexcept
         {

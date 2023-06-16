@@ -40,7 +40,6 @@ namespace zasm::detail
         Section::Id id{ Section::Id::Invalid };
         StringPool::Id nameId{ StringPool::Id::Invalid };
         Section::Attribs attribs{};
-        std::int32_t physicalIndex{ -1 };
         std::int32_t align{};
 
         // The node that holds/binds the label in the list.
@@ -71,7 +70,12 @@ namespace zasm::detail
 
         std::vector<LabelData> labels;
         std::vector<SectionData> sections;
+
+        // Registered program observer.
         std::vector<Observer*> observer;
+
+        // The index is the id of the node this allows for quick access to nodes by id.
+        std::vector<Node*> nodeMap;
 
         Label entryPoint{ Label::Id::Invalid };
 

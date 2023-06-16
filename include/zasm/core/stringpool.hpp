@@ -6,7 +6,10 @@
 #include <iterator>
 #include <string.h>
 #include <string>
+#include <string_view>
 #include <vector>
+#include <zasm/core/errors.hpp>
+#include <zasm/core/stream.hpp>
 
 namespace zasm
 {
@@ -109,6 +112,123 @@ namespace zasm
         {
             _entries.clear();
             _data.clear();
+        }
+
+        const char* data() const noexcept
+        {
+            return _data.data();
+        }
+
+        std::size_t size() const noexcept
+        {
+            return _entries.size();
+        }
+
+        Error save(IStream& stream) const
+        {
+            const auto entryCount = static_cast<std::uint32_t>(_entries.size());
+            if (auto len = stream.write(&entryCount, sizeof(entryCount)); len == 0)
+            {
+                return Error::InvalidParameter;
+            }
+
+            for (const auto& entry : _entries)
+            {
+                if (auto len = stream.write(entry.hash); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
+                if (auto len = stream.write(entry.offset); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
+                if (auto len = stream.write(entry.len); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
+                if (auto len = stream.write(entry.capacity); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
+                if (auto len = stream.write(entry.refCount); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
+            }
+
+            const auto dataSize = static_cast<std::uint32_t>(_data.size());
+            if (auto len = stream.write(dataSize); len == 0)
+            {
+                return Error::InvalidParameter;
+            }
+
+            if (dataSize > 0)
+            {
+                if (auto len = stream.write(_data.data(), dataSize); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
+            }
+
+            return Error::None;
+        }
+
+        Error load(IStream& stream)
+        {
+            clear();
+
+            std::uint32_t entryCount{};
+            if (auto len = stream.read(&entryCount, sizeof(entryCount)); len == 0)
+            {
+                return Error::InvalidParameter;
+            }
+
+            std::vector<Entry> loadedEntries;
+            loadedEntries.resize(entryCount);
+            for (auto& entry : loadedEntries)
+            {
+                if (auto len = stream.read(entry.hash); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
+                if (auto len = stream.read(entry.offset); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
+                if (auto len = stream.read(entry.len); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
+                if (auto len = stream.read(entry.capacity); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
+                if (auto len = stream.read(entry.refCount); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
+            }
+
+            std::uint32_t dataSize{};
+            if (auto len = stream.read(&dataSize, sizeof(dataSize)); len == 0)
+            {
+                return Error::InvalidParameter;
+            }
+
+            std::vector<char> loadedData;
+            if (dataSize > 0)
+            {
+                loadedData.resize(dataSize);
+                if (auto len = stream.read(loadedData.data(), dataSize); len == 0)
+                {
+                    return Error::InvalidParameter;
+                }
+            }
+
+            _entries = std::move(loadedEntries);
+            _data = std::move(loadedData);
+
+            return Error::None;
         }
 
     private:
