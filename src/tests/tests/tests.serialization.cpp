@@ -1036,4 +1036,58 @@ namespace zasm::tests
         ASSERT_EQ(serializer.getLabelAddress(label01.getId()), 0x0000000000401020);
     }
 
+    TEST(SerializationTests, SerializeDecodedSwapNodes)
+    {
+        zasm::Program program(zasm::MachineMode::I386);
+        std::vector<zasm::Node*> tails = {};
+
+        {
+            zasm::x86::Assembler a(program);
+            zasm::Decoder decoder(zasm::MachineMode::I386);
+
+            const std::array<uint8_t, 12> raw_data = {
+                0xB8, 0x00, 0x10, 0x40, 0x00, // mov eax, [blabla]
+                0x83, 0xF8, 0x00,             // cmp eax, 0
+                0x90,                         // nop
+                0xEB, 0x00,                   // jmp short $+2
+                0xC3                          // ret
+            };
+            const uintptr_t addr = 0x401030;
+
+            size_t offset = 0;
+            while (offset < raw_data.size())
+            {
+                auto v = decoder.decode(raw_data.data() + offset, raw_data.size() - offset, addr + offset);
+                a.emit(v->getInstruction());
+                tails.emplace_back(program.getTail());
+                offset += v->getLength();
+            }
+        }
+        ASSERT_EQ(tails.size(), 5);
+
+        auto label = program.createLabel();
+        auto bind_node = program.bindLabel(label);
+        program.moveBefore(tails[4], *bind_node);
+
+        tails[3]->getIf<zasm::Instruction>()->setOperand(0, label);
+
+        zasm::x86::Assembler a(program);
+        a.setCursor(tails[4]);
+        a.xor_(zasm::x86::eax, zasm::x86::eax);
+
+        zasm::Serializer serializer{};
+        auto r = serializer.serialize(program, 0x406000);
+        ASSERT_EQ(r, zasm::Error::None);
+
+        const std::array<std::uint8_t, 14> expected = { 0xB8, 0x00, 0x10, 0x40, 0x00, 0x83, 0xF8,
+                                                        0x00, 0x90, 0xEB, 0x00, 0xC3, 0x31, 0xC0 };
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+        for (std::size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
 } // namespace zasm::tests
