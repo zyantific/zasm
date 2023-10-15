@@ -1057,7 +1057,7 @@ namespace zasm::tests
             size_t offset = 0;
             while (offset < raw_data.size())
             {
-                auto v = decoder.decode(raw_data.data() + offset, std::min(15ull, raw_data.size() - offset), addr + offset);
+                auto v = decoder.decode(raw_data.data() + offset, raw_data.size() - offset, addr + offset);
                 a.emit(v->getInstruction());
                 tails.emplace_back(program.getTail());
                 offset += v->getLength();
