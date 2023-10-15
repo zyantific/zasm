@@ -160,6 +160,11 @@ namespace zasm
             return res.error();
         }
 
+        if (ctx.nodeIndex >= ctx.nodes.size())
+        {
+            return Error::OutOfBounds;
+        }
+
         {
             auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
             ctx.nodeIndex++;
@@ -459,12 +464,7 @@ namespace zasm
         const auto* lastNode = last != nullptr ? last->getNext() : nullptr;
 
         const auto nodeCount = [&]() noexcept -> size_t {
-            // If the entire program is serialized the size is known.
-            if (first == program.getHead() && last == program.getTail())
-            {
-                return program.size();
-            }
-            // else count nodes in range.
+            // Count nodes in range.
             std::size_t count = 0;
             for (const auto* node = first; node != lastNode; node = node->getNext())
             {
