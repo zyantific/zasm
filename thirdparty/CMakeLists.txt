@@ -7,9 +7,6 @@ if(CMKR_ROOT_PROJECT)
 endif()
 
 # Options
-option(ZYDIS_BUILD_EXAMPLES "" OFF)
-option(ZYDIS_BUILD_TOOLS "" OFF)
-option(ZYDIS_BUILD_DOXYGEN "" OFF)
 option(INSTALL_GTEST "" OFF)
 option(BUILD_GMOCK "" OFF)
 option(BENCHMARK_ENABLE_TESTING "" OFF)
@@ -18,18 +15,22 @@ option(BENCHMARK_USE_BUNDLED_GTEST "" OFF)
 
 include(FetchContent)
 
-message(STATUS "Fetching Zydis (53dd088062c734e7882b3a77ff287bdf3356d977)...")
-FetchContent_Declare(Zydis
+# Fix warnings about DOWNLOAD_EXTRACT_TIMESTAMP
+if(POLICY CMP0135)
+	cmake_policy(SET CMP0135 NEW)
+endif()
+message(STATUS "Fetching Zydis (49fa4db3f585a298041b56c15e677bb2e6d0810c)...")
+FetchContent_Declare(Zydis SYSTEM
 	GIT_REPOSITORY
 		"https://github.com/zyantific/zydis"
 	GIT_TAG
-		53dd088062c734e7882b3a77ff287bdf3356d977
+		49fa4db3f585a298041b56c15e677bb2e6d0810c
 )
 FetchContent_MakeAvailable(Zydis)
 
 if(ZASM_BUILD_TESTS OR CMKR_ROOT_PROJECT) # tests
 	message(STATUS "Fetching GTest (release-1.11.0)...")
-	FetchContent_Declare(GTest
+	FetchContent_Declare(GTest SYSTEM
 		GIT_REPOSITORY
 			"https://github.com/google/googletest"
 		GIT_TAG
@@ -40,7 +41,7 @@ if(ZASM_BUILD_TESTS OR CMKR_ROOT_PROJECT) # tests
 endif()
 if(ZASM_BUILD_TESTS OR CMKR_ROOT_PROJECT) # tests
 	message(STATUS "Fetching GBenchmark (v1.6.1)...")
-	FetchContent_Declare(GBenchmark
+	FetchContent_Declare(GBenchmark SYSTEM
 		GIT_REPOSITORY
 			"https://github.com/google/benchmark"
 		GIT_TAG

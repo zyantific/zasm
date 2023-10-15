@@ -1,9 +1,6 @@
 # Reference: https://build-cpp.github.io/cmkr/cmake-toml
 
 [options]
-ZYDIS_BUILD_EXAMPLES = false
-ZYDIS_BUILD_TOOLS = false
-ZYDIS_BUILD_DOXYGEN = false
 INSTALL_GTEST = false
 BUILD_GMOCK = false
 BENCHMARK_ENABLE_TESTING = false
@@ -12,7 +9,7 @@ BENCHMARK_USE_BUNDLED_GTEST = false
 
 [fetch-content.Zydis]
 git = "https://github.com/zyantific/zydis"
-tag = "53dd088062c734e7882b3a77ff287bdf3356d977"
+tag = "49fa4db3f585a298041b56c15e677bb2e6d0810c"
 
 [fetch-content.GTest]
 condition = "tests"
