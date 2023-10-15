@@ -246,11 +246,20 @@ namespace zasm
 
     template<bool TNotify> static Node* detach_(Node* nodeToDetach, detail::ProgramState& state) noexcept
     {
-        notifyObservers<TNotify>(&Observer::onNodeDetach, state.observer, nodeToDetach);
-
         auto* node = detail::toInternal(nodeToDetach);
         auto* pre = detail::toInternal(node->getPrev());
         auto* post = detail::toInternal(node->getNext());
+
+        if (pre == nullptr && post == nullptr)
+        {
+            if (state.head != node && state.tail != node)
+            {
+                // Not part of the list.
+                return nullptr;
+            }
+        }
+
+        notifyObservers<TNotify>(&Observer::onNodeDetach, state.observer, nodeToDetach);
 
         if (pre != nullptr)
         {
