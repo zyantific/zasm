@@ -1090,4 +1090,31 @@ namespace zasm::tests
         }
     }
 
+    TEST(SerializationTests, EncodeRipRelAddress)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto reg = x86::rdx;
+        auto address = (uint64_t)0x0000000000401000;
+
+        ASSERT_EQ(assembler.mov(x86::Gp64(reg.getId()), x86::qword_ptr(x86::rip, (uintptr_t)address)), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+
+        const std::array<std::uint8_t, 7> expected = {
+            0x48, 0x8B, 0x15, 0xF9, 0xFF, 0xFF, 0xFF
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (std::size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
 } // namespace zasm::tests
