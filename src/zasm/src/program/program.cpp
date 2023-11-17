@@ -6,6 +6,7 @@
 #include "zasm/program/observer.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cstring>
 #include <functional>
 
@@ -114,11 +115,22 @@ namespace zasm
         return _state->tail;
     }
 
+    static void attachNode(detail::Node* node) noexcept
+    {
+        // Can not attach a node twice.
+        assert(node->isAttached() == false);
+
+        // Mark attached.
+        node->setAttached(true);
+    }
+
     template<bool TNotify> Node* prepend_(Node* n, detail::ProgramState& state) noexcept
     {
         auto* head = detail::toInternal(state.head);
 
         auto* node = detail::toInternal(n);
+        attachNode(node);
+
         node->setNext(state.head);
         node->setPrev(nullptr);
 
@@ -147,7 +159,9 @@ namespace zasm
     template<bool TNotify> Node* append_(Node* n, detail::ProgramState& state) noexcept
     {
         auto* tail = detail::toInternal(state.tail);
+
         auto* node = detail::toInternal(n);
+        attachNode(node);
 
         node->setNext(nullptr);
         if (tail == nullptr)
@@ -187,7 +201,9 @@ namespace zasm
         }
 
         auto* pre = detail::toInternal(pos->getPrev());
+
         auto* node = detail::toInternal(nodeToInsert);
+        attachNode(node);
 
         node->setPrev(pre);
         node->setNext(pos);
@@ -220,7 +236,9 @@ namespace zasm
         }
 
         auto* next = detail::toInternal(pos->getNext());
+
         auto* node = detail::toInternal(nodeToInsert);
+        attachNode(node);
 
         pos->setNext(node);
 
@@ -247,17 +265,16 @@ namespace zasm
     template<bool TNotify> static Node* detach_(Node* nodeToDetach, detail::ProgramState& state) noexcept
     {
         auto* node = detail::toInternal(nodeToDetach);
+        if (!node->isAttached())
+        {
+            // Can't detach a node twice.
+            return nullptr;
+        }
+
+        node->setAttached(false);
+
         auto* pre = detail::toInternal(node->getPrev());
         auto* post = detail::toInternal(node->getNext());
-
-        if (pre == nullptr && post == nullptr)
-        {
-            if (state.head != node && state.tail != node)
-            {
-                // Not part of the list.
-                return nullptr;
-            }
-        }
 
         notifyObservers<TNotify>(&Observer::onNodeDetach, state.observer, nodeToDetach);
 
