@@ -27,6 +27,14 @@ namespace zasm
             {
                 _id = id;
             }
+
+            void setAttached(bool attached) noexcept
+            {
+                if (attached)
+                    _flags = _flags | NodeFlags::Attached;
+                else
+                    _flags = _flags & ~NodeFlags::Attached;
+            }
         };
 
         static_assert(sizeof(Node) == sizeof(::zasm::Node));

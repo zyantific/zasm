@@ -11,9 +11,17 @@
 #include <climits>
 #include <cstddef>
 #include <variant>
+#include <zasm/core/enumflags.hpp>
 
 namespace zasm
 {
+    enum class NodeFlags : std::uint32_t
+    {
+        None = 0,
+        Attached = 1U << 0,
+    };
+    ZASM_ENABLE_ENUM_OPERATORS(NodeFlags);
+
     /// <summary>
     /// A type to hold data such as Instruction, Label, Data etc. within a doubly
     /// linked list managed by the Program. The data is internally stored as a variant
@@ -29,11 +37,11 @@ namespace zasm
 
     protected:
         Id _id{ Id::Invalid };
+        NodeFlags _flags{};
         Node* _prev{};
         Node* _next{};
         std::variant<Sentinel, Instruction, Label, EmbeddedLabel, Data, Section, Align> _data{};
 
-    private:
         union
         {
             std::uint64_t userdataU64;
@@ -252,6 +260,17 @@ namespace zasm
         {
             return static_cast<std::underlying_type_t<Node::Id>>(_id)
                 > static_cast<std::underlying_type_t<Node::Id>>(other._id);
+        }
+
+        /// <summary>
+        /// If the node is not attached to a program it will return false. By default
+        /// nodes are not attached to a program when created. A call like Program::insetBefore
+        /// or Program::insertAfter will attach the node to the program.
+        /// </summary>
+        /// <returns>True if attached, false otherwise</returns>
+        bool isAttached() const noexcept
+        {
+            return (_flags & NodeFlags::Attached) != NodeFlags::None;
         }
     };
 
