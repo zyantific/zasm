@@ -193,6 +193,7 @@ namespace zasm
         auto* pos = detail::toInternal(nodePos);
         if (pos == nullptr)
         {
+            assert(false);
             return nullptr; // Impossible placement.
         }
         if (pos == state.head)
@@ -200,6 +201,7 @@ namespace zasm
             return prepend_<TNotify>(nodeToInsert, state);
         }
 
+        assert(pos->isAttached());
         auto* pre = detail::toInternal(pos->getPrev());
 
         auto* node = detail::toInternal(nodeToInsert);
@@ -234,6 +236,8 @@ namespace zasm
         {
             return append_<TNotify>(nodeToInsert, state);
         }
+
+        assert(pos->isAttached());
 
         auto* next = detail::toInternal(pos->getNext());
 
