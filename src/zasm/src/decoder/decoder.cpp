@@ -1,12 +1,12 @@
 #include "zasm/decoder/decoder.hpp"
 
 #include "zasm/program/instruction.hpp"
-#include "zasm/program/operand.hpp"
 #include "zasm/x86/meta.hpp"
 #include "zasm/x86/mnemonic.hpp"
 
 #include <Zydis/Decoder.h>
 #include <cassert>
+#include <zasm/base/operand.hpp>
 
 namespace zasm
 {

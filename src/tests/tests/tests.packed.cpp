@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
+#include <zasm/base/operand.hpp>
 #include <zasm/core/packed.hpp>
-#include <zasm/program/operand.hpp>
 #include <zasm/x86/register.hpp>
 
 namespace zasm::tests

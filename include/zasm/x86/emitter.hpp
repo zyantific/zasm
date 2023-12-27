@@ -3,9 +3,9 @@
 #include "mnemonic.hpp"
 #include "register.hpp"
 
+#include <zasm/base/operand.hpp>
 #include <zasm/core/errors.hpp>
 #include <zasm/program/instruction.hpp>
-#include <zasm/program/operand.hpp>
 
 namespace zasm::x86
 {
