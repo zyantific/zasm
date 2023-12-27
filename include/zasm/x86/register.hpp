@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Zydis/Zydis.h>
-#include <zasm/program/register.hpp>
+#include <zasm/base/register.hpp>
 
 namespace zasm::x86
 {

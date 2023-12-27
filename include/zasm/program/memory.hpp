@@ -2,11 +2,11 @@
 
 #include "immediate.hpp"
 #include "label.hpp"
-#include "register.hpp"
 
 #include <cstdint>
 #include <limits>
 #include <zasm/base/mode.hpp>
+#include <zasm/base/register.hpp>
 #include <zasm/core/bitsize.hpp>
 #include <zasm/core/packed.hpp>
 
