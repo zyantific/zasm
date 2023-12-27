@@ -1,11 +1,11 @@
 #pragma once
 
-#include "label.hpp"
 #include "memory.hpp"
 
 #include <cstdint>
 #include <variant>
 #include <zasm/base/immediate.hpp>
+#include <zasm/base/label.hpp>
 #include <zasm/base/register.hpp>
 #include <zasm/core/enumflags.hpp>
 

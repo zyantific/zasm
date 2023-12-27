@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <zasm/base/label.hpp>
 #include <zasm/core/enumflags.hpp>
-#include <zasm/program/label.hpp>
 
 namespace zasm
 {
