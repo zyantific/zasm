@@ -1,6 +1,5 @@
 #pragma once
 
-#include "immediate.hpp"
 #include "label.hpp"
 
 #include <cstdint>
