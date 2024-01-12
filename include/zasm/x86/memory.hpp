@@ -2,7 +2,7 @@
 
 #include "register.hpp"
 
-#include <zasm/program/memory.hpp>
+#include <zasm/base/memory.hpp>
 
 namespace zasm::x86
 {

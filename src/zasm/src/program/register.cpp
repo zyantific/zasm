@@ -1,6 +1,6 @@
 #include <Zydis/Zydis.h>
 #include <cstddef>
-#include <zasm/program/register.hpp>
+#include <zasm/base/register.hpp>
 
 namespace zasm
 {
@@ -143,7 +143,7 @@ namespace zasm
     {
         return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_GPR64;
     }
-    
+
     bool Reg::isGp() const noexcept
     {
         return isGp8() || isGp16() || isGp32() || isGp64();
@@ -173,7 +173,7 @@ namespace zasm
     {
         return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_BOUND;
     }
-    
+
     bool Reg::isControl() const noexcept
     {
         return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_CONTROL;
@@ -188,12 +188,12 @@ namespace zasm
     {
         return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_MASK;
     }
-    
+
     bool Reg::isMmx() const noexcept
     {
         return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_MMX;
     }
-    
+
     bool Reg::isTmm() const noexcept
     {
         return static_cast<ZydisRegisterClass>(getClass()) == ZydisRegisterClass::ZYDIS_REGCLASS_TMM;

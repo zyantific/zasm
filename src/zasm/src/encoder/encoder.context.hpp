@@ -5,8 +5,8 @@
 #include <cstdint>
 #include <optional>
 #include <vector>
+#include <zasm/base/label.hpp>
 #include <zasm/core/stringpool.hpp>
-#include <zasm/program/label.hpp>
 #include <zasm/program/section.hpp>
 
 namespace zasm

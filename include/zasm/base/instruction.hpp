@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <zasm/base/meta.hpp>
 #include <zasm/base/mode.hpp>
+#include <zasm/base/operand.hpp>
 
 namespace zasm
 {

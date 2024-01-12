@@ -1,12 +1,10 @@
 #pragma once
 
-#include "zasm/base/mode.hpp"
 #include "zasm/core/enumflags.hpp"
 #include "zasm/core/objectpool.hpp"
 #include "zasm/core/stringpool.hpp"
 #include "zasm/encoder/encoder.hpp"
 #include "zasm/program/data.hpp"
-#include "zasm/program/label.hpp"
 #include "zasm/program/labeldata.hpp"
 #include "zasm/program/node.hpp"
 #include "zasm/program/section.hpp"
@@ -14,6 +12,8 @@
 #include <Zydis/Zydis.h>
 #include <cstddef>
 #include <vector>
+#include <zasm/base/label.hpp>
+#include <zasm/base/mode.hpp>
 
 namespace zasm
 {

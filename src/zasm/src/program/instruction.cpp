@@ -2,9 +2,9 @@
 
 #include <cassert>
 #include <zasm/base/mode.hpp>
+#include <zasm/base/operand.hpp>
 #include <zasm/decoder/decoder.hpp>
 #include <zasm/encoder/encoder.hpp>
-#include <zasm/program/operand.hpp>
 
 namespace zasm
 {
@@ -77,4 +77,4 @@ namespace zasm
         return getDetail(mode, *this);
     }
 
-} // namespace zasm::x86
+} // namespace zasm

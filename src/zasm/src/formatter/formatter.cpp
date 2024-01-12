@@ -5,11 +5,11 @@
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+#include <zasm/base/register.hpp>
 #include <zasm/formatter/formatter.hpp>
 #include <zasm/program/instruction.hpp>
 #include <zasm/program/node.hpp>
 #include <zasm/program/program.hpp>
-#include <zasm/program/register.hpp>
 #include <zasm/x86/meta.hpp>
 #include <zasm/x86/mnemonic.hpp>
 #include <zasm/x86/register.hpp>
@@ -225,7 +225,7 @@ namespace zasm::formatter
                     || base.getPhysicalIndex() == x86::bp.getPhysicalIndex())
                 {
                     return x86::ss;
-                }                    
+                }
             }
             return x86::ds;
         }

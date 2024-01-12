@@ -11,6 +11,7 @@ namespace zasm
     /// <summary>
     /// Container to tightly pack multiple elements with a given bit size to store
     /// in the provided underlying type.
+    /// Example: Specifying the underlying type as uint32_t and element bit size of 10 allows you to store 3 elements.
     /// </summary>
     /// <typeparam name="TUnderlying">The underlying storage type</typeparam>
     /// <typeparam name="TElement">Value type of each element packed</typeparam>
@@ -22,6 +23,8 @@ namespace zasm
         static constexpr std::size_t kElementMask = (TUnderlying{ 1U } << TElementBitSize) - TUnderlying{ 1U };
         static constexpr std::size_t kStorageBitSize = std::numeric_limits<TUnderlying>::digits;
         static constexpr std::size_t kCapacity = kStorageBitSize / TElementBitSize;
+
+        static_assert(kCapacity * TElementBitSize <= kStorageBitSize, "Storage type is too small to store all elements");
 
         TUnderlying _data{};
 
@@ -42,7 +45,7 @@ namespace zasm
         {
             return _data == other._data;
         }
-        
+
         constexpr bool operator!=(const Packed& other) const noexcept
         {
             return _data == other._data;

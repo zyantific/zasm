@@ -1,7 +1,5 @@
 #pragma once
 
-#include "operand.hpp"
-
 #include <array>
 #include <cassert>
 #include <cstddef>
@@ -9,6 +7,7 @@
 #include <zasm/base/instruction.hpp>
 #include <zasm/base/meta.hpp>
 #include <zasm/base/mode.hpp>
+#include <zasm/base/operand.hpp>
 #include <zasm/core/errors.hpp>
 #include <zasm/core/expected.hpp>
 #include <zasm/core/packed.hpp>
@@ -77,7 +76,7 @@ namespace zasm
                 return set1 == other.set1 && set0 == other.set0 && modified == other.modified && tested == other.tested
                     && undefined == other.undefined;
             }
-            
+
             constexpr bool operator!=(const CPUFlags& other) const
             {
                 return !(*this == other);

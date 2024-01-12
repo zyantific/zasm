@@ -4,13 +4,13 @@
 #include "data.hpp"
 #include "embeddedlabel.hpp"
 #include "instruction.hpp"
-#include "label.hpp"
 #include "section.hpp"
 #include "sentinel.hpp"
 
 #include <climits>
 #include <cstddef>
 #include <variant>
+#include <zasm/base/label.hpp>
 #include <zasm/core/enumflags.hpp>
 
 namespace zasm

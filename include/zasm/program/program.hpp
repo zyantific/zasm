@@ -2,13 +2,13 @@
 
 #include "data.hpp"
 #include "embeddedlabel.hpp"
-#include "label.hpp"
 #include "node.hpp"
 #include "section.hpp"
 
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <zasm/base/label.hpp>
 #include <zasm/base/mode.hpp>
 #include <zasm/core/errors.hpp>
 #include <zasm/core/expected.hpp>

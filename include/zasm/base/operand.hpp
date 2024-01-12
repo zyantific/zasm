@@ -1,12 +1,11 @@
 #pragma once
 
-#include "immediate.hpp"
-#include "label.hpp"
-#include "memory.hpp"
-#include "register.hpp"
-
 #include <cstdint>
 #include <variant>
+#include <zasm/base/immediate.hpp>
+#include <zasm/base/label.hpp>
+#include <zasm/base/memory.hpp>
+#include <zasm/base/register.hpp>
 #include <zasm/core/enumflags.hpp>
 
 namespace zasm
@@ -232,7 +231,7 @@ namespace zasm
         {
             return std::holds_alternative<Operand::None>(_data);
         }
-        
+
         /// <summary>
         /// Returns a reference with given type, throws if type mismatches.
         /// </summary>
@@ -284,7 +283,7 @@ namespace zasm
             }
             return nullptr;
         }
-        
+
         /// <summary>
         /// Returns a pointer with the type specified if the type matches.
         /// </summary>
@@ -358,7 +357,7 @@ namespace zasm
         }
 
         /// <summary>
-        /// Returns the size of the operand, some operands can have different sizes 
+        /// Returns the size of the operand, some operands can have different sizes
         /// depending on the machine mode.
         /// </summary>
         /// <param name="mode">Machine mode</param>

@@ -1,9 +1,8 @@
 #pragma once
 
-#include "label.hpp"
-
 #include <cstddef>
 #include <cstdint>
+#include <zasm/base/label.hpp>
 #include <zasm/core/bitsize.hpp>
 
 namespace zasm
