@@ -71,8 +71,12 @@ namespace zasm
 
         void reset()
         {
-            _blocks.clear();
-            _blocks.push_back(std::make_unique<Block>());
+            // Shrink to single block.
+            _blocks.resize(1);
+
+            // Reset slot to zero.
+            _blocks[0]->slot = 0;
+
             _freeItem = nullptr;
         }
 

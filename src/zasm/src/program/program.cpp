@@ -331,8 +331,12 @@ namespace zasm
 
         notifyObservers<true>(&Observer::onNodeDestroy, state.observer, node);
 
-        // Ensure node is not in the list anymore.
-        detach_<false>(node, state);
+        // If this is called from clear or from destructor we can skip unlinking.
+        if (!quickDestroy)
+        {
+            // Ensure node is not in the list anymore.
+            detach_<false>(node, state);
+        }
 
         // Release.
         auto* nodeToDestroy = detail::toInternal(node);
@@ -376,6 +380,11 @@ namespace zasm
             destroyNode(*_state, node, true);
             node = next;
         }
+
+        _state->head = nullptr;
+        _state->tail = nullptr;
+        _state->nextNodeId = {};
+        _state->nodeCount = 0;
 
         _state->nodeMap.clear();
         _state->sections.clear();
