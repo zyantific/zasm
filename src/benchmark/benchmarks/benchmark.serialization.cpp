@@ -53,15 +53,17 @@ namespace zasm::benchmarks
         }
     }
     BENCHMARK(BM_SerializationBasic)->Unit(benchmark::kMillisecond);
-    
-    template<int64_t TLabelStep>
-    static void BM_SerializationWithLabels(benchmark::State& state)
+
+    template<int64_t TLabelStep> static void BM_SerializationWithLabels(benchmark::State& state)
     {
         using namespace zasm::x86;
 
         Program program(MachineMode::AMD64);
         Assembler assembler(program);
         Serializer serializer;
+
+        size_t numBytesEncoded = 0;
+        size_t numInstructions = 0;
 
         for (auto _ : state)
         {
@@ -95,16 +97,20 @@ namespace zasm::benchmarks
 
             serializer.serialize(program, 0x00400000);
 
-            state.counters["BytesEncoded"] = benchmark::Counter(
-                static_cast<double>(serializer.getCodeSize()), benchmark::Counter::kIsIterationInvariantRate,
-                benchmark::Counter::OneK::kIs1024);
-            state.counters["Instructions"] = benchmark::Counter(
-                static_cast<double>(count), benchmark::Counter::kIsIterationInvariantRate,
-                benchmark::Counter::OneK::kIs1000);
+            numBytesEncoded += serializer.getCodeSize();
+            numInstructions += count;
         }
+
+        state.counters["BytesEncoded"] = benchmark::Counter(
+            static_cast<double>(numBytesEncoded), benchmark::Counter::kIsRate,
+            benchmark::Counter::OneK::kIs1024);
+
+        state.counters["Instructions"] = benchmark::Counter(
+            static_cast<double>(numInstructions), benchmark::Counter::kIsRate,
+            benchmark::Counter::OneK::kIs1000);
     }
     BENCHMARK_TEMPLATE(BM_SerializationWithLabels, 128)->Unit(benchmark::kMillisecond);
-    
+
     BENCHMARK_TEMPLATE(BM_SerializationWithLabels, 64)->Unit(benchmark::kMillisecond);
 
     BENCHMARK_TEMPLATE(BM_SerializationWithLabels, 32)->Unit(benchmark::kMillisecond);
