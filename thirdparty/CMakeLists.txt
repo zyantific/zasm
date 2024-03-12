@@ -19,12 +19,12 @@ include(FetchContent)
 if(POLICY CMP0135)
 	cmake_policy(SET CMP0135 NEW)
 endif()
-message(STATUS "Fetching Zydis (49fa4db3f585a298041b56c15e677bb2e6d0810c)...")
+message(STATUS "Fetching Zydis (v4.1.0)...")
 FetchContent_Declare(Zydis SYSTEM
 	GIT_REPOSITORY
 		"https://github.com/zyantific/zydis"
 	GIT_TAG
-		49fa4db3f585a298041b56c15e677bb2e6d0810c
+		v4.1.0
 )
 FetchContent_MakeAvailable(Zydis)
 
