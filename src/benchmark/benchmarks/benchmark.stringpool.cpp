@@ -3,14 +3,8 @@
 
 namespace zasm::benchmarks
 {
-    static const std::string TestStrings[] =
-    {
-        "hello",
-        "world",
-        "longer string",
-        "even longer string",
-        "even longer longer string"
-    };
+    static const std::string TestStrings[] = { "hello", "world", "longer string", "even longer string",
+                                               "even longer longer string" };
 
     static void BM_StringPool_Aquire(benchmark::State& state)
     {
@@ -75,5 +69,5 @@ namespace zasm::benchmarks
         }
     }
     BENCHMARK(BM_StringPool_GetLength)->DenseRange(0, std::size(TestStrings) - 1);
-   
+
 } // namespace zasm::benchmarks

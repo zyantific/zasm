@@ -22,15 +22,18 @@ namespace zasm::benchmarks
             }
         }
 
+        size_t numNodes = 0;
+
         for (auto _ : state)
         {
             auto res = formatter::toString(program);
             benchmark::DoNotOptimize(res);
 
-            state.counters["PrintedNodes"] = benchmark::Counter(
-                static_cast<double>(program.size()), benchmark::Counter::kIsIterationInvariantRate,
-                benchmark::Counter::OneK::kIs1000);
+            numNodes += program.size();
         }
+
+        state.counters["PrintedNodes"] = benchmark::Counter(
+            static_cast<double>(numNodes), benchmark::Counter::kIsRate, benchmark::Counter::OneK::kIs1000);
     }
     BENCHMARK(BM_Formatter_Program)->Unit(benchmark::kMillisecond);
 

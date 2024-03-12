@@ -13,6 +13,8 @@ namespace zasm::benchmarks
         Program program(MachineMode::AMD64);
         Assembler assembler(program);
 
+        size_t numInstructions = 0;
+
         for (auto s : state)
         {
             const auto count = std::size(tests::data::Instructions);
@@ -33,9 +35,12 @@ namespace zasm::benchmarks
                 benchmark::DoNotOptimize(instrInfo);
             }
 
-            state.counters["InstructionInfos"] = benchmark::Counter(
-                static_cast<double>(count), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
+            numInstructions += count;
         }
+
+        state.counters["InstructionInfos"] = benchmark::Counter(
+            static_cast<double>(numInstructions), benchmark::Counter::kIsRate,
+            benchmark::Counter::OneK::kIs1000);
     }
     BENCHMARK(BM_InstructionInfo)->Unit(benchmark::kMillisecond);
 
