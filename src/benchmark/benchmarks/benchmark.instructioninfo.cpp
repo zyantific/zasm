@@ -12,7 +12,6 @@ namespace zasm::benchmarks
 
         Program program(MachineMode::AMD64);
         Assembler assembler(program);
-        Serializer serializer;
 
         for (auto s : state)
         {
@@ -23,17 +22,17 @@ namespace zasm::benchmarks
 
                 program.clear();
                 assembler.setCursor(nullptr);
-                
+
                 const auto& instrData = tests::data::Instructions[i];
                 instrData.emitter(assembler);
 
                 const auto& instr = assembler.getCursor()->get<Instruction>();
                 state.ResumeTiming();
-                
+
                 const auto instrInfo = instr.getDetail(program.getMode());
                 benchmark::DoNotOptimize(instrInfo);
-
             }
+
             state.counters["InstructionInfos"] = benchmark::Counter(
                 static_cast<double>(count), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1000);
         }
