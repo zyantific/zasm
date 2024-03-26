@@ -133,10 +133,12 @@ namespace zasm
             if (alignSize < nodeEntry.length)
             {
                 ctx.drift += nodeEntry.length - alignSize;
+                ctx.needsExtraPass = true;
             }
             else if (alignSize > nodeEntry.length)
             {
                 ctx.drift -= static_cast<std::int64_t>(alignSize) - nodeEntry.length;
+                ctx.needsExtraPass = true;
             }
         }
         nodeEntry.length = alignSize;
@@ -169,10 +171,12 @@ namespace zasm
                 if (res->buffer.length < nodeEntry.length)
                 {
                     ctx.drift += nodeEntry.length - static_cast<std::int64_t>(res->buffer.length);
+                    ctx.needsExtraPass = true;
                 }
                 else if (res->buffer.length > nodeEntry.length)
                 {
                     ctx.drift -= static_cast<std::int64_t>(res->buffer.length) - nodeEntry.length;
+                    ctx.needsExtraPass = true;
                 }
             }
             nodeEntry.length = res->buffer.length;
@@ -539,7 +543,7 @@ namespace zasm
         }
 
         // Second or more passes.
-        while (encoderCtx.needsExtraPass || encoderCtx.drift != 0)
+        while (encoderCtx.needsExtraPass)
         {
             if (const auto status = serializePass(); status != Error::None)
             {
