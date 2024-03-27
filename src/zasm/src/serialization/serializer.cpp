@@ -128,18 +128,9 @@ namespace zasm
             alignBytesMissing -= dataIndex;
         }
 
-        if (nodeEntry.length != 0)
+        if (nodeEntry.length != 0 && nodeEntry.length != alignSize)
         {
-            if (alignSize < nodeEntry.length)
-            {
-                ctx.drift += nodeEntry.length - alignSize;
-                ctx.needsExtraPass = true;
-            }
-            else if (alignSize > nodeEntry.length)
-            {
-                ctx.drift -= static_cast<std::int64_t>(alignSize) - nodeEntry.length;
-                ctx.needsExtraPass = true;
-            }
+            ctx.needsExtraPass = true;
         }
         nodeEntry.length = alignSize;
 
@@ -166,18 +157,9 @@ namespace zasm
             auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
             ctx.nodeIndex++;
 
-            if (nodeEntry.length != 0)
+            if (nodeEntry.length != 0 &&  res->buffer.length != nodeEntry.length)
             {
-                if (res->buffer.length < nodeEntry.length)
-                {
-                    ctx.drift += nodeEntry.length - static_cast<std::int64_t>(res->buffer.length);
-                    ctx.needsExtraPass = true;
-                }
-                else if (res->buffer.length > nodeEntry.length)
-                {
-                    ctx.drift -= static_cast<std::int64_t>(res->buffer.length) - nodeEntry.length;
-                    ctx.needsExtraPass = true;
-                }
+                ctx.needsExtraPass = true;
             }
             nodeEntry.length = res->buffer.length;
             nodeEntry.offset = ctx.offset;
@@ -503,7 +485,7 @@ namespace zasm
             encoderCtx.va = newBase;
             encoderCtx.nodeIndex = 0;
             encoderCtx.sectionIndex = 0;
-            encoderCtx.drift = 0;
+        
 
             // Setup default section.
             encoderCtx.sections.clear();
