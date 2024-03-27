@@ -45,7 +45,7 @@ namespace zasm
         std::int64_t va{};
         std::int32_t offset{};
         std::int32_t instrSize{};
-        std::int32_t drift{};
+   
 
         struct LabelLink
         {
