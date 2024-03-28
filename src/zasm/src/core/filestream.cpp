@@ -107,6 +107,7 @@ namespace zasm
         _state->length = offset();
         seek(0, SeekType::Begin);
 
+        _state->mode = mode;
         return Error::None;
     }
 
