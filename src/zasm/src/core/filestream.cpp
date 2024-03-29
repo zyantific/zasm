@@ -88,9 +88,9 @@ namespace zasm
 
         FILE* fp = nullptr;
 #ifdef _WIN32
-        _wfopen_s(&fp, path.wstring().c_str(), mode == StreamMode::Read ? L"rb" : L"wb");
+        _wfopen_s(&fp, path.wstring().c_str(), mode == StreamMode::Read ? L"rb" : mode == StreamMode::Write ? L"wb" : L"r+b");
 #else
-        fp = fopen(path.string().c_str(), mode == StreamMode::Read ? "rb" : "wb");
+        fp = fopen(path.string().c_str(), mode == StreamMode::Read ? "rb" : mode == StreamMode::Write ? "wb" : "r+b");
 #endif
         if (fp == nullptr)
         {
