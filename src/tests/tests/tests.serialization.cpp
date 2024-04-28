@@ -1161,4 +1161,35 @@ namespace zasm::tests
         ASSERT_EQ(serializer.getLabelAddress(label03.getId()), 0x0000000000401000);
     }
 
+    TEST(SerializationTests, TestBasicLea)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler a(program);
+
+        auto label = a.createLabel();
+        ASSERT_EQ(a.push(x86::rbp), Error::None);
+        ASSERT_EQ(a.lea(x86::rbp, x86::qword_ptr(x86::rip, label)), Error::None);
+        ASSERT_EQ(a.xchg(x86::qword_ptr(x86::rsp), x86::rbp), Error::None);
+        ASSERT_EQ(a.ret(), Error::None);
+        ASSERT_EQ(a.bind(label), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x140015000), Error::None);
+
+        const std::array<uint8_t, 13> expected = {
+            0x55, 0x48, 0x8D, 0x2D, 0x05, 0x00, 0x00, 0x00, 0x48, 0x87, 0x2C, 0x24, 0xC3,
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (std::size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+
+        ASSERT_EQ(serializer.getLabelAddress(label.getId()), 0x140015000 + 13);
+    }
+
 } // namespace zasm::tests
