@@ -323,6 +323,7 @@ namespace zasm
 
         bool usingLabel = false;
         bool externalLabel = false;
+        bool isDisplacementValid = true;
 
         if (const auto labelId = src.getLabelId(); labelId != Label::Id::Invalid)
         {
@@ -338,6 +339,7 @@ namespace zasm
                 else
                 {
                     displacement += kTemporaryRel32Value;
+                    isDisplacementValid = false;
                     if (!externalLabel)
                     {
                         ctx->needsExtraPass = true;
@@ -346,7 +348,8 @@ namespace zasm
             }
             else
             {
-                displacement += kTemporaryRel32Value;
+                displacement = kTemporaryRel32Value;
+                isDisplacementValid = false;
             }
             usingLabel = true;
         }
@@ -378,7 +381,10 @@ namespace zasm
             }
             else
             {
-                displacement = displacement - (address + instrSize);
+                if (isDisplacementValid)
+                {
+                    displacement = displacement - (address + instrSize);
+                }
             }
 
             if (externalLabel)
