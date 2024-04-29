@@ -4,7 +4,7 @@
 
 namespace zasm
 {
-    static constexpr std::uint64_t kErrorExtMask = 0x8000000000000000ULL;
+    static constexpr std::uint64_t kErrorExtBit = 0x8000000000000000ULL;
 
     struct ErrorExt
     {
@@ -14,10 +14,31 @@ namespace zasm
 
     ErrorExt* toErrorExt(std::uint64_t data) noexcept
     {
-        assert((data & kErrorExtMask) != 0);
+        assert((data & kErrorExtBit) != 0);
 
-        auto* ext = reinterpret_cast<ErrorExt*>(data & ~kErrorExtMask);
+        auto* ext = reinterpret_cast<ErrorExt*>(data & ~kErrorExtBit);
         return ext;
+    }
+
+    Error::Error(const Error& other)
+    {
+        if (other._data & kErrorExtBit)
+        {
+            const auto* ext = toErrorExt(other._data);
+
+            auto* newExt = new ErrorExt(*ext);
+            _data = reinterpret_cast<std::uint64_t>(newExt) | kErrorExtBit;
+        }
+        else
+        {
+            _data = other._data;
+        }
+    }
+
+    Error::Error(Error&& other) noexcept
+    {
+        _data = other._data;
+        other._data = 0;
     }
 
     Error::Error(ErrorCode code) noexcept
@@ -26,9 +47,20 @@ namespace zasm
         _data = data;
     }
 
+    Error::Error(ErrorCode code, const char* message)
+    {
+        assert(message != nullptr);
+
+        auto* ext = new ErrorExt();
+        ext->code = code;
+        ext->message = message;
+
+        _data = reinterpret_cast<std::uint64_t>(ext) | kErrorExtBit;
+    }
+
     Error::~Error() noexcept
     {
-        if (_data & kErrorExtMask)
+        if (_data & kErrorExtBit)
         {
             const auto* ext = toErrorExt(_data);
             delete ext;
@@ -46,6 +78,20 @@ namespace zasm
         return !(*this == code);
     }
 
+    Error& Error::operator=(Error&& other) noexcept
+    {
+        if (_data & kErrorExtBit)
+        {
+            const auto* ext = toErrorExt(_data);
+            delete ext;
+        }
+
+        _data = other._data;
+        other._data = 0;
+
+        return *this;
+    }
+
     static ErrorCode getErrorCode(std::uint64_t data) noexcept
     {
         if (data == 0)
@@ -53,7 +99,7 @@ namespace zasm
             return ErrorCode::None;
         }
 
-        if (data & kErrorExtMask)
+        if (data & kErrorExtBit)
         {
             const auto* ext = toErrorExt(data);
             return ext->code;
@@ -112,7 +158,7 @@ namespace zasm
 
     const char* Error::getErrorMessage() const noexcept
     {
-        if (_data & kErrorExtMask)
+        if (_data & kErrorExtBit)
         {
             const auto* ext = toErrorExt(_data);
             return ext->message.c_str();
