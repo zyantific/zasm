@@ -28,7 +28,7 @@ int main()
     Serializer serializer{};
 
     auto res = serializer.serialize(program, 0x00400000);
-    assert(res == Error::None);
+    assert(res == ErrorCode::None);
 
     std::cout << examples::utils::getDisassemblyDump(serializer, program.getMode()) << "\n";
 }

@@ -18,10 +18,10 @@ namespace zasm::tests
 
         x86::Assembler assembler(program);
 
-        ASSERT_EQ(instrTest.emitter(assembler), Error::None) << instrTest.operation;
+        ASSERT_EQ(instrTest.emitter(assembler), ErrorCode::None) << instrTest.operation;
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None) << instrTest.operation;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None) << instrTest.operation;
 
         auto hexEncoded = hexEncode(serializer.getCode(), serializer.getCodeSize());
         ASSERT_EQ(std::string(instrTest.instrBytes), hexEncoded) << instrTest.operation;
@@ -40,11 +40,11 @@ namespace zasm::tests
 
         for (const auto& instrEntry : data::Instructions)
         {
-            ASSERT_EQ(instrEntry.emitter(assembler), Error::None) << instrEntry.instrBytes << ", " << instrEntry.operation;
+            ASSERT_EQ(instrEntry.emitter(assembler), ErrorCode::None) << instrEntry.instrBytes << ", " << instrEntry.operation;
         }
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const uint8_t* codeBuf = serializer.getCode();
         size_t offset = 0;

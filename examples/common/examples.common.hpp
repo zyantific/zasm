@@ -84,7 +84,7 @@ namespace zasm::examples::utils
                     auto res = decoder.decode(sectBuf + sectOffset, sectLen - sectOffset, curAddress);
                     if (!res.hasValue())
                     {
-                        std::cout << "Decoder Error: " << zasm::getErrorName(res.error()) << std::endl;
+                        std::cout << "Decoder Error: " << res.error().getErrorName() << std::endl;
                         break;
                     }
 

@@ -50,7 +50,7 @@ namespace zasm
 
         std::vector<std::uint8_t> buf;
         buf.resize(size);
-        if (auto err = helper.read(buf.data(), size); err != Error::None)
+        if (auto err = helper.read(buf.data(), size); err != ErrorCode::None)
         {
             return nullptr;
         }
@@ -84,7 +84,7 @@ namespace zasm
 
     template<> Error loadOperand_<Operand::None>(SaveRestore& helper, Operand&)
     {
-        return Error::None;
+        return ErrorCode::None;
     }
 
     template<> Error loadOperand_<Reg>(SaveRestore& helper, Operand& op)
@@ -94,7 +94,7 @@ namespace zasm
 
         op = Reg(regId);
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     template<> Error loadOperand_<Mem>(SaveRestore& helper, Operand& op)
@@ -117,7 +117,7 @@ namespace zasm
 
         op = Mem(bitSize, Reg(regSeg), Label(labelId), Reg(regBase), Reg(regIdx), scale, disp);
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     template<> Error loadOperand_<Imm>(SaveRestore& helper, Operand& op)
@@ -127,7 +127,7 @@ namespace zasm
 
         op = Imm(val);
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     template<> Error loadOperand_<Label>(SaveRestore& helper, Operand& op)
@@ -137,7 +137,7 @@ namespace zasm
 
         op = Label(labelId);
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     template<> Node* loadNode_<Instruction>(SaveRestore& helper, Program& program)
@@ -162,31 +162,31 @@ namespace zasm
             switch (opType)
             {
                 case OperandType::None:
-                    if (auto err = loadOperand_<Operand::None>(helper, op); err != Error::None)
+                    if (auto err = loadOperand_<Operand::None>(helper, op); err != ErrorCode::None)
                     {
                         return nullptr;
                     }
                     break;
                 case OperandType::Register:
-                    if (auto err = loadOperand_<Reg>(helper, op); err != Error::None)
+                    if (auto err = loadOperand_<Reg>(helper, op); err != ErrorCode::None)
                     {
                         return nullptr;
                     }
                     break;
                 case OperandType::Memory:
-                    if (auto err = loadOperand_<Mem>(helper, op); err != Error::None)
+                    if (auto err = loadOperand_<Mem>(helper, op); err != ErrorCode::None)
                     {
                         return nullptr;
                     }
                     break;
                 case OperandType::Immediate:
-                    if (auto err = loadOperand_<Imm>(helper, op); err != Error::None)
+                    if (auto err = loadOperand_<Imm>(helper, op); err != ErrorCode::None)
                     {
                         return nullptr;
                     }
                     break;
                 case OperandType::Label:
-                    if (auto err = loadOperand_<Label>(helper, op); err != Error::None)
+                    if (auto err = loadOperand_<Label>(helper, op); err != ErrorCode::None)
                     {
                         return nullptr;
                     }
@@ -244,7 +244,7 @@ namespace zasm
 
         if (node == nullptr)
         {
-            return Error::InvalidParameter;
+            return ErrorCode::InvalidParameter;
         }
 
         auto* intl = static_cast<detail::Node*>(node);
@@ -253,7 +253,7 @@ namespace zasm
 
         program.append(node);
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error loadNodes(SaveRestore& helper, Program& program)
@@ -263,13 +263,13 @@ namespace zasm
         helper >> nodeCount;
         for (std::uint64_t i = 0; i < nodeCount; ++i)
         {
-            if (auto err = loadNode(helper, program); err != Error::None)
+            if (auto err = loadNode(helper, program); err != ErrorCode::None)
             {
                 return err;
             }
         }
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error loadLabels(SaveRestore& helper, Program& program)
@@ -306,7 +306,7 @@ namespace zasm
             labels.push_back(labelData);
         }
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error loadSections(SaveRestore& helper, Program& program)
@@ -343,7 +343,7 @@ namespace zasm
             sections.push_back(sectData);
         }
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error loadSymbols(SaveRestore& helper, Program& program)
@@ -352,26 +352,26 @@ namespace zasm
         auto& programState = program.getState();
         auto& symbols = programState.symbolNames;
 
-        if (auto err = symbols.load(stream); err != Error::None)
+        if (auto err = symbols.load(stream); err != ErrorCode::None)
         {
             return err;
         }
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error loadProgram(SaveRestore& helper, Program& program)
     {
         std::uint32_t signature{};
 
-        if (auto err = helper.read(&signature, sizeof(signature)); err != Error::None)
+        if (auto err = helper.read(&signature, sizeof(signature)); err != ErrorCode::None)
         {
             return err;
         }
 
         if (signature != kZasmSignature)
         {
-            return Error::SignatureMismatch;
+            return ErrorCode::SignatureMismatch;
         }
 
         MachineMode mode{};
@@ -382,22 +382,22 @@ namespace zasm
         Node::Id nextNodeId{};
         helper >> nextNodeId;
 
-        if (auto err = loadNodes(helper, program); err != Error::None)
+        if (auto err = loadNodes(helper, program); err != ErrorCode::None)
         {
             return err;
         }
 
-        if (auto err = loadSections(helper, program); err != Error::None)
-        {
-            return err;
-        }
-        
-        if (auto err = loadLabels(helper, program); err != Error::None)
+        if (auto err = loadSections(helper, program); err != ErrorCode::None)
         {
             return err;
         }
 
-        if (auto err = loadSymbols(helper, program); err != Error::None)
+        if (auto err = loadLabels(helper, program); err != ErrorCode::None)
+        {
+            return err;
+        }
+
+        if (auto err = loadSymbols(helper, program); err != ErrorCode::None)
         {
             return err;
         }
@@ -406,7 +406,7 @@ namespace zasm
         auto& programState = program.getState();
         programState.nextNodeId = nextNodeId;
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     zasm::Expected<Program, Error> load(IStream& stream)
@@ -416,7 +416,7 @@ namespace zasm
             SaveRestore helper(stream, true);
 
             Program program{};
-            if (auto err = loadProgram(helper, program); err != Error::None)
+            if (auto err = loadProgram(helper, program); err != ErrorCode::None)
             {
                 return makeUnexpected(err);
             }
@@ -434,7 +434,7 @@ namespace zasm
         FileStream stream(inputFilePath, StreamMode::Read);
         if (!stream.isOpen())
         {
-            return makeUnexpected(Error::AccessDenied);
+            return makeUnexpected(Error{ ErrorCode::AccessDenied });
         }
 
         return load(stream);

@@ -528,18 +528,18 @@ namespace zasm
         const auto entryIdx = static_cast<std::size_t>(label.getId());
         if (entryIdx >= _state->labels.size())
         {
-            return makeUnexpected(Error::InvalidLabel);
+            return makeUnexpected(Error{ ErrorCode::InvalidLabel });
         }
 
         auto& entry = _state->labels[entryIdx];
         if ((entry.flags & LabelFlags::External) != LabelFlags::None)
         {
-            return makeUnexpected(Error::ExternalLabelNotBindable);
+            return makeUnexpected(Error{ ErrorCode::ExternalLabelNotBindable });
         }
 
         if (entry.node != nullptr)
         {
-            return makeUnexpected(Error::LabelAlreadyBound);
+            return makeUnexpected(Error{ ErrorCode::LabelAlreadyBound });
         }
 
         auto* node = createNode_(*_state, label);
@@ -595,13 +595,13 @@ namespace zasm
     {
         if (!label.isValid())
         {
-            return zasm::makeUnexpected(Error::InvalidLabel);
+            return zasm::makeUnexpected(Error{ ErrorCode::InvalidLabel });
         }
 
         const auto entryIdx = static_cast<std::size_t>(label.getId());
         if (entryIdx >= _state->labels.size())
         {
-            return makeUnexpected(Error::InvalidLabel);
+            return makeUnexpected(Error{ ErrorCode::InvalidLabel });
         }
 
         const auto& entry = _state->labels[entryIdx];
@@ -638,7 +638,7 @@ namespace zasm
         const auto entryIdx = static_cast<std::size_t>(sectionId);
         if (entryIdx >= prog.sections.size())
         {
-            return makeUnexpected(Error::SectionNotFound);
+            return makeUnexpected(Error{ ErrorCode::SectionNotFound });
         }
         return &prog.sections[entryIdx];
     }
@@ -654,7 +654,7 @@ namespace zasm
         auto& entry = sectEntry.value();
         if (entry->node != nullptr)
         {
-            return makeUnexpected(Error::SectionAlreadyBound);
+            return makeUnexpected(Error{ ErrorCode::SectionAlreadyBound });
         }
 
         auto* node = createNode_(*_state, section);
@@ -679,7 +679,7 @@ namespace zasm
     {
         if (name == nullptr)
         {
-            return Error::InvalidParameter;
+            return ErrorCode::InvalidParameter;
         }
 
         auto sectEntry = getSectionData(*_state, section.getId());
@@ -697,7 +697,7 @@ namespace zasm
         }
 
         entry->nameId = _state->symbolNames.aquire(name);
-        return Error::None;
+        return ErrorCode::None;
     }
 
     std::int32_t Program::getSectionAlign(const Section& section) noexcept
@@ -716,7 +716,7 @@ namespace zasm
     {
         if (align <= 0)
         {
-            return Error::InvalidParameter;
+            return ErrorCode::InvalidParameter;
         }
 
         auto sectEntry = getSectionData(*_state, section.getId());
@@ -728,7 +728,7 @@ namespace zasm
         auto* entry = sectEntry.value();
         entry->align = align;
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
 } // namespace zasm

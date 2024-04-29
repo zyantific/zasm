@@ -16,14 +16,14 @@ namespace zasm::tests
 
         // .text by default.
         {
-            ASSERT_EQ(a.jmp(labelA), Error::None);
-            ASSERT_EQ(a.nop(), Error::None);
-            ASSERT_EQ(a.bind(labelA), Error::None);
-            ASSERT_EQ(a.nop(), Error::None);
+            ASSERT_EQ(a.jmp(labelA), ErrorCode::None);
+            ASSERT_EQ(a.nop(), ErrorCode::None);
+            ASSERT_EQ(a.bind(labelA), ErrorCode::None);
+            ASSERT_EQ(a.nop(), ErrorCode::None);
         }
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), ErrorCode::None);
 
         ASSERT_EQ(serializer.getSectionCount(), 1);
 
@@ -48,25 +48,25 @@ namespace zasm::tests
         auto labelC = a.createLabel();
         ASSERT_EQ(labelC.isValid(), true);
 
-        ASSERT_EQ(a.section(".text"), Error::None);
+        ASSERT_EQ(a.section(".text"), ErrorCode::None);
         {
-            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rip, labelA)), Error::None);
-            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(x86::rip, labelB)), Error::None);
-            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(x86::rip, labelC)), Error::None);
+            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rip, labelA)), ErrorCode::None);
+            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(x86::rip, labelB)), ErrorCode::None);
+            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(x86::rip, labelC)), ErrorCode::None);
         }
 
-        ASSERT_EQ(a.section(".data", Section::Attribs::Data), Error::None);
+        ASSERT_EQ(a.section(".data", Section::Attribs::Data), ErrorCode::None);
         {
-            ASSERT_EQ(a.bind(labelA), Error::None);
-            ASSERT_EQ(a.dq(0x123456789), Error::None);
-            ASSERT_EQ(a.bind(labelB), Error::None);
-            ASSERT_EQ(a.dq(0x987654321), Error::None);
-            ASSERT_EQ(a.bind(labelC), Error::None);
-            ASSERT_EQ(a.dq(0xABCDEF123), Error::None);
+            ASSERT_EQ(a.bind(labelA), ErrorCode::None);
+            ASSERT_EQ(a.dq(0x123456789), ErrorCode::None);
+            ASSERT_EQ(a.bind(labelB), ErrorCode::None);
+            ASSERT_EQ(a.dq(0x987654321), ErrorCode::None);
+            ASSERT_EQ(a.bind(labelC), ErrorCode::None);
+            ASSERT_EQ(a.dq(0xABCDEF123), ErrorCode::None);
         }
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), ErrorCode::None);
 
         ASSERT_EQ(serializer.getSectionCount(), 2);
 
@@ -104,33 +104,33 @@ namespace zasm::tests
         auto labelC = a.createLabel();
         ASSERT_EQ(labelC.isValid(), true);
 
-        ASSERT_EQ(a.section(".text"), Error::None);
+        ASSERT_EQ(a.section(".text"), ErrorCode::None);
         {
-            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rip, labelA)), Error::None);
-            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(x86::rip, labelB)), Error::None);
-            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(x86::rip, labelC)), Error::None);
+            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rip, labelA)), ErrorCode::None);
+            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(x86::rip, labelB)), ErrorCode::None);
+            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(x86::rip, labelC)), ErrorCode::None);
         }
 
         // Identical name attrib align causes a merge.
-        ASSERT_EQ(a.section(".text"), Error::None);
+        ASSERT_EQ(a.section(".text"), ErrorCode::None);
         {
-            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rip, labelA)), Error::None);
-            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(x86::rip, labelB)), Error::None);
-            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(x86::rip, labelC)), Error::None);
+            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rip, labelA)), ErrorCode::None);
+            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(x86::rip, labelB)), ErrorCode::None);
+            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(x86::rip, labelC)), ErrorCode::None);
         }
 
-        ASSERT_EQ(a.section(".data", Section::Attribs::Data), Error::None);
+        ASSERT_EQ(a.section(".data", Section::Attribs::Data), ErrorCode::None);
         {
-            ASSERT_EQ(a.bind(labelA), Error::None);
-            ASSERT_EQ(a.dq(0x123456789), Error::None);
-            ASSERT_EQ(a.bind(labelB), Error::None);
-            ASSERT_EQ(a.dq(0x987654321), Error::None);
-            ASSERT_EQ(a.bind(labelC), Error::None);
-            ASSERT_EQ(a.dq(0xABCDEF123), Error::None);
+            ASSERT_EQ(a.bind(labelA), ErrorCode::None);
+            ASSERT_EQ(a.dq(0x123456789), ErrorCode::None);
+            ASSERT_EQ(a.bind(labelB), ErrorCode::None);
+            ASSERT_EQ(a.dq(0x987654321), ErrorCode::None);
+            ASSERT_EQ(a.bind(labelC), ErrorCode::None);
+            ASSERT_EQ(a.dq(0xABCDEF123), ErrorCode::None);
         }
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), ErrorCode::None);
 
         ASSERT_EQ(serializer.getSectionCount(), 2);
 
@@ -168,32 +168,32 @@ namespace zasm::tests
         auto labelC = a.createLabel();
         ASSERT_EQ(labelC.isValid(), true);
 
-        ASSERT_EQ(a.section(".text"), Error::None);
+        ASSERT_EQ(a.section(".text"), ErrorCode::None);
         {
-            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rip, labelA)), Error::None);
-            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(x86::rip, labelB)), Error::None);
-            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(x86::rip, labelC)), Error::None);
+            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rip, labelA)), ErrorCode::None);
+            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(x86::rip, labelB)), ErrorCode::None);
+            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(x86::rip, labelC)), ErrorCode::None);
         }
 
-        ASSERT_EQ(a.section(".text", Section::Attribs::Exec), Error::None);
+        ASSERT_EQ(a.section(".text", Section::Attribs::Exec), ErrorCode::None);
         {
-            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rip, labelA)), Error::None);
-            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(x86::rip, labelB)), Error::None);
-            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(x86::rip, labelC)), Error::None);
+            ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rip, labelA)), ErrorCode::None);
+            ASSERT_EQ(a.lea(x86::rbx, x86::qword_ptr(x86::rip, labelB)), ErrorCode::None);
+            ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(x86::rip, labelC)), ErrorCode::None);
         }
 
-        ASSERT_EQ(a.section(".data", Section::Attribs::Data), Error::None);
+        ASSERT_EQ(a.section(".data", Section::Attribs::Data), ErrorCode::None);
         {
-            ASSERT_EQ(a.bind(labelA), Error::None);
-            ASSERT_EQ(a.dq(0x123456789), Error::None);
-            ASSERT_EQ(a.bind(labelB), Error::None);
-            ASSERT_EQ(a.dq(0x987654321), Error::None);
-            ASSERT_EQ(a.bind(labelC), Error::None);
-            ASSERT_EQ(a.dq(0xABCDEF123), Error::None);
+            ASSERT_EQ(a.bind(labelA), ErrorCode::None);
+            ASSERT_EQ(a.dq(0x123456789), ErrorCode::None);
+            ASSERT_EQ(a.bind(labelB), ErrorCode::None);
+            ASSERT_EQ(a.dq(0x987654321), ErrorCode::None);
+            ASSERT_EQ(a.bind(labelC), ErrorCode::None);
+            ASSERT_EQ(a.dq(0xABCDEF123), ErrorCode::None);
         }
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), ErrorCode::None);
 
         ASSERT_EQ(serializer.getSectionCount(), 3);
 
@@ -241,20 +241,20 @@ namespace zasm::tests
         auto labelC = a.createLabel();
         ASSERT_EQ(labelC.isValid(), true);
 
-        ASSERT_EQ(a.section(".text"), Error::None);
+        ASSERT_EQ(a.section(".text"), ErrorCode::None);
         {
-            ASSERT_EQ(a.bind(labelA), Error::None);
-            ASSERT_EQ(a.jmp(labelB), Error::None);
+            ASSERT_EQ(a.bind(labelA), ErrorCode::None);
+            ASSERT_EQ(a.jmp(labelB), ErrorCode::None);
         }
 
-        ASSERT_EQ(a.section(".text2", Section::Attribs::Code), Error::None);
+        ASSERT_EQ(a.section(".text2", Section::Attribs::Code), ErrorCode::None);
         {
-            ASSERT_EQ(a.bind(labelB), Error::None);
-            ASSERT_EQ(a.jmp(labelA), Error::None);
+            ASSERT_EQ(a.bind(labelB), ErrorCode::None);
+            ASSERT_EQ(a.jmp(labelA), ErrorCode::None);
         }
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), ErrorCode::None);
         ASSERT_EQ(serializer.getSectionCount(), 2);
 
         const auto* sectInfo01 = serializer.getSectionInfo(0);
@@ -287,20 +287,20 @@ namespace zasm::tests
         auto labelC = a.createLabel();
         ASSERT_EQ(labelC.isValid(), true);
 
-        ASSERT_EQ(a.section(".text"), Error::None);
+        ASSERT_EQ(a.section(".text"), ErrorCode::None);
         {
-            ASSERT_EQ(a.bind(labelA), Error::None);
-            ASSERT_EQ(a.jz(labelB), Error::None);
+            ASSERT_EQ(a.bind(labelA), ErrorCode::None);
+            ASSERT_EQ(a.jz(labelB), ErrorCode::None);
         }
 
-        ASSERT_EQ(a.section(".text2", Section::Attribs::Code), Error::None);
+        ASSERT_EQ(a.section(".text2", Section::Attribs::Code), ErrorCode::None);
         {
-            ASSERT_EQ(a.bind(labelB), Error::None);
-            ASSERT_EQ(a.jz(labelA), Error::None);
+            ASSERT_EQ(a.bind(labelB), ErrorCode::None);
+            ASSERT_EQ(a.jz(labelA), ErrorCode::None);
         }
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), ErrorCode::None);
         ASSERT_EQ(serializer.getSectionCount(), 2);
 
         const auto* sectInfo01 = serializer.getSectionInfo(0);

@@ -67,6 +67,7 @@ endif()
 
 # Target: zasm
 set(zasm_SOURCES
+	"src/zasm/src/core/error.cpp"
 	"src/zasm/src/core/filestream.cpp"
 	"src/zasm/src/core/memorystream.cpp"
 	"src/zasm/src/decoder/decoder.cpp"

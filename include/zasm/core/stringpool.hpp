@@ -129,48 +129,48 @@ namespace zasm
             const auto entryCount = static_cast<std::uint32_t>(_entries.size());
             if (auto len = stream.write(&entryCount, sizeof(entryCount)); len == 0)
             {
-                return Error::InvalidParameter;
+                return ErrorCode::InvalidParameter;
             }
 
             for (const auto& entry : _entries)
             {
                 if (auto len = stream.write(entry.hash); len == 0)
                 {
-                    return Error::InvalidParameter;
+                    return ErrorCode::InvalidParameter;
                 }
                 if (auto len = stream.write(entry.offset); len == 0)
                 {
-                    return Error::InvalidParameter;
+                    return ErrorCode::InvalidParameter;
                 }
                 if (auto len = stream.write(entry.len); len == 0)
                 {
-                    return Error::InvalidParameter;
+                    return ErrorCode::InvalidParameter;
                 }
                 if (auto len = stream.write(entry.capacity); len == 0)
                 {
-                    return Error::InvalidParameter;
+                    return ErrorCode::InvalidParameter;
                 }
                 if (auto len = stream.write(entry.refCount); len == 0)
                 {
-                    return Error::InvalidParameter;
+                    return ErrorCode::InvalidParameter;
                 }
             }
 
             const auto dataSize = static_cast<std::uint32_t>(_data.size());
             if (auto len = stream.write(dataSize); len == 0)
             {
-                return Error::InvalidParameter;
+                return ErrorCode::InvalidParameter;
             }
 
             if (dataSize > 0)
             {
                 if (auto len = stream.write(_data.data(), dataSize); len == 0)
                 {
-                    return Error::InvalidParameter;
+                    return ErrorCode::InvalidParameter;
                 }
             }
 
-            return Error::None;
+            return ErrorCode::None;
         }
 
         Error load(IStream& stream)
@@ -180,7 +180,7 @@ namespace zasm
             std::uint32_t entryCount{};
             if (auto len = stream.read(&entryCount, sizeof(entryCount)); len == 0)
             {
-                return Error::InvalidParameter;
+                return ErrorCode::InvalidParameter;
             }
 
             std::vector<Entry> loadedEntries;
@@ -189,30 +189,30 @@ namespace zasm
             {
                 if (auto len = stream.read(entry.hash); len == 0)
                 {
-                    return Error::InvalidParameter;
+                    return ErrorCode::InvalidParameter;
                 }
                 if (auto len = stream.read(entry.offset); len == 0)
                 {
-                    return Error::InvalidParameter;
+                    return ErrorCode::InvalidParameter;
                 }
                 if (auto len = stream.read(entry.len); len == 0)
                 {
-                    return Error::InvalidParameter;
+                    return ErrorCode::InvalidParameter;
                 }
                 if (auto len = stream.read(entry.capacity); len == 0)
                 {
-                    return Error::InvalidParameter;
+                    return ErrorCode::InvalidParameter;
                 }
                 if (auto len = stream.read(entry.refCount); len == 0)
                 {
-                    return Error::InvalidParameter;
+                    return ErrorCode::InvalidParameter;
                 }
             }
 
             std::uint32_t dataSize{};
             if (auto len = stream.read(&dataSize, sizeof(dataSize)); len == 0)
             {
-                return Error::InvalidParameter;
+                return ErrorCode::InvalidParameter;
             }
 
             std::vector<char> loadedData;
@@ -221,14 +221,14 @@ namespace zasm
                 loadedData.resize(dataSize);
                 if (auto len = stream.read(loadedData.data(), dataSize); len == 0)
                 {
-                    return Error::InvalidParameter;
+                    return ErrorCode::InvalidParameter;
                 }
             }
 
             _entries = std::move(loadedEntries);
             _data = std::move(loadedData);
 
-            return Error::None;
+            return ErrorCode::None;
         }
 
     private:

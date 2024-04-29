@@ -21,7 +21,7 @@ namespace zasm::tests
                 auto label = assembler.createLabel();
                 assembler.bind(label);
             }
-            ASSERT_EQ(instrEntry.emitter(assembler), Error::None) << instrEntry.instrBytes << ", " << instrEntry.operation;
+            ASSERT_EQ(instrEntry.emitter(assembler), ErrorCode::None) << instrEntry.instrBytes << ", " << instrEntry.operation;
             entries++;
         }
     }
@@ -89,7 +89,7 @@ namespace zasm::tests
 
         // Save Program.
         MemoryStream buf;
-        ASSERT_EQ(save(outputProgram, buf), Error::None);
+        ASSERT_EQ(save(outputProgram, buf), ErrorCode::None);
 
         // Read the serialized data back into a separate program.
 
@@ -108,7 +108,7 @@ namespace zasm::tests
 
         // Save Program.
         const auto filePath = std::filesystem::temp_directory_path() / "saverestoretest.zasm";
-        ASSERT_EQ(save(outputProgram, filePath), Error::None);
+        ASSERT_EQ(save(outputProgram, filePath), ErrorCode::None);
 
         // Read the serialized data back into a separate program.
         auto inputProgram = load(filePath);
@@ -129,7 +129,7 @@ namespace zasm::tests
 
         // Save Program.
         MemoryStream buf;
-        ASSERT_EQ(save(outputProgram, buf), Error::None);
+        ASSERT_EQ(save(outputProgram, buf), ErrorCode::None);
 
         // Read the serialized data back into a separate program.
         buf.seek(0, SeekType::Begin);

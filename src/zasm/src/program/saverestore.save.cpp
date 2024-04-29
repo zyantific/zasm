@@ -23,7 +23,7 @@ namespace zasm
     {
         helper << NodeType::Sentinel;
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveNode_(SaveRestore& helper, const Program& program, const Label& data)
@@ -32,7 +32,7 @@ namespace zasm
 
         helper << data.getId();
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveNode_(SaveRestore& helper, const Program& program, const EmbeddedLabel& data)
@@ -43,7 +43,7 @@ namespace zasm
         helper << data.getRelativeLabel().getId();
         helper << data.getSize();
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveNode_(SaveRestore& helper, const Program& program, const Data& data)
@@ -54,7 +54,7 @@ namespace zasm
         helper << static_cast<std::uint64_t>(data.getRepeatCount());
         helper.write(data.getData(), data.getSize());
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveNode_(SaveRestore& helper, const Program& program, const Section& data)
@@ -63,7 +63,7 @@ namespace zasm
 
         helper << data.getId();
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveNode_(SaveRestore& helper, const Program& program, const Align& data)
@@ -73,14 +73,14 @@ namespace zasm
         helper << data.getType();
         helper << data.getAlign();
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveOperand_(SaveRestore& helper, const Operand::None&)
     {
         helper << OperandType::None;
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveOperand_(SaveRestore& helper, const Reg& data)
@@ -89,7 +89,7 @@ namespace zasm
 
         helper << data.getId();
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveOperand_(SaveRestore& helper, const Mem& data)
@@ -104,7 +104,7 @@ namespace zasm
         helper << data.getDisplacement();
         helper << data.getLabelId();
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveOperand_(SaveRestore& helper, const Imm& data)
@@ -113,7 +113,7 @@ namespace zasm
 
         helper << data.value<std::int64_t>();
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveOperand_(SaveRestore& helper, const Label& data)
@@ -122,7 +122,7 @@ namespace zasm
 
         helper << data.getId();
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveOperand(SaveRestore& helper, const Operand& op)
@@ -140,13 +140,13 @@ namespace zasm
         for (std::size_t i = 0; i < data.getOperandCount(); ++i)
         {
             const auto& op = data.getOperand(i);
-            if (auto err = saveOperand(helper, op); err != Error::None)
+            if (auto err = saveOperand(helper, op); err != ErrorCode::None)
             {
                 return err;
             }
         }
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveNode(SaveRestore& helper, const Program& program, const Node* node)
@@ -157,12 +157,12 @@ namespace zasm
         helper << nodeInt->getUserDataU64();
 
         auto err = nodeInt->visit([&](const auto& nodeData) { return saveNode_(helper, program, nodeData); });
-        if (err != Error::None)
+        if (err != ErrorCode::None)
         {
             return err;
         }
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveNodes(SaveRestore& helper, const Program& program)
@@ -174,14 +174,14 @@ namespace zasm
         const auto* node = program.getHead();
         while (node != nullptr)
         {
-            if (auto err = saveNode(helper, program, node); err != Error::None)
+            if (auto err = saveNode(helper, program, node); err != ErrorCode::None)
             {
                 return err;
             }
             node = node->getNext();
         }
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveLabels(SaveRestore& helper, const Program& program)
@@ -200,7 +200,7 @@ namespace zasm
             helper << getNodeId(labelData.node);
         }
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveSections(SaveRestore& helper, const Program& program)
@@ -219,7 +219,7 @@ namespace zasm
             helper << getNodeId(sectionData.node);
         }
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveSymbols(SaveRestore& helper, const Program& program)
@@ -228,12 +228,12 @@ namespace zasm
         const auto& programState = program.getState();
         const auto& symbols = programState.symbolNames;
 
-        if (auto err = symbols.save(stream); err != Error::None)
+        if (auto err = symbols.save(stream); err != ErrorCode::None)
         {
             return err;
         }
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error saveProgram(SaveRestore& helper, const Program& program)
@@ -246,27 +246,27 @@ namespace zasm
         auto& programState = program.getState();
         helper << programState.nextNodeId;
 
-        if (auto err = saveNodes(helper, program); err != Error::None)
+        if (auto err = saveNodes(helper, program); err != ErrorCode::None)
         {
             return err;
         }
 
-        if (auto err = saveSections(helper, program); err != Error::None)
+        if (auto err = saveSections(helper, program); err != ErrorCode::None)
         {
             return err;
         }
 
-        if (auto err = saveLabels(helper, program); err != Error::None)
+        if (auto err = saveLabels(helper, program); err != ErrorCode::None)
         {
             return err;
         }
 
-        if (auto err = saveSymbols(helper, program); err != Error::None)
+        if (auto err = saveSymbols(helper, program); err != ErrorCode::None)
         {
             return err;
         }
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     Error save(const Program& program, IStream& stream)
@@ -275,12 +275,12 @@ namespace zasm
         {
             SaveRestore helper(stream, false);
 
-            if (auto err = saveProgram(helper, program); err != Error::None)
+            if (auto err = saveProgram(helper, program); err != ErrorCode::None)
             {
                 return err;
             }
 
-            return Error::None;
+            return ErrorCode::None;
         }
         catch (Error err)
         {
@@ -293,7 +293,7 @@ namespace zasm
         FileStream fs(outputFilePath, StreamMode::Write);
         if (!fs.isOpen())
         {
-            return Error::AccessDenied;
+            return ErrorCode::AccessDenied;
         }
 
         return save(program, fs);

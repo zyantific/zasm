@@ -16,13 +16,13 @@ namespace zasm::tests
                                .addOperand(x86::eax)            //
                                .addOperand(zasm::Imm(1));       //
 
-        ASSERT_EQ(assembler.emit(instr), Error::None);
+        ASSERT_EQ(assembler.emit(instr), ErrorCode::None);
 
         const auto* instrNode = assembler.getCursor();
         ASSERT_NE(instrNode, nullptr);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), ErrorCode::None);
 
         const std::array<uint8_t, 5> expected = {
             0xB8, 0x01, 0x00, 0x00, 0x00,
@@ -54,7 +54,7 @@ namespace zasm::tests
         instr.setOperand(1, zasm::Imm(1));
 
         // Emit modified
-        ASSERT_EQ(assembler.emit(instr), Error::None);
+        ASSERT_EQ(assembler.emit(instr), ErrorCode::None);
 
         // Remove original
         program.destroy(instrNode);
@@ -63,7 +63,7 @@ namespace zasm::tests
         ASSERT_NE(instrNode, nullptr);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), ErrorCode::None);
 
         const std::array<uint8_t, 5> expected = {
             0xB8, 0x01, 0x00, 0x00, 0x00,

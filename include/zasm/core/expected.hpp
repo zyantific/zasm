@@ -12,8 +12,9 @@ namespace zasm
         {
             const T failure;
 
-            constexpr Unexpected(const T& val) noexcept
-                : failure{ val }
+            template<typename... TArgs>
+            constexpr Unexpected(TArgs&&... args) noexcept
+                : failure{ std::forward<TArgs>(args)... }
             {
             }
         };
@@ -99,9 +100,15 @@ namespace zasm
         }
     };
 
-    template<typename T> inline constexpr ::zasm::detail::Unexpected<T> makeUnexpected(const T& val) noexcept
+    template<typename T> inline constexpr auto makeUnexpected(T&& e) noexcept
     {
-        return ::zasm::detail::Unexpected<T>(val);
+        return ::zasm::detail::Unexpected<std::decay_t<T>>(std::forward<T>(e));
+    }
+
+    template<typename T, typename... TArgs>
+    inline constexpr auto makeUnexpected(TArgs&&... args) noexcept
+    {
+        return ::zasm::detail::Unexpected<std::decay_t<T>>(std::forward<TArgs>(args)...);
     }
 
 } // namespace zasm

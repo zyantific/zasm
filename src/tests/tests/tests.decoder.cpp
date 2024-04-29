@@ -22,10 +22,10 @@ namespace zasm::tests
         ASSERT_EQ(decoded->getMnemonic(), x86::Mnemonic::Mov);
         ASSERT_EQ(decoded->getOperandCount(), 2);
 
-        ASSERT_EQ(assembler.emit(decoded.value().getInstruction()), Error::None);
+        ASSERT_EQ(assembler.emit(decoded.value().getInstruction()), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x00400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00400000), ErrorCode::None);
 
         const std::array<uint8_t, 5> expected = {
             0xB8, 0x01, 0x00, 0x00, 0x00,
@@ -60,10 +60,10 @@ namespace zasm::tests
         ASSERT_EQ(decoded->getOperand<Mem>(0).getBase(), x86::rip);
         ASSERT_EQ(decoded->getOperand<Mem>(0).getDisplacement(), 0x00007FF8833E0679);
 
-        ASSERT_EQ(assembler.emit(decoded.value().getInstruction()), Error::None);
+        ASSERT_EQ(assembler.emit(decoded.value().getInstruction()), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x00007FF8833DF000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x00007FF8833DF000), ErrorCode::None);
 
         const std::array<uint8_t, 6> expected = {
             0xFF, 0x15, 0x73, 0x16, 0x00, 0x00,

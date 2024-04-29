@@ -112,7 +112,7 @@ namespace zasm
         if (status != ZYAN_STATUS_SUCCESS)
         {
             // TODO: Translate proper error.
-            _status = Error::NotInitialized;
+            _status = Error{ ErrorCode::NotInitialized };
         }
     }
 
@@ -158,7 +158,7 @@ namespace zasm
 
     Decoder::Result Decoder::decode(const void* data, const std::size_t len, std::uint64_t address) noexcept
     {
-        if (_status != Error::None)
+        if (_status != ErrorCode::None)
         {
             return zasm::makeUnexpected(_status);
         }
@@ -170,7 +170,7 @@ namespace zasm
         if (status != ZYAN_STATUS_SUCCESS)
         {
             // TODO: Translate proper error.
-            return zasm::makeUnexpected(Error::InvalidOperation);
+            return zasm::makeUnexpected(Error{ ErrorCode::InvalidOperation });
         }
 
         InstructionDetail::CPUFlags flags{};

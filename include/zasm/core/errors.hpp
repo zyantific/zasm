@@ -5,7 +5,12 @@
 
 namespace zasm
 {
-    enum class Error : std::uint32_t
+    namespace detail
+    {
+        struct ErrorData;
+    }
+
+    enum class ErrorCode : std::uint32_t
     {
         None = 0,
         // Generic.
@@ -35,40 +40,24 @@ namespace zasm
         ImpossibleRelocation,
     };
 
-    static constexpr const char* getErrorName(Error err) noexcept
+    class Error
     {
-#define ERROR_STRING(e)                                                                                                        \
-    case e:                                                                                                                    \
-        return #e
+        std::uint64_t _data{};
 
-        switch (err)
-        {
-            ERROR_STRING(Error::None);
-            ERROR_STRING(Error::InvalidMode);
-            ERROR_STRING(Error::NotInitialized);
-            ERROR_STRING(Error::InvalidOperation);
-            ERROR_STRING(Error::InvalidParameter);
-            ERROR_STRING(Error::FileNotFound);
-            ERROR_STRING(Error::AccessDenied);
-            ERROR_STRING(Error::OutOfMemory);
-            ERROR_STRING(Error::LabelNotFound);
-            ERROR_STRING(Error::UnresolvedLabel);
-            ERROR_STRING(Error::InvalidLabel);
-            ERROR_STRING(Error::LabelAlreadyBound);
-            ERROR_STRING(Error::SectionNotFound);
-            ERROR_STRING(Error::SectionAlreadyBound);
-            ERROR_STRING(Error::SignatureMismatch);
-            ERROR_STRING(Error::InvalidInstruction);
-            ERROR_STRING(Error::OutOfBounds);
-            ERROR_STRING(Error::ImpossibleInstruction);
-            ERROR_STRING(Error::EmptyState);
-            ERROR_STRING(Error::ImpossibleRelocation);
-            default:
-                assert(false);
-                break;
-        }
-#undef ERROR_STRING
-        return nullptr;
-    }
+    public:
+        constexpr Error() noexcept = default;
+
+        Error(ErrorCode code) noexcept;
+        ~Error() noexcept;
+
+        bool operator==(ErrorCode code) const noexcept;
+        bool operator!=(ErrorCode code) const noexcept;
+
+        ErrorCode getCode() const noexcept;
+
+        const char* getErrorName() const noexcept;
+
+        const char* getErrorMessage() const noexcept;
+    };
 
 } // namespace zasm
