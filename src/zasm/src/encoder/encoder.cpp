@@ -390,6 +390,13 @@ namespace zasm
                 if (isDisplacementValid)
                 {
                     displacement = displacement - (address + instrSize);
+                    if (std::abs(displacement) > std::numeric_limits<std::int32_t>::max())
+                    {
+                        char msg[128];
+                        std::snprintf(msg, sizeof(msg), "Displacement out of range for operand %zu", state.operandIndex);
+
+                        return Error(ErrorCode::AddressOutOfRange, msg);
+                    }
                 }
             }
 

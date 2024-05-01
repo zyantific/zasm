@@ -1261,4 +1261,21 @@ namespace zasm::tests
         ASSERT_EQ(res, ErrorCode::None);
     }
 
+    TEST(SerializationTests, TestBadMemoryDisplacement)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler a(program);
+        ASSERT_EQ(a.mov(x86::rax, x86::qword_ptr(x86::rip, 0xF23456789)), ErrorCode::None);
+
+        Serializer serializer;
+        auto res = serializer.serialize(program, 0x140015000);
+        ASSERT_EQ(res, ErrorCode::AddressOutOfRange);
+
+        ASSERT_EQ(
+            res.getErrorMessage(),
+            std::string("Error at node \"mov rax, qword ptr ds:[rel 0xf23456789]\" with id 0: Displacement out of range for "
+                        "operand 1"));
+    }
+
 } // namespace zasm::tests
