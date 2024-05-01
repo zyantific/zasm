@@ -35,6 +35,7 @@ namespace zasm
         OutOfBounds,
         // Encoder.
         ImpossibleInstruction,
+        AddressOutOfRange,
         // Serialization.
         EmptyState,
         ImpossibleRelocation,

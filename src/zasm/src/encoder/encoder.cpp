@@ -180,7 +180,8 @@ namespace zasm
             }
         }
 
-        assert(desiredBranchType != ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE);
+        // If desiredBranchType is ZYDIS_BRANCH_TYPE_NONE it means we can not fit the address
+        // into the instruction, this is an error and should be handled by the caller.
 
         return { res, desiredBranchType };
     }
@@ -236,11 +237,16 @@ namespace zasm
             const auto targetAddress = labelVA.has_value() ? *labelVA : immValue;
 
             const auto [addrRel, branchType] = processRelAddress(encodeInfo, ctx, targetAddress);
+            if (branchType == ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE)
+            {
+                char msg[128];
+                std::snprintf(msg, sizeof(msg), "Label out of range for operand %zu", state.operandIndex);
+
+                return Error(ErrorCode::AddressOutOfRange, msg);
+            }
 
             immValue = addrRel;
             desiredBranchType = branchType;
-
-            assert(desiredBranchType != ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE);
         }
         else
         {

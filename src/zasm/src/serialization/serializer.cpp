@@ -4,6 +4,7 @@
 #include "../program/program.state.hpp"
 #include "zasm/core/math.hpp"
 #include "zasm/encoder/encoder.hpp"
+#include "zasm/formatter/formatter.hpp"
 
 #include <Zydis/Decoder.h>
 #include <algorithm>
@@ -476,7 +477,7 @@ namespace zasm
         defaultSect.address = newBase;
         defaultSect.nameId = programState.symbolNames.aquire(".text");
 
-        const auto serializePass = [&]()->Error {
+        const auto serializePass = [&]() -> Error {
             state.buffer.clear();
 
             encoderCtx.needsExtraPass = false;
@@ -495,7 +496,15 @@ namespace zasm
                 const auto status = node->visit([&](auto&& n) { return serializeNode(programState, state, n); });
                 if (status != ErrorCode::None)
                 {
-                    return status;
+                    const auto fmtOptions = formatter::Options::HexImmediates | formatter::Options::HexOffsets;
+                    const auto nodeString = formatter::toString(program, node, fmtOptions);
+
+                    char msg[256];
+                    std::snprintf(
+                        msg, sizeof(msg), "Error at node \"%s\" with id %u: %s", nodeString.c_str(),
+                        static_cast<std::uint32_t>(node->getId()), status.getErrorMessage());
+
+                    return Error(status.getCode(), msg);
                 }
             }
 

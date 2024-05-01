@@ -406,7 +406,8 @@ namespace zasm::tests
         Label labelImpExitProcess = program.getOrCreateImportLabel("kernel32.dll", "ExitProcess");
         Label labelImpMessageBoxA = program.getOrCreateImportLabel("user32.dll", "MessageBoxA");
 
-        ASSERT_EQ(a.section(".text", Section::Attribs::Code | Section::Attribs::Exec | Section::Attribs::Read), ErrorCode::None);
+        ASSERT_EQ(
+            a.section(".text", Section::Attribs::Code | Section::Attribs::Exec | Section::Attribs::Read), ErrorCode::None);
         ASSERT_EQ(a.bind(labelMain), ErrorCode::None);
         ASSERT_EQ(a.sub(x86::rsp, Imm(0x28)), ErrorCode::None);
         ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelRData01)), ErrorCode::None);
@@ -439,7 +440,8 @@ namespace zasm::tests
         ASSERT_EQ(a.add(x86::rsp, Imm(0x28)), ErrorCode::None);
         ASSERT_EQ(a.ret(), ErrorCode::None);
 
-        ASSERT_EQ(a.section(".data", Section::Attribs::Data | Section::Attribs::Read | Section::Attribs::Write), ErrorCode::None);
+        ASSERT_EQ(
+            a.section(".data", Section::Attribs::Data | Section::Attribs::Read | Section::Attribs::Write), ErrorCode::None);
         ASSERT_EQ(a.bind(labelData01), ErrorCode::None);
         ASSERT_EQ(a.dq(01), ErrorCode::None);
         ASSERT_EQ(a.bind(labelData02), ErrorCode::None);
@@ -1195,10 +1197,10 @@ namespace zasm::tests
         Program program(MachineMode::AMD64);
 
         x86::Assembler a(program);
-        ASSERT_EQ(a.mov(x86::rax, x86::qword_ptr(x86::rax, x86::rbp)), Error::None);
+        ASSERT_EQ(a.mov(x86::rax, x86::qword_ptr(x86::rax, x86::rbp)), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x140015000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x140015000), ErrorCode::None);
 
         const std::array<uint8_t, 4> expected = { 0x48, 0x8B, 0x04, 0x28 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -1209,6 +1211,54 @@ namespace zasm::tests
         {
             ASSERT_EQ(data[i], expected[i]);
         }
+    }
+
+    TEST(SerializationTests, TestSerializationErrorImpossibleInstruction)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler a(program);
+        ASSERT_EQ(a.and_(x86::rbp, Imm64(0x123456789ABCDF)), ErrorCode::None);
+
+        Serializer serializer;
+        auto res = serializer.serialize(program, 0x140015000);
+        ASSERT_EQ(res, ErrorCode::ImpossibleInstruction);
+
+        ASSERT_EQ(
+            res.getErrorMessage(),
+            std::string("Error at node \"and rbp, 0x123456789abcdf\" with id 0: Impossible instruction"));
+    }
+
+    TEST(SerializationTests, TestSerializationJecxzBad)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler a(program);
+        auto labelLoop = a.createLabel();
+        ASSERT_EQ(a.jecxz(labelLoop), ErrorCode::None);
+        ASSERT_EQ(a.dd(0, 256), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelLoop), ErrorCode::None);
+
+        Serializer serializer;
+        auto res = serializer.serialize(program, 0x140015000);
+        ASSERT_EQ(res, ErrorCode::AddressOutOfRange);
+
+        ASSERT_EQ(res.getErrorMessage(), std::string("Error at node \"jecxz L0\" with id 0: Label out of range for operand 0"));
+    }
+
+    TEST(SerializationTests, TestSerializationJecxzGood)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler a(program);
+        auto labelLoop = a.createLabel();
+        ASSERT_EQ(a.jecxz(labelLoop), ErrorCode::None);
+        ASSERT_EQ(a.dd(0), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelLoop), ErrorCode::None);
+
+        Serializer serializer;
+        auto res = serializer.serialize(program, 0x140015000);
+        ASSERT_EQ(res, ErrorCode::None);
     }
 
 } // namespace zasm::tests
