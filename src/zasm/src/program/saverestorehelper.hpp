@@ -71,7 +71,7 @@ namespace zasm
             }
             else
             {
-                if (auto err = write(&value, sizeof(T)); err != Error::None)
+                if (auto err = write(&value, sizeof(T)); err != ErrorCode::None)
                     throw err;
             }
 
