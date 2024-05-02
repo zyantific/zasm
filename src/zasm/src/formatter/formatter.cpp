@@ -488,7 +488,7 @@ namespace zasm::formatter
             }
             else
             {
-                ctx.format(".section");
+                ctx.appendLiteral(".section");
             }
         }
 
