@@ -33,6 +33,7 @@ namespace zasm
         // Decoder.
         InvalidInstruction,
         OutOfBounds,
+        InstructionTooLong,
         // Encoder.
         ImpossibleInstruction,
         AddressOutOfRange,

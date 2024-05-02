@@ -18,6 +18,10 @@ namespace zasm
 
         Result decode(const void* data, std::size_t len, std::uint64_t address) noexcept;
 
+        MachineMode getMode() const;
+
+        const Error& getLastError() const;
+
     private:
         ZydisDecoder _decoder{};
         MachineMode _mode{};
