@@ -10,11 +10,15 @@ namespace zasm
         // Internal wrapper type for unexpected.
         template<typename T> struct Unexpected
         {
-            const T failure;
+            T failure;
 
-            template<typename... TArgs>
-            constexpr Unexpected(TArgs&&... args) noexcept
-                : failure{ std::forward<TArgs>(args)... }
+            constexpr Unexpected(T&& arg) noexcept
+                : failure{ std::move(arg) }
+            {
+            }
+
+            constexpr Unexpected(const T& arg) noexcept
+                : failure{ arg }
             {
             }
         };
@@ -100,15 +104,9 @@ namespace zasm
         }
     };
 
-    template<typename T> inline constexpr auto makeUnexpected(T&& e) noexcept
+    template<typename T> inline constexpr ::zasm::detail::Unexpected<T> makeUnexpected(const T& val) noexcept
     {
-        return ::zasm::detail::Unexpected<std::decay_t<T>>(std::forward<T>(e));
-    }
-
-    template<typename T, typename... TArgs>
-    inline constexpr auto makeUnexpected(TArgs&&... args) noexcept
-    {
-        return ::zasm::detail::Unexpected<std::decay_t<T>>(std::forward<TArgs>(args)...);
+        return ::zasm::detail::Unexpected<T>(val);
     }
 
 } // namespace zasm
