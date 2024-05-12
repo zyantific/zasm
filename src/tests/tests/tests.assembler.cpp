@@ -32,7 +32,7 @@ namespace zasm::tests
 
         x86::Assembler assembler(program);
 
-        zasm::Label label01;
+        Label label01;
         ASSERT_EQ(label01.isValid(), false);
         ASSERT_EQ(assembler.bind(label01), ErrorCode::InvalidLabel);
     }

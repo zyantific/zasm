@@ -1040,12 +1040,12 @@ namespace zasm::tests
 
     TEST(SerializationTests, SerializeDecodedSwapNodes)
     {
-        zasm::Program program(zasm::MachineMode::I386);
-        std::vector<zasm::Node*> tails = {};
+        Program program(MachineMode::I386);
+        std::vector<Node*> tails = {};
 
         {
-            zasm::x86::Assembler a(program);
-            zasm::Decoder decoder(zasm::MachineMode::I386);
+            x86::Assembler a(program);
+            Decoder decoder(MachineMode::I386);
 
             const std::array<uint8_t, 12> raw_data = {
                 0xB8, 0x00, 0x10, 0x40, 0x00, // mov eax, [blabla]
@@ -1071,15 +1071,15 @@ namespace zasm::tests
         auto bind_node = program.bindLabel(label);
         program.moveBefore(tails[4], *bind_node);
 
-        tails[3]->getIf<zasm::Instruction>()->setOperand(0, label);
+        tails[3]->getIf<Instruction>()->setOperand(0, label);
 
-        zasm::x86::Assembler a(program);
+        x86::Assembler a(program);
         a.setCursor(tails[4]);
-        a.xor_(zasm::x86::eax, zasm::x86::eax);
+        a.xor_(x86::eax, x86::eax);
 
-        zasm::Serializer serializer{};
+        Serializer serializer{};
         auto r = serializer.serialize(program, 0x406000);
-        ASSERT_EQ(r, zasm::ErrorCode::None);
+        ASSERT_EQ(r, ErrorCode::None);
 
         const std::array<std::uint8_t, 14> expected = { 0xB8, 0x00, 0x10, 0x40, 0x00, 0x83, 0xF8,
                                                         0x00, 0x90, 0xEB, 0x00, 0xC3, 0x31, 0xC0 };
