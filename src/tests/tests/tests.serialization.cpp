@@ -1104,9 +1104,7 @@ namespace zasm::tests
         Serializer serializer;
         ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
 
-        const std::array<std::uint8_t, 7> expected = {
-            0x48, 0x8B, 0x15, 0xF9, 0xFF, 0xFF, 0xFF
-        };
+        const std::array<std::uint8_t, 7> expected = { 0x48, 0x8B, 0x15, 0xF9, 0xFF, 0xFF, 0xFF };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
 
         const auto* data = serializer.getCode();
@@ -1190,6 +1188,27 @@ namespace zasm::tests
         }
 
         ASSERT_EQ(serializer.getLabelAddress(label.getId()), 0x140015000 + 13);
+    }
+
+    TEST(SerializationTests, TestMemBaseIndex)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler a(program);
+        ASSERT_EQ(a.mov(x86::rax, x86::qword_ptr(x86::rax, x86::rbp)), Error::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x140015000), Error::None);
+
+        const std::array<uint8_t, 4> expected = { 0x48, 0x8B, 0x04, 0x28 };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (std::size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
     }
 
 } // namespace zasm::tests
