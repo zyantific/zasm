@@ -166,6 +166,7 @@ if(ZASM_BUILD_TESTS OR CMKR_ROOT_PROJECT) # tests
 		"src/tests/main.cpp"
 		"src/tests/tests/tests.assembler.cpp"
 		"src/tests/tests/tests.decoder.cpp"
+		"src/tests/tests/tests.error.cpp"
 		"src/tests/tests/tests.externals.cpp"
 		"src/tests/tests/tests.formatter.cpp"
 		"src/tests/tests/tests.imports.cpp"
