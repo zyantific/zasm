@@ -12,7 +12,9 @@ namespace zasm
         std::string message;
     };
 
-    ErrorExt* toErrorExt(std::uint64_t data) noexcept
+    // TODO: This is not fully portable so we should check for systems where
+    // we have to use a different approach.
+    static ErrorExt* toErrorExt(std::uint64_t data) noexcept
     {
         assert((data & kErrorExtBit) != 0);
 
@@ -20,14 +22,24 @@ namespace zasm
         return ext;
     }
 
+    static std::uint64_t toInternalErrorData(const ErrorExt* ext) noexcept
+    {
+        return static_cast<std::uint64_t>(reinterpret_cast<std::uintptr_t>(ext)) | kErrorExtBit;
+    }
+
+    static bool isExtError(std::uint64_t data) noexcept
+    {
+        return (data & kErrorExtBit) != 0;
+    }
+
     Error::Error(const Error& other)
     {
-        if (other._data & kErrorExtBit)
+        if (isExtError(other._data))
         {
             const auto* ext = toErrorExt(other._data);
 
             auto* newExt = new ErrorExt(*ext);
-            _data = reinterpret_cast<std::uint64_t>(newExt) | kErrorExtBit;
+            _data = toInternalErrorData(newExt);
         }
         else
         {
@@ -55,17 +67,27 @@ namespace zasm
         ext->code = code;
         ext->message = message;
 
-        _data = reinterpret_cast<std::uint64_t>(ext) | kErrorExtBit;
+        _data = toInternalErrorData(ext);
     }
 
     Error::~Error() noexcept
     {
-        if (_data & kErrorExtBit)
+        clear();
+    }
+
+    void Error::clear()
+    {
+        if (isExtError(_data))
         {
             const auto* ext = toErrorExt(_data);
             delete ext;
         }
         _data = 0;
+    }
+
+    bool Error::empty() const noexcept
+    {
+        return _data == 0;
     }
 
     bool Error::operator==(ErrorCode code) const noexcept
@@ -80,14 +102,29 @@ namespace zasm
 
     Error& Error::operator=(Error&& other) noexcept
     {
-        if (_data & kErrorExtBit)
-        {
-            const auto* ext = toErrorExt(_data);
-            delete ext;
-        }
+        clear();
 
         _data = other._data;
         other._data = 0;
+
+        return *this;
+    }
+
+    Error& Error::operator=(const Error& other) noexcept
+    {
+        clear();
+
+        if (isExtError(other._data))
+        {
+            const auto* ext = toErrorExt(other._data);
+
+            auto* newExt = new ErrorExt(*ext);
+            _data = toInternalErrorData(newExt);
+        }
+        else
+        {
+            _data = other._data;
+        }
 
         return *this;
     }
@@ -99,7 +136,7 @@ namespace zasm
             return ErrorCode::None;
         }
 
-        if (data & kErrorExtBit)
+        if (isExtError(data))
         {
             const auto* ext = toErrorExt(data);
             return ext->code;
@@ -143,6 +180,9 @@ namespace zasm
             ERROR_STRING(ErrorCode::ImpossibleInstruction);
             ERROR_STRING(ErrorCode::EmptyState);
             ERROR_STRING(ErrorCode::ImpossibleRelocation);
+            ERROR_STRING(ErrorCode::AddressOutOfRange);
+            ERROR_STRING(ErrorCode::InstructionTooLong);
+            ERROR_STRING(ErrorCode::ExternalLabelNotBindable);
             default:
                 assert(false);
                 break;
@@ -156,63 +196,74 @@ namespace zasm
         return getErrorCodeName(getCode());
     }
 
+    static const char* getErrorCodeMessage(ErrorCode err) noexcept
+    {
+        // Give a default message for known error codes.
+        switch (err)
+        {
+            case ErrorCode::None:
+                return "No error";
+            case ErrorCode::InvalidMode:
+                return "Invalid mode";
+            case ErrorCode::NotInitialized:
+                return "Not initialized";
+            case ErrorCode::InvalidOperation:
+                return "Invalid operation";
+            case ErrorCode::InvalidParameter:
+                return "Invalid parameter";
+            case ErrorCode::FileNotFound:
+                return "File not found";
+            case ErrorCode::AccessDenied:
+                return "Access denied";
+            case ErrorCode::OutOfMemory:
+                return "Out of memory";
+            case ErrorCode::LabelNotFound:
+                return "Label not found";
+            case ErrorCode::UnresolvedLabel:
+                return "Unresolved label";
+            case ErrorCode::InvalidLabel:
+                return "Invalid label";
+            case ErrorCode::LabelAlreadyBound:
+                return "Label already bound";
+            case ErrorCode::SectionNotFound:
+                return "Section not found";
+            case ErrorCode::SectionAlreadyBound:
+                return "Section already bound";
+            case ErrorCode::SignatureMismatch:
+                return "Signature mismatch";
+            case ErrorCode::InvalidInstruction:
+                return "Invalid instruction";
+            case ErrorCode::OutOfBounds:
+                return "Out of bounds";
+            case ErrorCode::ImpossibleInstruction:
+                return "Impossible instruction";
+            case ErrorCode::EmptyState:
+                return "Empty state";
+            case ErrorCode::ImpossibleRelocation:
+                return "Impossible relocation";
+            case ErrorCode::ExternalLabelNotBindable:
+                return "External label can not be bound";
+            case ErrorCode::InstructionTooLong:
+                return "Instruction too long";
+            case ErrorCode::AddressOutOfRange:
+                return "Address out of range";
+            default:
+                break;
+        }
+        return "<invalid error code>";
+    }
+
     const char* Error::getErrorMessage() const noexcept
     {
-        if (_data & kErrorExtBit)
+        if (isExtError(_data))
         {
             const auto* ext = toErrorExt(_data);
             return ext->message.c_str();
         }
         else
         {
-            // Give a default message for known error codes.
-            switch (getCode())
-            {
-                case ErrorCode::None:
-                    return "No error";
-                case ErrorCode::InvalidMode:
-                    return "Invalid mode";
-                case ErrorCode::NotInitialized:
-                    return "Not initialized";
-                case ErrorCode::InvalidOperation:
-                    return "Invalid operation";
-                case ErrorCode::InvalidParameter:
-                    return "Invalid parameter";
-                case ErrorCode::FileNotFound:
-                    return "File not found";
-                case ErrorCode::AccessDenied:
-                    return "Access denied";
-                case ErrorCode::OutOfMemory:
-                    return "Out of memory";
-                case ErrorCode::LabelNotFound:
-                    return "Label not found";
-                case ErrorCode::UnresolvedLabel:
-                    return "Unresolved label";
-                case ErrorCode::InvalidLabel:
-                    return "Invalid label";
-                case ErrorCode::LabelAlreadyBound:
-                    return "Label already bound";
-                case ErrorCode::SectionNotFound:
-                    return "Section not found";
-                case ErrorCode::SectionAlreadyBound:
-                    return "Section already bound";
-                case ErrorCode::SignatureMismatch:
-                    return "Signature mismatch";
-                case ErrorCode::InvalidInstruction:
-                    return "Invalid instruction";
-                case ErrorCode::OutOfBounds:
-                    return "Out of bounds";
-                case ErrorCode::ImpossibleInstruction:
-                    return "Impossible instruction";
-                case ErrorCode::EmptyState:
-                    return "Empty state";
-                case ErrorCode::ImpossibleRelocation:
-                    return "Impossible relocation";
-                default:
-                    break;
-            }
+            return getErrorCodeMessage(getCode());
         }
-        return "";
     }
 
 } // namespace zasm

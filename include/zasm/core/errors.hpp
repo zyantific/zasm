@@ -5,11 +5,6 @@
 
 namespace zasm
 {
-    namespace detail
-    {
-        struct ErrorData;
-    }
-
     enum class ErrorCode : std::uint32_t
     {
         None = 0,
@@ -53,9 +48,7 @@ namespace zasm
 
     public:
         constexpr Error() noexcept = default;
-
         Error(const Error& other);
-
         Error(Error&& other) noexcept;
 
         /// <summary>
@@ -74,15 +67,42 @@ namespace zasm
 
         ~Error() noexcept;
 
+        /// <summary>
+        /// Returns the assigned error code.
+        /// </summary>
+        /// <returns>Error code</returns>
+        ErrorCode getCode() const noexcept;
+
+        /// <summary>
+        /// Returns the error code name as a string.
+        /// The return value is never nullptr.
+        /// </summary>
+        /// <returns>Error name</returns>
+        const char* getErrorName() const noexcept;
+
+        /// <summary>
+        /// Get the error message if it was set. If the object was constructed without a message
+        /// this function will translate the error code into a generic message.
+        /// The return value is never nullptr.
+        /// </summary>
+        /// <returns>Error message</returns>
+        const char* getErrorMessage() const noexcept;
+
+        /// <summary>
+        /// Clears the error object which means that the error code will be set to ErrorCode::None.
+        /// If the object has an additional message it will be deallocated.
+        /// </summary>
+        void clear();
+
+        /// <summary>
+        /// Returns true if the error object is empty.
+        /// </summary>
+        bool empty() const noexcept;
+
         bool operator==(ErrorCode code) const noexcept;
         bool operator!=(ErrorCode code) const noexcept;
         Error& operator=(Error&& other) noexcept;
-
-        ErrorCode getCode() const noexcept;
-
-        const char* getErrorName() const noexcept;
-
-        const char* getErrorMessage() const noexcept;
+        Error& operator=(const Error& other) noexcept;
     };
 
 } // namespace zasm
