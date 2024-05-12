@@ -337,11 +337,11 @@ namespace zasm::formatter
                 {
                     if (disp < 0)
                     {
-                        ctx.format("0x%" PRIx64, -disp);
+                        ctx.format("0x%02" PRIx64, -disp);
                     }
                     else
                     {
-                        ctx.format("0x%" PRIx64, disp);
+                        ctx.format("0x%02" PRIx64, disp);
                     }
                 }
                 else
