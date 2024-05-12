@@ -26,7 +26,7 @@ namespace zasm::x86
     // ex.: mov eax, ptr [ecx+edx]
     static constexpr Mem ptr(BitSize bitSize, const Gp& base, const Gp& index) noexcept
     {
-        return Mem(bitSize, Seg{}, base, index, 0, 0);
+        return Mem(bitSize, Seg{}, base, index, 1, 0);
     }
 
     // ptr [base + index * scale + disp]
@@ -96,7 +96,7 @@ namespace zasm::x86
     // ex.: mov eax, ptr:ds [edx+ecx]
     static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Gp& base, const Gp& index) noexcept
     {
-        return Mem(bitSize, seg, base, index, 0, 0);
+        return Mem(bitSize, seg, base, index, 1, 0);
     }
 
     // ptr : seg [base + index * scale + disp]
