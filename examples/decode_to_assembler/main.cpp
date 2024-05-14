@@ -33,16 +33,16 @@ int main()
         const auto decoderRes = decoder.decode(code.data() + bytesDecoded, code.size() - bytesDecoded, curAddress);
         if (!decoderRes)
         {
-            std::cout << "Failed to decode at " << std::hex << curAddress << ", " << getErrorName(decoderRes.error()) << "\n";
+            std::cout << "Failed to decode at " << std::hex << curAddress << ", " << decoderRes.error().getErrorName() << "\n";
             return EXIT_FAILURE;
         }
 
         const auto& instrInfo = *decoderRes;
         
         const auto instr = instrInfo.getInstruction();
-        if (auto res = assembler.emit(instr); res != zasm::Error::None)
+        if (auto res = assembler.emit(instr); res != zasm::ErrorCode::None)
         {
-            std::cout << "Failed to emit instruction " << std::hex << curAddress << ", " << getErrorName(res) << "\n";
+            std::cout << "Failed to emit instruction " << std::hex << curAddress << ", " << res.getErrorName() << "\n";
         }
 
         bytesDecoded += instrInfo.getLength();

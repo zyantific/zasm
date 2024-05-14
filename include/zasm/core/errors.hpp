@@ -5,7 +5,7 @@
 
 namespace zasm
 {
-    enum class Error : std::uint32_t
+    enum class ErrorCode : std::uint32_t
     {
         None = 0,
         // Generic.
@@ -28,47 +28,81 @@ namespace zasm
         // Decoder.
         InvalidInstruction,
         OutOfBounds,
+        InstructionTooLong,
         // Encoder.
         ImpossibleInstruction,
+        AddressOutOfRange,
         // Serialization.
         EmptyState,
         ImpossibleRelocation,
     };
 
-    static constexpr const char* getErrorName(Error err) noexcept
+    /// <summary>
+    /// The Error class represents an error code and can have additionally a message attached.
+    /// If the object is constructed with an error message additional memory will be allocated.
+    /// If the object is constructed only with an error code there will be no extra allocation.
+    /// </summary>
+    class Error
     {
-#define ERROR_STRING(e)                                                                                                        \
-    case e:                                                                                                                    \
-        return #e
+        std::uintptr_t _data{};
 
-        switch (err)
-        {
-            ERROR_STRING(Error::None);
-            ERROR_STRING(Error::InvalidMode);
-            ERROR_STRING(Error::NotInitialized);
-            ERROR_STRING(Error::InvalidOperation);
-            ERROR_STRING(Error::InvalidParameter);
-            ERROR_STRING(Error::FileNotFound);
-            ERROR_STRING(Error::AccessDenied);
-            ERROR_STRING(Error::OutOfMemory);
-            ERROR_STRING(Error::LabelNotFound);
-            ERROR_STRING(Error::UnresolvedLabel);
-            ERROR_STRING(Error::InvalidLabel);
-            ERROR_STRING(Error::LabelAlreadyBound);
-            ERROR_STRING(Error::SectionNotFound);
-            ERROR_STRING(Error::SectionAlreadyBound);
-            ERROR_STRING(Error::SignatureMismatch);
-            ERROR_STRING(Error::InvalidInstruction);
-            ERROR_STRING(Error::OutOfBounds);
-            ERROR_STRING(Error::ImpossibleInstruction);
-            ERROR_STRING(Error::EmptyState);
-            ERROR_STRING(Error::ImpossibleRelocation);
-            default:
-                assert(false);
-                break;
-        }
-#undef ERROR_STRING
-        return nullptr;
-    }
+    public:
+        constexpr Error() noexcept = default;
+        Error(const Error& other);
+        Error(Error&& other) noexcept;
+
+        /// <summary>
+        /// Construct an Error object with the given error code.
+        /// </summary>
+        /// <param name="code">Error Code</param>
+        Error(ErrorCode code) noexcept;
+
+        /// <summary>
+        /// Construct an Error object with the given error code and an additional message.
+        /// The message will be copied so it is safe to pass a temporary string.
+        /// </summary>
+        /// <param name="code">Error Code</param>
+        /// <param name="message">Additional information</param>
+        Error(ErrorCode code, const char* message);
+
+        ~Error() noexcept;
+
+        /// <summary>
+        /// Returns the assigned error code.
+        /// </summary>
+        /// <returns>Error code</returns>
+        ErrorCode getCode() const noexcept;
+
+        /// <summary>
+        /// Returns the error code name as a string.
+        /// The return value is never nullptr.
+        /// </summary>
+        /// <returns>Error name</returns>
+        const char* getErrorName() const noexcept;
+
+        /// <summary>
+        /// Get the error message if it was set. If the object was constructed without a message
+        /// this function will translate the error code into a generic message.
+        /// The return value is never nullptr.
+        /// </summary>
+        /// <returns>Error message</returns>
+        const char* getErrorMessage() const noexcept;
+
+        /// <summary>
+        /// Clears the error object which means that the error code will be set to ErrorCode::None.
+        /// If the object has an additional message it will be deallocated.
+        /// </summary>
+        void clear();
+
+        /// <summary>
+        /// Returns true if the error object is empty.
+        /// </summary>
+        bool empty() const noexcept;
+
+        bool operator==(ErrorCode code) const noexcept;
+        bool operator!=(ErrorCode code) const noexcept;
+        Error& operator=(Error&& other) noexcept;
+        Error& operator=(const Error& other) noexcept;
+    };
 
 } // namespace zasm

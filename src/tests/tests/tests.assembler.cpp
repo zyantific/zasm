@@ -11,7 +11,7 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
         ASSERT_EQ(label01.isValid(), true);
-        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
     }
 
     TEST(AssemblerTests, TestDoubleBindLabel)
@@ -22,8 +22,8 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
         ASSERT_EQ(label01.isValid(), true);
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.bind(label01), Error::LabelAlreadyBound);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::LabelAlreadyBound);
     }
 
     TEST(AssemblerTests, TestBindInvalidLabel)
@@ -32,9 +32,9 @@ namespace zasm::tests
 
         x86::Assembler assembler(program);
 
-        zasm::Label label01;
+        Label label01;
         ASSERT_EQ(label01.isValid(), false);
-        ASSERT_EQ(assembler.bind(label01), Error::InvalidLabel);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::InvalidLabel);
     }
 
     TEST(AssemblerTests, TestEmitDirectMov)
@@ -43,7 +43,7 @@ namespace zasm::tests
 
         x86::Assembler assembler(program);
 
-        ASSERT_EQ(assembler.emit(x86::Mnemonic::Mov, x86::rax, Imm(01)), Error::None);
+        ASSERT_EQ(assembler.emit(x86::Mnemonic::Mov, x86::rax, Imm(01)), ErrorCode::None);
     }
 
     TEST(AssemblerTests, TestRemoveCursorNode)
@@ -52,11 +52,11 @@ namespace zasm::tests
 
         x86::Assembler assembler(program);
         
-        ASSERT_EQ(assembler.mov(x86::rax, x86::rax), Error::None);
+        ASSERT_EQ(assembler.mov(x86::rax, x86::rax), ErrorCode::None);
         auto* nodeA = assembler.getCursor();
-        ASSERT_EQ(assembler.mov(x86::rdx, x86::rdx), Error::None);
+        ASSERT_EQ(assembler.mov(x86::rdx, x86::rdx), ErrorCode::None);
         auto* nodeB = assembler.getCursor();
-        ASSERT_EQ(assembler.mov(x86::rbx, x86::rbx), Error::None);
+        ASSERT_EQ(assembler.mov(x86::rbx, x86::rbx), ErrorCode::None);
         auto* nodeC = assembler.getCursor();
         
         program.destroy(nodeC);

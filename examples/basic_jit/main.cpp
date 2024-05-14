@@ -127,9 +127,9 @@ int main()
 
     // Serialize program.
     Serializer serializer;
-    if (auto err = serializer.serialize(program, reinterpret_cast<int64_t>(pCodePage)); err != zasm::Error::None)
+    if (auto err = serializer.serialize(program, reinterpret_cast<int64_t>(pCodePage)); err != zasm::ErrorCode::None)
     {
-        std::cout << "Serialization failure: " << zasm::getErrorName(err) << "\n";
+        std::cout << "Serialization failure: " << err.getErrorName() << "\n";
         return EXIT_FAILURE;
     }
 

@@ -49,7 +49,7 @@ namespace zasm
 
         if (decoded.getVisibleOperandCount() != opCount)
         {
-            return zasm::makeUnexpected(Error::InvalidOperation);
+            return zasm::makeUnexpected(Error{ ErrorCode::InvalidOperation });
         }
 
         // Replace the decoded operands with user specified operands.

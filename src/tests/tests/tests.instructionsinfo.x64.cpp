@@ -17,7 +17,7 @@ namespace zasm::tests
         Program program(MachineMode::AMD64);
 
         x86::Assembler assembler(program);
-        ASSERT_EQ(instrTest.emitter(assembler), Error::None) << instrTest.operation;
+        ASSERT_EQ(instrTest.emitter(assembler), ErrorCode::None) << instrTest.operation;
 
         const auto* node = assembler.getCursor();
         ASSERT_NE(node, nullptr);

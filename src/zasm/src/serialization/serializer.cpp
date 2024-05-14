@@ -4,6 +4,7 @@
 #include "../program/program.state.hpp"
 #include "zasm/core/math.hpp"
 #include "zasm/encoder/encoder.hpp"
+#include "zasm/formatter/formatter.hpp"
 
 #include <Zydis/Decoder.h>
 #include <algorithm>
@@ -66,7 +67,7 @@ namespace zasm
         nodeEntry.address = ctx.va;
         ctx.nodeIndex++;
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static constexpr auto kX86NopTable = std::array<std::array<std::uint8_t, 8>, 9>{ {
@@ -140,7 +141,7 @@ namespace zasm
         ctx.va += alignSize;
         ctx.offset += alignSize;
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error serializeNode(const detail::ProgramState& prog, SerializeContext& state, const Instruction& instr)
@@ -157,7 +158,7 @@ namespace zasm
             auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
             ctx.nodeIndex++;
 
-            if (nodeEntry.length != 0 &&  res->buffer.length != nodeEntry.length)
+            if (nodeEntry.length != 0 && res->buffer.length != nodeEntry.length)
             {
                 ctx.needsExtraPass = true;
             }
@@ -178,14 +179,14 @@ namespace zasm
         auto& buffer = state.buffer;
         buffer.insert(buffer.end(), std::begin(res->buffer.data), std::begin(res->buffer.data) + res->buffer.length);
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error serializeNode(const detail::ProgramState& prog, SerializeContext& state, const Label& label)
     {
         if (!label.isValid())
         {
-            return Error::InvalidLabel;
+            return ErrorCode::InvalidLabel;
         }
 
         auto& ctx = state.ctx;
@@ -200,14 +201,14 @@ namespace zasm
         const auto labelIdx = static_cast<std::size_t>(label.getId());
         if (labelIdx >= prog.labels.size())
         {
-            return Error::LabelNotFound;
+            return ErrorCode::LabelNotFound;
         }
 
         auto& linkEntry = state.ctx.getOrCreateLabelLink(label.getId());
         linkEntry.boundOffset = ctx.offset;
         linkEntry.boundVA = ctx.va;
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static bool isSameSection(const EncoderSection& lhs, const EncoderSection& rhs) noexcept
@@ -235,7 +236,7 @@ namespace zasm
         const auto sectionIndex = static_cast<std::size_t>(section.getId());
         if (sectionIndex >= prog.sections.size())
         {
-            return Error::SectionNotFound;
+            return ErrorCode::SectionNotFound;
         }
 
         const auto& sectionData = prog.sections[sectionIndex];
@@ -269,7 +270,7 @@ namespace zasm
         nodeEntry.offset = ctx.offset;
         nodeEntry.address = ctx.va;
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error serializeNode([[maybe_unused]] const detail::ProgramState& program, SerializeContext& state, const Data& data)
@@ -301,7 +302,7 @@ namespace zasm
             std::copy_n(ptr, dataSize, std::back_inserter(buffer));
         }
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error serializeNode(const detail::ProgramState& program, SerializeContext& state, const EmbeddedLabel& data)
@@ -345,7 +346,7 @@ namespace zasm
         {
             if (!ctx.needsExtraPass && absValue >= std::numeric_limits<std::uint8_t>::max())
             {
-                return Error::InvalidLabel;
+                return ErrorCode::InvalidLabel;
             }
             const auto rawValue = static_cast<std::int8_t>(labelAddr);
             std::memcpy(tempBuf.data(), &rawValue, sizeof(rawValue));
@@ -355,7 +356,7 @@ namespace zasm
         {
             if (!ctx.needsExtraPass && absValue >= std::numeric_limits<std::uint16_t>::max())
             {
-                return Error::InvalidLabel;
+                return ErrorCode::InvalidLabel;
             }
             const auto rawValue = static_cast<std::int16_t>(labelAddr);
             std::memcpy(tempBuf.data(), &rawValue, sizeof(rawValue));
@@ -365,7 +366,7 @@ namespace zasm
         {
             if (!ctx.needsExtraPass && absValue >= std::numeric_limits<std::uint32_t>::max())
             {
-                return Error::InvalidLabel;
+                return ErrorCode::InvalidLabel;
             }
             const auto rawValue = static_cast<std::int32_t>(labelAddr);
             std::memcpy(tempBuf.data(), &rawValue, sizeof(rawValue));
@@ -379,7 +380,7 @@ namespace zasm
         }
         else
         {
-            return Error::InvalidOperation;
+            return ErrorCode::InvalidOperation;
         }
 
         auto& nodeEntry = ctx.nodes[ctx.nodeIndex];
@@ -406,7 +407,7 @@ namespace zasm
         auto& buffer = state.buffer;
         buffer.insert(buffer.end(), std::begin(tempBuf), std::begin(tempBuf) + byteSize);
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     Serializer::Serializer()
@@ -476,7 +477,7 @@ namespace zasm
         defaultSect.address = newBase;
         defaultSect.nameId = programState.symbolNames.aquire(".text");
 
-        const auto serializePass = [&]() {
+        const auto serializePass = [&]() -> Error {
             state.buffer.clear();
 
             encoderCtx.needsExtraPass = false;
@@ -485,7 +486,6 @@ namespace zasm
             encoderCtx.va = newBase;
             encoderCtx.nodeIndex = 0;
             encoderCtx.sectionIndex = 0;
-        
 
             // Setup default section.
             encoderCtx.sections.clear();
@@ -494,9 +494,17 @@ namespace zasm
             for (const auto* node = first; node != lastNode; node = node->getNext())
             {
                 const auto status = node->visit([&](auto&& n) { return serializeNode(programState, state, n); });
-                if (status != Error::None)
+                if (status != ErrorCode::None)
                 {
-                    return status;
+                    const auto fmtOptions = formatter::Options::HexImmediates | formatter::Options::HexOffsets;
+                    const auto nodeString = formatter::toString(program, node, fmtOptions);
+
+                    char msg[256];
+                    std::snprintf(
+                        msg, sizeof(msg), "Error at node \"%s\" with id %u: %s", nodeString.c_str(),
+                        static_cast<std::uint32_t>(node->getId()), status.getErrorMessage());
+
+                    return Error(status.getCode(), msg);
                 }
             }
 
@@ -504,11 +512,11 @@ namespace zasm
             codeDiff = newSize - codeSize;
             codeSize = newSize;
 
-            return Error::None;
+            return ErrorCode::None;
         };
 
         // Initial.
-        if (const auto status = serializePass(); status != Error::None)
+        if (const auto status = serializePass(); status != ErrorCode::None)
         {
             return status;
         }
@@ -521,13 +529,13 @@ namespace zasm
             std::begin(encoderCtx.labelLinks), std::end(encoderCtx.labelLinks), isUnresolvedLabel);
         if (hasUnresolvedLinks)
         {
-            return Error::UnresolvedLabel;
+            return ErrorCode::UnresolvedLabel;
         }
 
         // Second or more passes.
         while (encoderCtx.needsExtraPass)
         {
-            if (const auto status = serializePass(); status != Error::None)
+            if (const auto status = serializePass(); status != ErrorCode::None)
             {
                 return status;
             }
@@ -543,7 +551,7 @@ namespace zasm
             const auto labelIdx = static_cast<std::size_t>(labelLink.id);
             if (labelIdx >= programState.labels.size())
             {
-                return Error::InvalidLabel;
+                return ErrorCode::InvalidLabel;
             }
 
             auto& labelEntry = _state->labels.emplace_back();
@@ -565,12 +573,12 @@ namespace zasm
                 decoderStatus = ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZydisStackWidth::ZYDIS_STACK_WIDTH_64);
                 break;
             default:
-                return Error::InvalidParameter;
+                return ErrorCode::InvalidParameter;
         }
         if (decoderStatus != ZYAN_STATUS_SUCCESS)
         {
             // FIXME: Make this a better error.
-            return Error::InvalidMode;
+            return ErrorCode::InvalidMode;
         }
 
         _state->relocations.clear();
@@ -607,7 +615,7 @@ namespace zasm
                 if (decoderStatus != ZYAN_STATUS_SUCCESS)
                 {
                     // FIXME: Properly translate the error.
-                    return Error::ImpossibleRelocation;
+                    return ErrorCode::ImpossibleRelocation;
                 }
 
                 if (node.relocData == RelocationData::Immediate)
@@ -676,14 +684,14 @@ namespace zasm
 
         _state->base = newBase;
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     Error Serializer::relocate(std::int64_t newBase)
     {
         if (_state->code.empty())
         {
-            return Error::EmptyState;
+            return ErrorCode::EmptyState;
         }
 
         const auto oldBase = _state->base;
@@ -706,7 +714,7 @@ namespace zasm
 
                 if (newValue > std::numeric_limits<std::uint32_t>::max())
                 {
-                    return Error::ImpossibleRelocation;
+                    return ErrorCode::ImpossibleRelocation;
                 }
 
                 value = static_cast<std::uint32_t>(newValue);
@@ -761,7 +769,7 @@ namespace zasm
         _state->externalRelocations = std::move(externalRelocs);
         _state->base = newBase;
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     std::int64_t Serializer::getBase() const noexcept

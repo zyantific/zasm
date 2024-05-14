@@ -109,10 +109,19 @@ namespace zasm
                 break;
         }
 
-        if (status != ZYAN_STATUS_SUCCESS)
+        switch (status)
         {
-            // TODO: Translate proper error.
-            _status = Error::NotInitialized;
+            case ZYAN_STATUS_SUCCESS:
+                break;
+            case ZYAN_STATUS_INVALID_ARGUMENT:
+                _status = Error{ ErrorCode::InvalidParameter };
+                break;
+            case ZYAN_STATUS_INVALID_OPERATION:
+                _status = Error{ ErrorCode::InvalidOperation };
+                break;
+            default:
+                _status = Error{ ErrorCode::NotInitialized };
+                break;
         }
     }
 
@@ -158,7 +167,7 @@ namespace zasm
 
     Decoder::Result Decoder::decode(const void* data, const std::size_t len, std::uint64_t address) noexcept
     {
-        if (_status != Error::None)
+        if (_status != ErrorCode::None)
         {
             return zasm::makeUnexpected(_status);
         }
@@ -169,8 +178,20 @@ namespace zasm
         ZyanStatus status = ZydisDecoderDecodeFull(&_decoder, data, len, &instr, instrOps.data());
         if (status != ZYAN_STATUS_SUCCESS)
         {
-            // TODO: Translate proper error.
-            return zasm::makeUnexpected(Error::InvalidOperation);
+            switch (status)
+            {
+                case ZYDIS_STATUS_NO_MORE_DATA:
+                    _status = Error{ ErrorCode::OutOfBounds };
+                    break;
+                case ZYDIS_STATUS_INSTRUCTION_TOO_LONG:
+                    _status = Error{ ErrorCode::InstructionTooLong };
+                    break;
+                default:
+                    _status = Error{ ErrorCode::InvalidInstruction };
+                    break;
+            }
+
+            return zasm::makeUnexpected(_status);
         }
 
         InstructionDetail::CPUFlags flags{};
@@ -205,6 +226,16 @@ namespace zasm
             attribs, instr.mnemonic, instr.operand_count, ops, access, vis, flags, category, instr.length);
 
         return res;
+    }
+
+    MachineMode Decoder::getMode() const
+    {
+        return _mode;
+    }
+
+    const Error& Decoder::getLastError() const
+    {
+        return _status;
     }
 
 } // namespace zasm

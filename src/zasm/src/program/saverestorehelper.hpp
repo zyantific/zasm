@@ -33,26 +33,26 @@ namespace zasm
         {
             if (_isLoad)
             {
-                return Error::InvalidOperation;
+                return ErrorCode::InvalidOperation;
             }
             _stream.write(src, length);
-            return Error::None;
+            return ErrorCode::None;
         }
 
         Error read(void* dst, size_t length)
         {
             if (!_isLoad || _stream.isEnd())
             {
-                return Error::InvalidOperation;
+                return ErrorCode::InvalidOperation;
             }
             _stream.read(dst, length);
-            return Error::None;
+            return ErrorCode::None;
         }
 
         template<typename T> SaveRestore& operator<<(const T& value)
         {
             if (_isLoad)
-                throw Error::InvalidOperation;
+                throw Error{ ErrorCode::InvalidOperation };
 
             using ValueType = std::decay_t<T>;
 
@@ -60,17 +60,18 @@ namespace zasm
 
             if constexpr (kEnableVariableLengthEncoding && std::is_integral_v<ValueType>)
             {
-                if (auto err = writeVariableInteger(value); err != Error::None)
+                if (auto err = writeVariableInteger(value); err != ErrorCode::None)
                     throw err;
             }
             else if constexpr (kEnableVariableLengthEncoding && std::is_enum_v<ValueType>)
             {
-                if (auto err = writeVariableInteger(static_cast<std::underlying_type_t<ValueType>>(value)); err != Error::None)
+                if (auto err = writeVariableInteger(static_cast<std::underlying_type_t<ValueType>>(value));
+                    err != ErrorCode::None)
                     throw err;
             }
             else
             {
-                if (auto err = write(&value, sizeof(T)); err != Error::None)
+                if (auto err = write(&value, sizeof(T)); err != ErrorCode::None)
                     throw err;
             }
 
@@ -80,7 +81,7 @@ namespace zasm
         template<typename T> SaveRestore& operator>>(T& value)
         {
             if (!_isLoad)
-                throw Error::InvalidOperation;
+                throw ErrorCode::InvalidOperation;
 
             using ValueType = std::decay_t<T>;
 
@@ -88,7 +89,7 @@ namespace zasm
 
             if constexpr (kEnableVariableLengthEncoding && std::is_integral_v<ValueType>)
             {
-                if (auto err = readVariableInteger(value); err != Error::None)
+                if (auto err = readVariableInteger(value); err != ErrorCode::None)
                     throw err;
             }
             else if constexpr (kEnableVariableLengthEncoding && std::is_enum_v<ValueType>)
@@ -96,14 +97,14 @@ namespace zasm
                 using T2 = std::underlying_type_t<ValueType>;
 
                 T2 tmp{};
-                if (auto err = readVariableInteger(tmp); err != Error::None)
+                if (auto err = readVariableInteger(tmp); err != ErrorCode::None)
                     throw err;
 
                 value = static_cast<T>(tmp);
             }
             else
             {
-                if (auto err = read(static_cast<void*>(&value), sizeof(T)); err != Error::None)
+                if (auto err = read(static_cast<void*>(&value), sizeof(T)); err != ErrorCode::None)
                     throw err;
             }
 
@@ -125,10 +126,10 @@ namespace zasm
             }
             tempBuffer[bytesUsed++] = static_cast<std::uint8_t>(tmp & 0x7F);
 
-            if (auto err = write(tempBuffer, bytesUsed); err != Error::None)
+            if (auto err = write(tempBuffer, bytesUsed); err != ErrorCode::None)
                 return err;
 
-            return Error::None;
+            return ErrorCode::None;
         }
 
         template<typename T> Error readVariableInteger(T& value)
@@ -137,7 +138,7 @@ namespace zasm
             for (std::size_t i = 0;; i++)
             {
                 std::uint8_t byte;
-                if (auto err = read(&byte, sizeof(byte)); err != Error::None)
+                if (auto err = read(&byte, sizeof(byte)); err != ErrorCode::None)
                     return err;
 
                 tmp |= (static_cast<T>(byte) & 0x7F) << (i * 7);
@@ -145,7 +146,7 @@ namespace zasm
                     break;
             }
             value = static_cast<T>(tmp);
-            return Error::None;
+            return ErrorCode::None;
         }
     };
 

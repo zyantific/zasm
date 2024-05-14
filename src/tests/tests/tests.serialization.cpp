@@ -10,10 +10,10 @@ namespace zasm::tests
 
         x86::Assembler assembler(program);
 
-        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(0)), Error::None);
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(0)), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 8> expected = {
             0x48, 0x8D, 0x04, 0x25, 0x00, 0x00, 0x00, 0x00,
@@ -34,10 +34,10 @@ namespace zasm::tests
 
         x86::Assembler assembler(program);
 
-        ASSERT_EQ(assembler.lea(x86::eax, x86::dword_ptr(0)), Error::None);
+        ASSERT_EQ(assembler.lea(x86::eax, x86::dword_ptr(0)), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 6> expected = {
             0x8D, 0x05, 0x00, 0x00, 0x00, 0x00,
@@ -60,12 +60,12 @@ namespace zasm::tests
 
         auto label = assembler.createLabel();
 
-        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(x86::rip, label)), Error::None);
-        ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.dq(0x123C312F21329F31ULL), Error::None);
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(x86::rip, label)), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label), ErrorCode::None);
+        ASSERT_EQ(assembler.dq(0x123C312F21329F31ULL), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 15> expected = {
             0x48, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0x31, 0x9F, 0x32, 0x21, 0x2F, 0x31, 0x3C, 0x12,
@@ -88,12 +88,12 @@ namespace zasm::tests
 
         auto label = assembler.createLabel();
 
-        ASSERT_EQ(assembler.lea(x86::eax, x86::dword_ptr(label)), Error::None);
-        ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.dq(0x123C312F21329F31ULL), Error::None);
+        ASSERT_EQ(assembler.lea(x86::eax, x86::dword_ptr(label)), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label), ErrorCode::None);
+        ASSERT_EQ(assembler.dq(0x123C312F21329F31ULL), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 14> expected = { 0x8D, 0x05, 0x06, 0x10, 0x40, 0x00, 0x31,
                                                         0x9F, 0x32, 0x21, 0x2F, 0x31, 0x3C, 0x12 };
@@ -115,14 +115,14 @@ namespace zasm::tests
 
         auto label = assembler.createLabel();
 
-        ASSERT_EQ(assembler.jmp(label), Error::None);
+        ASSERT_EQ(assembler.jmp(label), ErrorCode::None);
         for (int i = 0; i < 124; i++)
-            ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.int3(), Error::None);
+            ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label), ErrorCode::None);
+        ASSERT_EQ(assembler.int3(), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 127> expected = {
             0xEB, 0x7C, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -151,15 +151,15 @@ namespace zasm::tests
 
         auto label = assembler.createLabel();
 
-        ASSERT_EQ(assembler.jmp(label), Error::None);
+        ASSERT_EQ(assembler.jmp(label), ErrorCode::None);
         for (int i = 0; i < 100; i++)
-            ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.align(Align::Type::Code, 16), Error::None);
-        ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.int3(), Error::None);
+            ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.align(Align::Type::Code, 16), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label), ErrorCode::None);
+        ASSERT_EQ(assembler.int3(), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 113> expected = {
             0xEB, 0x6E, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -192,15 +192,15 @@ namespace zasm::tests
 
         auto label = assembler.createLabel();
 
-        ASSERT_EQ(assembler.jmp(label), Error::None);
+        ASSERT_EQ(assembler.jmp(label), ErrorCode::None);
         for (int i = 0; i < 124; i++)
-            ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.align(Align::Type::Code, 32), Error::None);
-        ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.int3(), Error::None);
+            ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.align(Align::Type::Code, 32), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label), ErrorCode::None);
+        ASSERT_EQ(assembler.int3(), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 161> expected = {
             0xE9, 0x9B, 0x00, 0x00, 0x00, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -232,14 +232,14 @@ namespace zasm::tests
 
         auto label = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.int3(), Error::None);
+        ASSERT_EQ(assembler.bind(label), ErrorCode::None);
+        ASSERT_EQ(assembler.int3(), ErrorCode::None);
         for (int i = 0; i < 124; i++)
-            ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.jmp(label), Error::None);
+            ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.jmp(label), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 127> expected = {
             0xCC, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -268,14 +268,14 @@ namespace zasm::tests
 
         auto label = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.int3(), Error::None);
+        ASSERT_EQ(assembler.bind(label), ErrorCode::None);
+        ASSERT_EQ(assembler.int3(), ErrorCode::None);
         for (int i = 0; i < 124; i++)
-            ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.jmp(label), Error::None);
+            ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.jmp(label), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 127> expected = {
             0xCC, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -304,14 +304,14 @@ namespace zasm::tests
 
         auto label = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.int3(), Error::None);
+        ASSERT_EQ(assembler.bind(label), ErrorCode::None);
+        ASSERT_EQ(assembler.int3(), ErrorCode::None);
         for (int i = 0; i < 125; i++)
-            ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.jmp(label), Error::None);
+            ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.jmp(label), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 131> expected = {
             0xCC, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -340,14 +340,14 @@ namespace zasm::tests
 
         auto label = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label), Error::None);
-        ASSERT_EQ(assembler.int3(), Error::None);
+        ASSERT_EQ(assembler.bind(label), ErrorCode::None);
+        ASSERT_EQ(assembler.int3(), ErrorCode::None);
         for (int i = 0; i < 125; i++)
-            ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.jmp(label), Error::None);
+            ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.jmp(label), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 131> expected = {
             0xCC, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -376,12 +376,12 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(label01)), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(label01)), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::UnresolvedLabel);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::UnresolvedLabel);
     }
 
     TEST(SerializationTests, UnBoundLabelRegression01)
@@ -406,67 +406,69 @@ namespace zasm::tests
         Label labelImpExitProcess = program.getOrCreateImportLabel("kernel32.dll", "ExitProcess");
         Label labelImpMessageBoxA = program.getOrCreateImportLabel("user32.dll", "MessageBoxA");
 
-        ASSERT_EQ(a.section(".text", Section::Attribs::Code | Section::Attribs::Exec | Section::Attribs::Read), Error::None);
-        ASSERT_EQ(a.bind(labelMain), Error::None);
-        ASSERT_EQ(a.sub(x86::rsp, Imm(0x28)), Error::None);
-        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelRData01)), Error::None);
-        ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rdx)), Error::None);
-        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelData01)), Error::None);
-        ASSERT_EQ(a.mov(x86::qword_ptr(x86::rdx), x86::rax), Error::None);
-        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelRData02)), Error::None);
-        ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rdx)), Error::None);
-        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelData02)), Error::None);
-        ASSERT_EQ(a.mov(x86::qword_ptr(x86::rdx), x86::rax), Error::None);
-        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelRData03)), Error::None);
-        ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rdx)), Error::None);
-        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelData03)), Error::None);
-        ASSERT_EQ(a.mov(x86::qword_ptr(x86::rdx), x86::rax), Error::None);
-        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelRData04)), Error::None);
-        ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rdx)), Error::None);
-        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelData04)), Error::None);
-        ASSERT_EQ(a.mov(x86::qword_ptr(x86::rdx), x86::rax), Error::None);
-        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelRData05)), Error::None);
-        ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rdx)), Error::None);
-        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelData05)), Error::None);
-        ASSERT_EQ(a.mov(x86::qword_ptr(x86::rdx), x86::rax), Error::None);
-        ASSERT_EQ(a.xor_(x86::rcx, x86::rcx), Error::None);
-        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelStrMessage)), Error::None);
-        ASSERT_EQ(a.lea(x86::r8, x86::qword_ptr(labelStrTitle)), Error::None);
-        ASSERT_EQ(a.mov(x86::r9, Imm(0)), Error::None);
-        ASSERT_EQ(a.call(x86::qword_ptr(labelImpMessageBoxA)), Error::None);
-        ASSERT_EQ(a.xor_(x86::rcx, x86::rcx), Error::None);
-        ASSERT_EQ(a.call(x86::qword_ptr(labelImpExitProcess)), Error::None);
-        ASSERT_EQ(a.add(x86::rsp, Imm(0x28)), Error::None);
-        ASSERT_EQ(a.ret(), Error::None);
+        ASSERT_EQ(
+            a.section(".text", Section::Attribs::Code | Section::Attribs::Exec | Section::Attribs::Read), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelMain), ErrorCode::None);
+        ASSERT_EQ(a.sub(x86::rsp, Imm(0x28)), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelRData01)), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rdx)), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelData01)), ErrorCode::None);
+        ASSERT_EQ(a.mov(x86::qword_ptr(x86::rdx), x86::rax), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelRData02)), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rdx)), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelData02)), ErrorCode::None);
+        ASSERT_EQ(a.mov(x86::qword_ptr(x86::rdx), x86::rax), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelRData03)), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rdx)), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelData03)), ErrorCode::None);
+        ASSERT_EQ(a.mov(x86::qword_ptr(x86::rdx), x86::rax), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelRData04)), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rdx)), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelData04)), ErrorCode::None);
+        ASSERT_EQ(a.mov(x86::qword_ptr(x86::rdx), x86::rax), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelRData05)), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rax, x86::qword_ptr(x86::rdx)), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelData05)), ErrorCode::None);
+        ASSERT_EQ(a.mov(x86::qword_ptr(x86::rdx), x86::rax), ErrorCode::None);
+        ASSERT_EQ(a.xor_(x86::rcx, x86::rcx), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rdx, x86::qword_ptr(labelStrMessage)), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::r8, x86::qword_ptr(labelStrTitle)), ErrorCode::None);
+        ASSERT_EQ(a.mov(x86::r9, Imm(0)), ErrorCode::None);
+        ASSERT_EQ(a.call(x86::qword_ptr(labelImpMessageBoxA)), ErrorCode::None);
+        ASSERT_EQ(a.xor_(x86::rcx, x86::rcx), ErrorCode::None);
+        ASSERT_EQ(a.call(x86::qword_ptr(labelImpExitProcess)), ErrorCode::None);
+        ASSERT_EQ(a.add(x86::rsp, Imm(0x28)), ErrorCode::None);
+        ASSERT_EQ(a.ret(), ErrorCode::None);
 
-        ASSERT_EQ(a.section(".data", Section::Attribs::Data | Section::Attribs::Read | Section::Attribs::Write), Error::None);
-        ASSERT_EQ(a.bind(labelData01), Error::None);
-        ASSERT_EQ(a.dq(01), Error::None);
-        ASSERT_EQ(a.bind(labelData02), Error::None);
-        ASSERT_EQ(a.dq(02), Error::None);
-        ASSERT_EQ(a.bind(labelData03), Error::None);
-        ASSERT_EQ(a.dq(03), Error::None);
-        ASSERT_EQ(a.bind(labelData04), Error::None);
-        ASSERT_EQ(a.dq(04), Error::None);
-        ASSERT_EQ(a.bind(labelData05), Error::None);
-        ASSERT_EQ(a.dq(05), Error::None);
+        ASSERT_EQ(
+            a.section(".data", Section::Attribs::Data | Section::Attribs::Read | Section::Attribs::Write), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelData01), ErrorCode::None);
+        ASSERT_EQ(a.dq(01), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelData02), ErrorCode::None);
+        ASSERT_EQ(a.dq(02), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelData03), ErrorCode::None);
+        ASSERT_EQ(a.dq(03), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelData04), ErrorCode::None);
+        ASSERT_EQ(a.dq(04), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelData05), ErrorCode::None);
+        ASSERT_EQ(a.dq(05), ErrorCode::None);
 
-        ASSERT_EQ(a.section(".rdata", Section::Attribs::RData | Section::Attribs::Read), Error::None);
-        ASSERT_EQ(a.bind(labelStrMessage), Error::None);
-        ASSERT_EQ(a.embed("Hello World", 12), Error::None);
-        ASSERT_EQ(a.bind(labelRData01), Error::None);
-        ASSERT_EQ(a.dq(01), Error::None);
-        ASSERT_EQ(a.bind(labelRData02), Error::None);
-        ASSERT_EQ(a.dq(02), Error::None);
-        ASSERT_EQ(a.bind(labelRData03), Error::None);
-        ASSERT_EQ(a.dq(03), Error::None);
-        ASSERT_EQ(a.bind(labelRData04), Error::None);
-        ASSERT_EQ(a.dq(04), Error::None);
-        ASSERT_EQ(a.bind(labelRData05), Error::None);
-        ASSERT_EQ(a.dq(05), Error::None);
+        ASSERT_EQ(a.section(".rdata", Section::Attribs::RData | Section::Attribs::Read), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelStrMessage), ErrorCode::None);
+        ASSERT_EQ(a.embed("Hello World", 12), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelRData01), ErrorCode::None);
+        ASSERT_EQ(a.dq(01), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelRData02), ErrorCode::None);
+        ASSERT_EQ(a.dq(02), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelRData03), ErrorCode::None);
+        ASSERT_EQ(a.dq(03), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelRData04), ErrorCode::None);
+        ASSERT_EQ(a.dq(04), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelRData05), ErrorCode::None);
+        ASSERT_EQ(a.dq(05), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::UnresolvedLabel);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::UnresolvedLabel);
     }
 
     TEST(SerializationTests, EmbeddedLabelX64)
@@ -477,13 +479,13 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.embedLabel(label01), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabel(label01), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 10> expected = { 0x90, 0x90, 0x00, 0x10, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -504,13 +506,13 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.embedLabel(label01), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabel(label01), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 6> expected = { 0x90, 0x90, 0x00, 0x10, 0x40, 0x00 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -532,14 +534,14 @@ namespace zasm::tests
         auto label01 = assembler.createLabel();
         auto label02 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.bind(label02), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.embedLabelRel(label02, label01, BitSize::_8), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label02), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabelRel(label02, label01, BitSize::_8), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 3> expected = { 0x90, 0x90, 0x01 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -561,14 +563,14 @@ namespace zasm::tests
         auto label01 = assembler.createLabel();
         auto label02 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.embedLabelRel(label02, label01, BitSize::_8), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.bind(label02), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabelRel(label02, label01, BitSize::_8), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label02), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 3> expected = { 0x02, 0x90, 0x90 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -590,14 +592,14 @@ namespace zasm::tests
         auto label01 = assembler.createLabel();
         auto label02 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.embedLabelRel(label01, label02, BitSize::_8), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.bind(label02), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabelRel(label01, label02, BitSize::_8), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label02), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 3> expected = { 0xFE, 0x90, 0x90 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -619,14 +621,14 @@ namespace zasm::tests
         auto label01 = assembler.createLabel();
         auto label02 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.embedLabelRel(label02, label01, BitSize::_16), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.bind(label02), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabelRel(label02, label01, BitSize::_16), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label02), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 4> expected = { 0x03, 0x00, 0x90, 0x90 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -648,14 +650,14 @@ namespace zasm::tests
         auto label01 = assembler.createLabel();
         auto label02 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.embedLabelRel(label01, label02, BitSize::_16), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.bind(label02), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabelRel(label01, label02, BitSize::_16), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label02), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 4> expected = { 0xFD, 0xFF, 0x90, 0x90 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -677,14 +679,14 @@ namespace zasm::tests
         auto label01 = assembler.createLabel();
         auto label02 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.embedLabelRel(label02, label01, BitSize::_32), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.bind(label02), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabelRel(label02, label01, BitSize::_32), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label02), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 6> expected = { 0x05, 0x00, 0x00, 0x00, 0x90, 0x90 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -706,14 +708,14 @@ namespace zasm::tests
         auto label01 = assembler.createLabel();
         auto label02 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.embedLabelRel(label01, label02, BitSize::_32), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.bind(label02), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabelRel(label01, label02, BitSize::_32), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label02), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 6> expected = { 0xFB, 0xFF, 0xFF, 0xFF, 0x90, 0x90 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -734,12 +736,12 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.db(0xCC, 16), Error::None);
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.embedLabel(label01), Error::None);
+        ASSERT_EQ(assembler.db(0xCC, 16), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabel(label01), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 24> expected = {
             0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
@@ -763,12 +765,12 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.dw(0x1234, 8), Error::None);
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.embedLabel(label01), Error::None);
+        ASSERT_EQ(assembler.dw(0x1234, 8), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabel(label01), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 24> expected = {
             0x34, 0x12, 0x34, 0x12, 0x34, 0x12, 0x34, 0x12, 0x34, 0x12, 0x34, 0x12,
@@ -792,12 +794,12 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.dd(0x12345678, 4), Error::None);
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.embedLabel(label01), Error::None);
+        ASSERT_EQ(assembler.dd(0x12345678, 4), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabel(label01), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 24> expected = {
             0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12,
@@ -821,12 +823,12 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.dq(0x12345678AABBCCEE, 2), Error::None);
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.embedLabel(label01), Error::None);
+        ASSERT_EQ(assembler.dq(0x12345678AABBCCEE, 2), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabel(label01), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 24> expected = {
             0xEE, 0xCC, 0xBB, 0xAA, 0x78, 0x56, 0x34, 0x12, 0xEE, 0xCC, 0xBB, 0xAA,
@@ -850,14 +852,14 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.db(0xCC, 4), Error::None);
+        ASSERT_EQ(assembler.db(0xCC, 4), ErrorCode::None);
 
-        ASSERT_EQ(assembler.align(Align::Type::Data, 8), Error::None);
+        ASSERT_EQ(assembler.align(Align::Type::Data, 8), ErrorCode::None);
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 8> expected = {
             0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
@@ -882,14 +884,14 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.db(0xCC, 4), Error::None);
+        ASSERT_EQ(assembler.db(0xCC, 4), ErrorCode::None);
 
-        ASSERT_EQ(assembler.align(Align::Type::Data, 16), Error::None);
+        ASSERT_EQ(assembler.align(Align::Type::Data, 16), ErrorCode::None);
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 16> expected = {
             0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
@@ -914,14 +916,14 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.db(0xCC, 4), Error::None);
+        ASSERT_EQ(assembler.db(0xCC, 4), ErrorCode::None);
 
-        ASSERT_EQ(assembler.align(Align::Type::Data, 32), Error::None);
+        ASSERT_EQ(assembler.align(Align::Type::Data, 32), ErrorCode::None);
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 32> expected = {
             0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
@@ -947,14 +949,14 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.inc(x86::eax), Error::None);
+        ASSERT_EQ(assembler.inc(x86::eax), ErrorCode::None);
 
-        ASSERT_EQ(assembler.align(Align::Type::Code, 8), Error::None);
+        ASSERT_EQ(assembler.align(Align::Type::Code, 8), ErrorCode::None);
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 8> expected = {
             0xFF, 0xC0, 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00,
@@ -979,14 +981,14 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.inc(x86::eax), Error::None);
+        ASSERT_EQ(assembler.inc(x86::eax), ErrorCode::None);
 
-        ASSERT_EQ(assembler.align(Align::Type::Code, 16), Error::None);
+        ASSERT_EQ(assembler.align(Align::Type::Code, 16), ErrorCode::None);
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 16> expected = {
             0xFF, 0xC0, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00,
@@ -1011,14 +1013,14 @@ namespace zasm::tests
 
         auto label01 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.inc(x86::eax), Error::None);
+        ASSERT_EQ(assembler.inc(x86::eax), ErrorCode::None);
 
-        ASSERT_EQ(assembler.align(Align::Type::Code, 32), Error::None);
+        ASSERT_EQ(assembler.align(Align::Type::Code, 32), ErrorCode::None);
 
-        ASSERT_EQ(assembler.bind(label01), Error::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 32> expected = {
             0xFF, 0xC0, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00,
@@ -1038,12 +1040,12 @@ namespace zasm::tests
 
     TEST(SerializationTests, SerializeDecodedSwapNodes)
     {
-        zasm::Program program(zasm::MachineMode::I386);
-        std::vector<zasm::Node*> tails = {};
+        Program program(MachineMode::I386);
+        std::vector<Node*> tails = {};
 
         {
-            zasm::x86::Assembler a(program);
-            zasm::Decoder decoder(zasm::MachineMode::I386);
+            x86::Assembler a(program);
+            Decoder decoder(MachineMode::I386);
 
             const std::array<uint8_t, 12> raw_data = {
                 0xB8, 0x00, 0x10, 0x40, 0x00, // mov eax, [blabla]
@@ -1069,15 +1071,15 @@ namespace zasm::tests
         auto bind_node = program.bindLabel(label);
         program.moveBefore(tails[4], *bind_node);
 
-        tails[3]->getIf<zasm::Instruction>()->setOperand(0, label);
+        tails[3]->getIf<Instruction>()->setOperand(0, label);
 
-        zasm::x86::Assembler a(program);
+        x86::Assembler a(program);
         a.setCursor(tails[4]);
-        a.xor_(zasm::x86::eax, zasm::x86::eax);
+        a.xor_(x86::eax, x86::eax);
 
-        zasm::Serializer serializer{};
+        Serializer serializer{};
         auto r = serializer.serialize(program, 0x406000);
-        ASSERT_EQ(r, zasm::Error::None);
+        ASSERT_EQ(r, ErrorCode::None);
 
         const std::array<std::uint8_t, 14> expected = { 0xB8, 0x00, 0x10, 0x40, 0x00, 0x83, 0xF8,
                                                         0x00, 0x90, 0xEB, 0x00, 0xC3, 0x31, 0xC0 };
@@ -1099,10 +1101,10 @@ namespace zasm::tests
         auto reg = x86::rdx;
         auto address = (uint64_t)0x0000000000401000;
 
-        ASSERT_EQ(assembler.mov(x86::Gp64(reg.getId()), x86::qword_ptr(x86::rip, (uintptr_t)address)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::Gp64(reg.getId()), x86::qword_ptr(x86::rip, (uintptr_t)address)), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<std::uint8_t, 7> expected = { 0x48, 0x8B, 0x15, 0xF9, 0xFF, 0xFF, 0xFF };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -1125,21 +1127,21 @@ namespace zasm::tests
         auto label02 = assembler.createLabel();
         auto label03 = assembler.createLabel();
 
-        ASSERT_EQ(assembler.bind(label03), Error::None);
-        ASSERT_EQ(assembler.jmp(label01), Error::None);
-        ASSERT_EQ(assembler.nop(), Error::None);
-        ASSERT_EQ(assembler.align(Align::Type::Code, 8), Error::None);
-        ASSERT_EQ(assembler.jmp(label02), Error::None);
-        ASSERT_EQ(assembler.bind(label01), Error::None);
-        ASSERT_EQ(assembler.int3(), Error::None);
-        ASSERT_EQ(assembler.align(Align::Type::Code, 10), Error::None);
-        ASSERT_EQ(assembler.bind(label02), Error::None);
-        ASSERT_EQ(assembler.int3(), Error::None);
-        ASSERT_EQ(assembler.jmp(label03), Error::None);
-        ASSERT_EQ(assembler.align(Align::Type::Code, 10), Error::None);
+        ASSERT_EQ(assembler.bind(label03), ErrorCode::None);
+        ASSERT_EQ(assembler.jmp(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.nop(), ErrorCode::None);
+        ASSERT_EQ(assembler.align(Align::Type::Code, 8), ErrorCode::None);
+        ASSERT_EQ(assembler.jmp(label02), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label01), ErrorCode::None);
+        ASSERT_EQ(assembler.int3(), ErrorCode::None);
+        ASSERT_EQ(assembler.align(Align::Type::Code, 10), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label02), ErrorCode::None);
+        ASSERT_EQ(assembler.int3(), ErrorCode::None);
+        ASSERT_EQ(assembler.jmp(label03), ErrorCode::None);
+        ASSERT_EQ(assembler.align(Align::Type::Code, 10), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<uint8_t, 30> expected = {
             0xEB, 0x08, 0x90, 0x0F, 0x1F, 0x44, 0x00, 0x00, 0xEB, 0x0A, 0xCC, 0x0F, 0x1F, 0x84, 0x00,
@@ -1166,14 +1168,14 @@ namespace zasm::tests
         x86::Assembler a(program);
 
         auto label = a.createLabel();
-        ASSERT_EQ(a.push(x86::rbp), Error::None);
-        ASSERT_EQ(a.lea(x86::rbp, x86::qword_ptr(x86::rip, label)), Error::None);
-        ASSERT_EQ(a.xchg(x86::qword_ptr(x86::rsp), x86::rbp), Error::None);
-        ASSERT_EQ(a.ret(), Error::None);
-        ASSERT_EQ(a.bind(label), Error::None);
+        ASSERT_EQ(a.push(x86::rbp), ErrorCode::None);
+        ASSERT_EQ(a.lea(x86::rbp, x86::qword_ptr(x86::rip, label)), ErrorCode::None);
+        ASSERT_EQ(a.xchg(x86::qword_ptr(x86::rsp), x86::rbp), ErrorCode::None);
+        ASSERT_EQ(a.ret(), ErrorCode::None);
+        ASSERT_EQ(a.bind(label), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x140015000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x140015000), ErrorCode::None);
 
         const std::array<uint8_t, 13> expected = {
             0x55, 0x48, 0x8D, 0x2D, 0x05, 0x00, 0x00, 0x00, 0x48, 0x87, 0x2C, 0x24, 0xC3,
@@ -1195,10 +1197,10 @@ namespace zasm::tests
         Program program(MachineMode::AMD64);
 
         x86::Assembler a(program);
-        ASSERT_EQ(a.mov(x86::rax, x86::qword_ptr(x86::rax, x86::rbp)), Error::None);
+        ASSERT_EQ(a.mov(x86::rax, x86::qword_ptr(x86::rax, x86::rbp)), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x140015000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x140015000), ErrorCode::None);
 
         const std::array<uint8_t, 4> expected = { 0x48, 0x8B, 0x04, 0x28 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -1209,6 +1211,71 @@ namespace zasm::tests
         {
             ASSERT_EQ(data[i], expected[i]);
         }
+    }
+
+    TEST(SerializationTests, TestSerializationErrorImpossibleInstruction)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler a(program);
+        ASSERT_EQ(a.and_(x86::rbp, Imm64(0x123456789ABCDF)), ErrorCode::None);
+
+        Serializer serializer;
+        auto res = serializer.serialize(program, 0x140015000);
+        ASSERT_EQ(res, ErrorCode::ImpossibleInstruction);
+
+        ASSERT_EQ(
+            res.getErrorMessage(),
+            std::string("Error at node \"and rbp, 0x123456789abcdf\" with id 0: Impossible instruction"));
+    }
+
+    TEST(SerializationTests, TestSerializationJecxzBad)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler a(program);
+        auto labelLoop = a.createLabel();
+        ASSERT_EQ(a.jecxz(labelLoop), ErrorCode::None);
+        ASSERT_EQ(a.dd(0, 256), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelLoop), ErrorCode::None);
+
+        Serializer serializer;
+        auto res = serializer.serialize(program, 0x140015000);
+        ASSERT_EQ(res, ErrorCode::AddressOutOfRange);
+
+        ASSERT_EQ(res.getErrorMessage(), std::string("Error at node \"jecxz L0\" with id 0: Label out of range for operand 0"));
+    }
+
+    TEST(SerializationTests, TestSerializationJecxzGood)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler a(program);
+        auto labelLoop = a.createLabel();
+        ASSERT_EQ(a.jecxz(labelLoop), ErrorCode::None);
+        ASSERT_EQ(a.dd(0), ErrorCode::None);
+        ASSERT_EQ(a.bind(labelLoop), ErrorCode::None);
+
+        Serializer serializer;
+        auto res = serializer.serialize(program, 0x140015000);
+        ASSERT_EQ(res, ErrorCode::None);
+    }
+
+    TEST(SerializationTests, TestBadMemoryDisplacement)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler a(program);
+        ASSERT_EQ(a.mov(x86::rax, x86::qword_ptr(x86::rip, 0xF23456789)), ErrorCode::None);
+
+        Serializer serializer;
+        auto res = serializer.serialize(program, 0x140015000);
+        ASSERT_EQ(res, ErrorCode::AddressOutOfRange);
+
+        ASSERT_EQ(
+            res.getErrorMessage(),
+            std::string("Error at node \"mov rax, qword ptr ds:[rel 0xf23456789]\" with id 0: Displacement out of range for "
+                        "operand 1"));
     }
 
 } // namespace zasm::tests

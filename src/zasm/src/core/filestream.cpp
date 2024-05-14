@@ -94,7 +94,7 @@ namespace zasm
 #endif
         if (fp == nullptr)
         {
-            return Error::AccessDenied;
+            return ErrorCode::AccessDenied;
         }
 
         // Adjust the buffer size
@@ -108,7 +108,7 @@ namespace zasm
         seek(0, SeekType::Begin);
 
         _state->mode = mode;
-        return Error::None;
+        return ErrorCode::None;
     }
 
     bool FileStream::isOpen() const

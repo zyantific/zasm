@@ -180,7 +180,8 @@ namespace zasm
             }
         }
 
-        assert(desiredBranchType != ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE);
+        // If desiredBranchType is ZYDIS_BRANCH_TYPE_NONE it means we can not fit the address
+        // into the instruction, this is an error and should be handled by the caller.
 
         return { res, desiredBranchType };
     }
@@ -190,7 +191,7 @@ namespace zasm
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER;
         dst.reg.value = static_cast<ZydisRegister>(src.getId());
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static int64_t getTemporaryRel(EncoderState& state) noexcept
@@ -236,11 +237,16 @@ namespace zasm
             const auto targetAddress = labelVA.has_value() ? *labelVA : immValue;
 
             const auto [addrRel, branchType] = processRelAddress(encodeInfo, ctx, targetAddress);
+            if (branchType == ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE)
+            {
+                char msg[128];
+                std::snprintf(msg, sizeof(msg), "Label out of range for operand %zu", state.operandIndex);
+
+                return Error(ErrorCode::AddressOutOfRange, msg);
+            }
 
             immValue = addrRel;
             desiredBranchType = branchType;
-
-            assert(desiredBranchType != ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE);
         }
         else
         {
@@ -269,7 +275,7 @@ namespace zasm
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_IMMEDIATE;
         dst.imm.s = immValue;
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Imm& src)
@@ -298,7 +304,7 @@ namespace zasm
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_IMMEDIATE;
         dst.imm.s = immValue;
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Mem& src)
@@ -384,6 +390,13 @@ namespace zasm
                 if (isDisplacementValid)
                 {
                     displacement = displacement - (address + instrSize);
+                    if (std::abs(displacement) > std::numeric_limits<std::int32_t>::max())
+                    {
+                        char msg[128];
+                        std::snprintf(msg, sizeof(msg), "Displacement out of range for operand %zu", state.operandIndex);
+
+                        return Error(ErrorCode::AddressOutOfRange, msg);
+                    }
                 }
             }
 
@@ -408,14 +421,14 @@ namespace zasm
             state.req.prefixes |= ZYDIS_ATTRIB_HAS_SEGMENT_FS;
         }
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error buildOperand_(
         ZydisEncoderOperand& dst, [[maybe_unused]] EncoderState& state, [[maybe_unused]] const Operand::None& src) noexcept
     {
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_UNUSED;
-        return Error::None;
+        return ErrorCode::None;
     }
 
     static Error buildOperand(ZydisEncoderOperand& dst, EncoderState& state, const Operand& src)
@@ -506,7 +519,7 @@ namespace zasm
     {
         if (!validateMachineMode(mode))
         {
-            return Error::InvalidMode;
+            return ErrorCode::InvalidMode;
         }
 
         res.buffer.length = 0;
@@ -548,7 +561,7 @@ namespace zasm
         {
             auto& dstOp = req.operands[state.operandIndex];   // NOLINT
             const auto& srcOp = operands[state.operandIndex]; // NOLINT
-            if (auto opStatus = buildOperand(dstOp, state, srcOp); opStatus != Error::None)
+            if (auto opStatus = buildOperand(dstOp, state, srcOp); opStatus != ErrorCode::None)
             {
                 return opStatus;
             }
@@ -564,7 +577,7 @@ namespace zasm
                 break;
             case ZYDIS_STATUS_IMPOSSIBLE_INSTRUCTION:
             default:
-                return Error::ImpossibleInstruction;
+                return ErrorCode::ImpossibleInstruction;
         }
 
         res.buffer.length = static_cast<std::uint8_t>(bufLen);
@@ -572,7 +585,7 @@ namespace zasm
         res.relocData = state.relocData;
         res.relocLabel = state.relocLabel;
 
-        return Error::None;
+        return ErrorCode::None;
     }
 
     Expected<EncoderResult, Error> encode(
@@ -580,7 +593,7 @@ namespace zasm
         const Operand* operands)
     {
         EncoderResult res;
-        if (auto err = encode_(res, nullptr, mode, attribs, mnemonic, numOps, operands); err != Error::None)
+        if (auto err = encode_(res, nullptr, mode, attribs, mnemonic, numOps, operands); err != ErrorCode::None)
         {
             return makeUnexpected(err);
         }
@@ -596,7 +609,8 @@ namespace zasm
         // encode_ will set this to kHintRequiresSize in case a length is required for correct encoding.
         ctx.instrSize = 0;
 
-        if (const auto encodeError = encode_(res, &ctx, mode, prefixes, mnemonic, numOps, operands); encodeError != Error::None)
+        if (const auto encodeError = encode_(res, &ctx, mode, prefixes, mnemonic, numOps, operands);
+            encodeError != ErrorCode::None)
         {
             return makeUnexpected(encodeError);
         }
@@ -606,7 +620,7 @@ namespace zasm
             // Encode with now known size, instruction size can change again in this call.
             ctx.instrSize = res.buffer.length;
             if (const auto encodeError = encode_(res, &ctx, mode, prefixes, mnemonic, numOps, operands);
-                encodeError != Error::None)
+                encodeError != ErrorCode::None)
             {
                 return makeUnexpected(encodeError);
             }

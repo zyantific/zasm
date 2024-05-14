@@ -13,10 +13,10 @@ namespace zasm::tests
 
         auto externalLabel = program.createExternalLabel("external");
 
-        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(x86::rip, externalLabel)), Error::None);
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(x86::rip, externalLabel)), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), ErrorCode::None);
 
         const std::array<uint8_t, 7> expected = {
             0x48, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00,
@@ -47,10 +47,10 @@ namespace zasm::tests
 
         auto externalLabel = program.createExternalLabel("external");
 
-        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(externalLabel)), Error::None);
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(externalLabel)), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), ErrorCode::None);
 
         const std::array<uint8_t, 8> expected = { 0x48, 0x8d, 0x04, 0x25, 0x00, 0x00, 0x00, 0x00 };
         ASSERT_EQ(serializer.getCodeSize(), expected.size());
@@ -79,13 +79,13 @@ namespace zasm::tests
 
         auto externalLabel = program.createExternalLabel("external");
         auto labelData = assembler.createLabel("EmbeddedLabelPos");
-        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(x86::rip, labelData)), Error::None);
-        ASSERT_EQ(assembler.mov(x86::rdx, x86::qword_ptr(x86::rax)), Error::None);
-        ASSERT_EQ(assembler.bind(labelData), Error::None);
-        ASSERT_EQ(assembler.embedLabel(externalLabel), Error::None);
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(x86::rip, labelData)), ErrorCode::None);
+        ASSERT_EQ(assembler.mov(x86::rdx, x86::qword_ptr(x86::rax)), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(labelData), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabel(externalLabel), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), ErrorCode::None);
 
         const std::array<uint8_t, 18> expected = {
             0x48, 0x8D, 0x05, 0x03, 0x00, 0x00, 0x00, 0x48, 0x8B, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -116,13 +116,13 @@ namespace zasm::tests
 
         auto externalLabel = program.createExternalLabel("external");
         auto labelData = assembler.createLabel("EmbeddedLabelPos");
-        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(labelData)), Error::None);
-        ASSERT_EQ(assembler.mov(x86::rdx, x86::qword_ptr(x86::rax)), Error::None);
-        ASSERT_EQ(assembler.bind(labelData), Error::None);
-        ASSERT_EQ(assembler.embedLabel(externalLabel), Error::None);
+        ASSERT_EQ(assembler.lea(x86::rax, x86::qword_ptr(labelData)), ErrorCode::None);
+        ASSERT_EQ(assembler.mov(x86::rdx, x86::qword_ptr(x86::rax)), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(labelData), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabel(externalLabel), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), ErrorCode::None);
 
         const std::array<uint8_t, 19> expected = { 0x48, 0x8d, 0x04, 0x25, 0x0b, 0x00, 0x40, 0x00, 0x48, 0x8b,
                                                    0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -153,13 +153,13 @@ namespace zasm::tests
         auto externalLabel = program.createExternalLabel("external");
 
         auto labelData = assembler.createLabel("EmbeddedLabelPos");
-        ASSERT_EQ(assembler.lea(x86::eax, x86::dword_ptr(labelData)), Error::None);
-        ASSERT_EQ(assembler.mov(x86::edx, x86::dword_ptr(x86::eax)), Error::None);
-        ASSERT_EQ(assembler.bind(labelData), Error::None);
-        ASSERT_EQ(assembler.embedLabel(externalLabel), Error::None);
+        ASSERT_EQ(assembler.lea(x86::eax, x86::dword_ptr(labelData)), ErrorCode::None);
+        ASSERT_EQ(assembler.mov(x86::edx, x86::dword_ptr(x86::eax)), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(labelData), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabel(externalLabel), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), ErrorCode::None);
 
         const std::array<uint8_t, 12> expected = {
             0x8D, 0x05, 0x08, 0x00, 0x40, 0x00, 0x8B, 0x10, 0x00, 0x00, 0x00, 0x00,
@@ -199,13 +199,13 @@ namespace zasm::tests
 
         auto externalLabel = program.createExternalLabel("external");
         auto labelData = assembler.createLabel("EmbeddedLabelPos");
-        ASSERT_EQ(assembler.lea(x86::eax, x86::dword_ptr(labelData)), Error::None);
-        ASSERT_EQ(assembler.mov(x86::edx, x86::dword_ptr(x86::eax)), Error::None);
-        ASSERT_EQ(assembler.bind(labelData), Error::None);
-        ASSERT_EQ(assembler.embedLabel(externalLabel), Error::None);
+        ASSERT_EQ(assembler.lea(x86::eax, x86::dword_ptr(labelData)), ErrorCode::None);
+        ASSERT_EQ(assembler.mov(x86::edx, x86::dword_ptr(x86::eax)), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(labelData), ErrorCode::None);
+        ASSERT_EQ(assembler.embedLabel(externalLabel), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), ErrorCode::None);
 
         {
             const std::array<uint8_t, 12> expected = {
@@ -238,7 +238,7 @@ namespace zasm::tests
             ASSERT_EQ(relocInfo->offset, 8);
         }
 
-        ASSERT_EQ(serializer.relocate(0x0000000000500000), Error::None);
+        ASSERT_EQ(serializer.relocate(0x0000000000500000), ErrorCode::None);
 
         {
             const std::array<uint8_t, 12> expected = {

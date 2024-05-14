@@ -23,7 +23,7 @@ namespace zasm::formatter
         public:
             static constexpr std::size_t kInlineCapacity = 64;
 
-            Program* program{};
+            const Program* program{};
             Options options{};
 
             union
@@ -41,7 +41,7 @@ namespace zasm::formatter
                 , options(opts)
             {
             }
-            constexpr Context(Program& prog, Options opts)
+            constexpr Context(const Program& prog, Options opts)
                 : program(&prog)
                 , options(opts)
             {
@@ -337,11 +337,11 @@ namespace zasm::formatter
                 {
                     if (disp < 0)
                     {
-                        ctx.format("0x%" PRIx64, -disp);
+                        ctx.format("0x%02" PRIx64, -disp);
                     }
                     else
                     {
-                        ctx.format("0x%" PRIx64, disp);
+                        ctx.format("0x%02" PRIx64, disp);
                     }
                 }
                 else
@@ -488,7 +488,7 @@ namespace zasm::formatter
             }
             else
             {
-                ctx.format(".section");
+                ctx.appendLiteral(".section");
             }
         }
 
@@ -548,7 +548,7 @@ namespace zasm::formatter
 
     } // namespace detail
 
-    std::string toString(Program& program, const Node* node, Options options /*= kDefaultOptions*/)
+    std::string toString(const Program& program, const Node* node, Options options /*= kDefaultOptions*/)
     {
         if (node == nullptr)
         {
@@ -562,12 +562,13 @@ namespace zasm::formatter
         return { ctx.data(), ctx.size };
     }
 
-    std::string toString(Program& program, Options options /*= {}*/)
+    std::string toString(const Program& program, Options options /*= {}*/)
     {
         return toString(program, program.getHead(), nullptr, options);
     }
 
-    std::string toString(Program& program, const Node* nodeFrom, const Node* nodeTo, Options options /*= kDefaultOptions*/)
+    std::string toString(
+        const Program& program, const Node* nodeFrom, const Node* nodeTo, Options options /*= kDefaultOptions*/)
     {
         auto ctx = detail::Context(program, options);
 
@@ -587,7 +588,7 @@ namespace zasm::formatter
         return { ctx.data(), ctx.size };
     }
 
-    std::string toString(Program& program, const Instruction* instr, Options options /*= kDefaultOptions*/)
+    std::string toString(const Program& program, const Instruction* instr, Options options /*= kDefaultOptions*/)
     {
         if (instr == nullptr)
         {

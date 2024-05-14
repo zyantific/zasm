@@ -2082,6 +2082,10 @@ namespace zasm::x86
         {
             return emit(x86::Mnemonic::Jecxz, a);
         }
+        inline Error jecxz(const Label& a)
+        {
+            return emit(x86::Mnemonic::Jecxz, a);
+        }
         inline Error jknzd(const Mask& a, const Imm& b)
         {
             return emit(x86::Mnemonic::Jknzd, a, b);

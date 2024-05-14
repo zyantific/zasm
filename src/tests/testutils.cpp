@@ -44,6 +44,6 @@ namespace zasm::tests
 
     std::ostream& operator<<(std::ostream& os, const Error& err)
     {
-        return os << zasm::getErrorName(err);
+        return os << err.getErrorName();
     }
 }

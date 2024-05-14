@@ -38,10 +38,10 @@ namespace zasm::tests
         const auto labelImpExitProcess = program.getOrCreateImportLabel("kernel32.dll", "ExitProcess");
         ASSERT_TRUE(labelImpExitProcess.isValid());
 
-        ASSERT_EQ(assembler.mov(x86::eax, x86::dword_ptr(labelImpExitProcess)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::eax, x86::dword_ptr(labelImpExitProcess)), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<uint8_t, 5> expected = {
             0xA1, 0x00, 0x00, 0x00, 0x00,
@@ -79,10 +79,10 @@ namespace zasm::tests
         const auto labelImpExitProcess = program.getOrCreateImportLabel("kernel32.dll", "ExitProcess");
         ASSERT_TRUE(labelImpExitProcess.isValid());
 
-        ASSERT_EQ(assembler.mov(x86::rax, x86::qword_ptr(x86::rip, labelImpExitProcess)), Error::None);
+        ASSERT_EQ(assembler.mov(x86::rax, x86::qword_ptr(x86::rip, labelImpExitProcess)), ErrorCode::None);
 
         Serializer serializer;
-        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), Error::None);
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000401000), ErrorCode::None);
 
         const std::array<uint8_t, 7> expected = {
             0x48, 0x8B, 0x05, 0x00, 0x00, 0x00, 0x00,
