@@ -1,7 +1,7 @@
 #include "../testutils.hpp"
 
 #include <gtest/gtest.h>
-#include <testdata/instructions.hpp>
+#include <zasm/testdata/x86/instructions.hpp>
 #include <zasm/zasm.hpp>
 
 namespace zasm::tests
@@ -28,7 +28,7 @@ namespace zasm::tests
         ASSERT_EQ(info.hasValue(), true);
 
         ASSERT_EQ(instr.getOperandCount(), info->getVisibleOperandCount());
-        
+
         const auto& instrInfo = info.value();
         for (std::size_t i = 0; i < instr.getOperandCount(); i++)
         {
