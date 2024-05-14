@@ -26,13 +26,13 @@ alias = "zasm::common"
 type = "static"
 alias = "zasm::zasm"
 sources = [
-    "src/zasm/**.cpp",
+    "zasm/src/**.cpp",
 ]
 headers = [
-	"src/zasm/**.hpp",
-    "include/zasm/**.hpp",
+	"zasm/src/**.hpp",
+    "zasm/include/**.hpp",
 ]
-include-directories = ["include"]
+include-directories = ["zasm/include"]
 link-libraries = [
     "zasm::common",
     "Zydis",
@@ -42,16 +42,16 @@ link-libraries = [
 condition = "tests"
 type = "interface"
 alias = "zasm::testdata"
-include-directories = ["src/testdata"]
+include-directories = ["testdata/include"]
 
 [target.zasm_tests]
 condition = "tests"
 type = "executable"
 sources = [
-    "src/tests/**.cpp",
+    "tests/src/**.cpp",
 ]
 headers = [
-    "src/tests/**.hpp",
+    "tests/src/**.hpp",
 ]
 link-libraries = [
     "zasm::common",
@@ -66,10 +66,10 @@ PROJECT_LABEL = "tests"
 condition = "tests"
 type = "executable"
 sources = [
-    "src/benchmark/**.cpp",
+    "benchmark/src/**.cpp",
 ]
 headers = [
-    "src/benchmark/**.hpp",
+    "benchmark/src/**.hpp",
 ]
 link-libraries = [
     "zasm::common",

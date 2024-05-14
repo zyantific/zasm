@@ -1,7 +1,7 @@
 #include "../testutils.hpp"
 
 #include <gtest/gtest.h>
-#include <testdata/instructions.hpp>
+#include <zasm/testdata/x86/instructions.hpp>
 #include <zasm/zasm.hpp>
 
 namespace zasm::tests

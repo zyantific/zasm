@@ -1,6 +1,6 @@
 #include <benchmark/benchmark.h>
 #include <functional>
-#include <testdata/instructions.hpp>
+#include <zasm/testdata/x86/instructions.hpp>
 #include <zasm/zasm.hpp>
 
 namespace zasm::benchmarks
@@ -102,12 +102,10 @@ namespace zasm::benchmarks
         }
 
         state.counters["BytesEncoded"] = benchmark::Counter(
-            static_cast<double>(numBytesEncoded), benchmark::Counter::kIsRate,
-            benchmark::Counter::OneK::kIs1024);
+            static_cast<double>(numBytesEncoded), benchmark::Counter::kIsRate, benchmark::Counter::OneK::kIs1024);
 
         state.counters["Instructions"] = benchmark::Counter(
-            static_cast<double>(numInstructions), benchmark::Counter::kIsRate,
-            benchmark::Counter::OneK::kIs1000);
+            static_cast<double>(numInstructions), benchmark::Counter::kIsRate, benchmark::Counter::OneK::kIs1000);
     }
     BENCHMARK_TEMPLATE(BM_SerializationWithLabels, 128)->Unit(benchmark::kMillisecond);
 

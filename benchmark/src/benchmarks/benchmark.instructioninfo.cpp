@@ -1,6 +1,6 @@
 #include <benchmark/benchmark.h>
 #include <functional>
-#include <testdata/instructions.hpp>
+#include <zasm/testdata/x86/instructions.hpp>
 #include <zasm/x86/meta.hpp>
 #include <zasm/zasm.hpp>
 
@@ -39,8 +39,7 @@ namespace zasm::benchmarks
         }
 
         state.counters["InstructionInfos"] = benchmark::Counter(
-            static_cast<double>(numInstructions), benchmark::Counter::kIsRate,
-            benchmark::Counter::OneK::kIs1000);
+            static_cast<double>(numInstructions), benchmark::Counter::kIsRate, benchmark::Counter::OneK::kIs1000);
     }
     BENCHMARK(BM_InstructionInfo)->Unit(benchmark::kMillisecond);
 
