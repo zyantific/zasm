@@ -2,9 +2,9 @@
 
 #include <gtest/gtest.h>
 #include <sstream>
-#include <testdata/instructions.hpp>
 #include <zasm/core/memorystream.hpp>
 #include <zasm/program/saverestore.hpp>
+#include <zasm/testdata/x86/instructions.hpp>
 #include <zasm/zasm.hpp>
 
 namespace zasm::tests
