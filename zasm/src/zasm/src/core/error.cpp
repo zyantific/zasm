@@ -11,12 +11,16 @@ namespace zasm
         ErrorCode code;
         std::string message;
     };
+	static bool isExtError(std::uint64_t data) noexcept
+    {
+        return (data & kErrorExtBit) != 0;
+    }
 
     // TODO: This is not fully portable so we should check for systems where
     // we have to use a different approach.
     static ErrorExt* toErrorExt(std::uint64_t data) noexcept
     {
-        assert((data & kErrorExtBit) != 0);
+        assert(isExtError(data));
 
         auto* ext = reinterpret_cast<ErrorExt*>(data & ~kErrorExtBit);
         return ext;
@@ -25,11 +29,6 @@ namespace zasm
     static std::uint64_t toInternalErrorData(const ErrorExt* ext) noexcept
     {
         return static_cast<std::uint64_t>(reinterpret_cast<std::uintptr_t>(ext)) | kErrorExtBit;
-    }
-
-    static bool isExtError(std::uint64_t data) noexcept
-    {
-        return (data & kErrorExtBit) != 0;
     }
 
     Error::Error(const Error& other)
