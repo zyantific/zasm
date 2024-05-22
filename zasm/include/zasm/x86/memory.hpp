@@ -29,6 +29,13 @@ namespace zasm::x86
         return Mem(bitSize, Seg{}, base, index, 1, 0);
     }
 
+    // ptr [base + index * scale]
+    // ex.: mov eax, ptr [ecx+edx]
+    static constexpr Mem ptr(BitSize bitSize, const Gp& base, const Gp& index, int32_t scale) noexcept
+    {
+        return Mem(bitSize, Seg{}, base, index, scale, 0);
+    }
+
     // ptr [base + index * scale + disp]
     // ex.: mov eax, ptr [ecx+edx*2+0xC]
     static constexpr Mem ptr(BitSize bitSize, const Gp& base, const Gp& index, int32_t scale, int64_t disp) noexcept
@@ -97,6 +104,13 @@ namespace zasm::x86
     static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Gp& base, const Gp& index) noexcept
     {
         return Mem(bitSize, seg, base, index, 1, 0);
+    }
+
+    // ptr : seg [base + index * scale]
+    // ex.: mov eax, ptr:ds [edx+ecx*2+0xC]
+    static constexpr Mem ptr(BitSize bitSize, const Seg& seg, const Gp& base, const Gp& index, int32_t scale) noexcept
+    {
+        return Mem(bitSize, seg, base, index, scale, 0);
     }
 
     // ptr : seg [base + index * scale + disp]
