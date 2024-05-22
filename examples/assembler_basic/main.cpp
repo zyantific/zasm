@@ -17,6 +17,7 @@ int main()
     a.lea(x86::rax, x86::qword_ptr(labelA));
     a.lea(x86::rbx, x86::qword_ptr(labelB));
     a.lea(x86::rdx, x86::qword_ptr(labelC));
+    a.movsx(x86::rax, x86::word_ptr(x86::rax, x86::rdx, 2));
 
     a.bind(labelA);
     a.dq(0x123456789);
