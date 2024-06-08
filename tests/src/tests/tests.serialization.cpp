@@ -1278,4 +1278,28 @@ namespace zasm::tests
                         "operand 1"));
     }
 
+    TEST(SerializationTests, Issue_129)
+    {
+        int64_t rva = 0x3471fe;
+        int64_t jmp_rva = 0x347486;
+
+        Program program(zasm::MachineMode::AMD64);
+        x86::Assembler assembler(program);
+
+        assembler.jmp(zasm::Imm(jmp_rva));
+
+        zasm::Serializer serializer{};
+        ASSERT_EQ(serializer.serialize(program, rva), ErrorCode::None);
+
+        const std::array<uint8_t, 5> expected = { 0xe9, 0x83, 0x02, 0x00, 0x00 };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (std::size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
 } // namespace zasm::tests
