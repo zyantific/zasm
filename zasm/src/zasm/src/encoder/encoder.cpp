@@ -202,7 +202,8 @@ namespace zasm
 
         // NOTE: Workaround for some instructions that only accept rel8
         if (state.req.mnemonic == ZYDIS_MNEMONIC_JCXZ || state.req.mnemonic == ZYDIS_MNEMONIC_JECXZ
-            || state.req.mnemonic == ZYDIS_MNEMONIC_JKNZD)
+            || state.req.mnemonic == ZYDIS_MNEMONIC_JKNZD || state.req.mnemonic == ZYDIS_MNEMONIC_LOOP
+            || state.req.mnemonic == ZYDIS_MNEMONIC_LOOPE || state.req.mnemonic == ZYDIS_MNEMONIC_LOOPNE)
         {
             kTempRel = kTemporaryRel8Value;
         }
