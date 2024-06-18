@@ -33,11 +33,19 @@ namespace zasm
 
     static constexpr std::int32_t kHintRequiresSize = -1;
 
+    static constexpr auto kAllowedEncodingX86 = static_cast<ZydisEncodableEncoding>(
+        ZYDIS_ENCODABLE_ENCODING_LEGACY | ZYDIS_ENCODABLE_ENCODING_3DNOW);
+
+    static constexpr auto kAllowedEncodingX64 = static_cast<ZydisEncodableEncoding>(
+        ZYDIS_ENCODABLE_ENCODING_LEGACY | ZYDIS_ENCODABLE_ENCODING_3DNOW | ZYDIS_ENCODABLE_ENCODING_XOP
+        | ZYDIS_ENCODABLE_ENCODING_VEX | ZYDIS_ENCODABLE_ENCODING_EVEX);
+
     struct EncodeVariantsInfo
     {
         bool isControlFlow{};
         std::int8_t encodeSizeRel8{ -1 };
         std::int8_t encodeSizeRel32{ -1 };
+        std::int8_t cfOperandIndex{ -1 };
 
         constexpr bool canEncodeRel8() const noexcept
         {
@@ -55,32 +63,30 @@ namespace zasm
         std::array<EncodeVariantsInfo, ZydisMnemonic::ZYDIS_MNEMONIC_MAX_VALUE> data{};
 
         // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-        data[ZYDIS_MNEMONIC_JMP] = EncodeVariantsInfo{ true, 2, 5 };
-        data[ZYDIS_MNEMONIC_JB] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JBE] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JCXZ] = EncodeVariantsInfo{ true, 2, -1 };
-        data[ZYDIS_MNEMONIC_JECXZ] = EncodeVariantsInfo{ true, 2, -1 };
-        data[ZYDIS_MNEMONIC_JKNZD] = EncodeVariantsInfo{ true, 2, -1 };
-        data[ZYDIS_MNEMONIC_JKZD] = EncodeVariantsInfo{ true, 2, -1 };
-        data[ZYDIS_MNEMONIC_JRCXZ] = EncodeVariantsInfo{ true, 2, -1 };
-        data[ZYDIS_MNEMONIC_JL] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JLE] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JNB] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JNBE] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JNL] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JNLE] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JNO] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JNP] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JNS] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JNZ] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JO] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JP] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JS] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_JZ] = EncodeVariantsInfo{ true, 2, 6 };
-        data[ZYDIS_MNEMONIC_LOOP] = EncodeVariantsInfo{ true, 2, -1 };
-        data[ZYDIS_MNEMONIC_LOOPE] = EncodeVariantsInfo{ true, 2, -1 };
-        data[ZYDIS_MNEMONIC_LOOPNE] = EncodeVariantsInfo{ true, 2, -1 };
-        data[ZYDIS_MNEMONIC_CALL] = EncodeVariantsInfo{ true, -1, 5 };
+        data[ZYDIS_MNEMONIC_JMP] = EncodeVariantsInfo{ true, 2, 5, 0 };
+        data[ZYDIS_MNEMONIC_JB] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JBE] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JCXZ] = EncodeVariantsInfo{ true, 2, -1, 0 };
+        data[ZYDIS_MNEMONIC_JECXZ] = EncodeVariantsInfo{ true, 2, -1, 0 };
+        data[ZYDIS_MNEMONIC_JRCXZ] = EncodeVariantsInfo{ true, 2, -1, 0 };
+        data[ZYDIS_MNEMONIC_JL] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JLE] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JNB] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JNBE] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JNL] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JNLE] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JNO] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JNP] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JNS] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JNZ] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JO] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JP] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JS] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_JZ] = EncodeVariantsInfo{ true, 2, 6, 0 };
+        data[ZYDIS_MNEMONIC_LOOP] = EncodeVariantsInfo{ true, 2, -1, 0 };
+        data[ZYDIS_MNEMONIC_LOOPE] = EncodeVariantsInfo{ true, 2, -1, 0 };
+        data[ZYDIS_MNEMONIC_LOOPNE] = EncodeVariantsInfo{ true, 2, -1, 0 };
+        data[ZYDIS_MNEMONIC_CALL] = EncodeVariantsInfo{ true, -1, 5, 0 };
         // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 
         return data;
@@ -194,16 +200,17 @@ namespace zasm
         return ErrorCode::None;
     }
 
-    static int64_t getTemporaryRel(EncoderState& state) noexcept
+    static int64_t getTemporaryRel(EncoderState& state, const EncodeVariantsInfo& encodeInfo) noexcept
     {
         auto* ctx = state.ctx;
 
-        std::int64_t kTempRel = kTemporaryRel32Value;
+        std::int64_t kTempRel = 0;
 
-        // NOTE: Workaround for some instructions that only accept rel8
-        if (state.req.mnemonic == ZYDIS_MNEMONIC_JCXZ || state.req.mnemonic == ZYDIS_MNEMONIC_JECXZ
-            || state.req.mnemonic == ZYDIS_MNEMONIC_JKNZD || state.req.mnemonic == ZYDIS_MNEMONIC_LOOP
-            || state.req.mnemonic == ZYDIS_MNEMONIC_LOOPE || state.req.mnemonic == ZYDIS_MNEMONIC_LOOPNE)
+        if (encodeInfo.canEncodeRel32())
+        {
+            kTempRel = kTemporaryRel32Value;
+        }
+        else if (encodeInfo.canEncodeRel8())
         {
             kTempRel = kTemporaryRel8Value;
         }
@@ -217,9 +224,10 @@ namespace zasm
         auto* ctx = state.ctx;
         auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
 
-        // Initially a temporary placeholder. Make sure this is within rel32 if a
-        // context is provided.
-        std::int64_t immValue = getTemporaryRel(state);
+        const auto& encodeInfo = getEncodeVariantInfo(state.req.mnemonic);
+
+        // Initially a temporary placeholder.
+        std::int64_t immValue = getTemporaryRel(state, encodeInfo);
 
         std::optional<std::int64_t> labelVA;
         if (ctx != nullptr && !isLabelExternal(ctx->program, src.getId()))
@@ -232,8 +240,7 @@ namespace zasm
         }
 
         // Check if this operand is used as the control flow target.
-        const auto& encodeInfo = getEncodeVariantInfo(state.req.mnemonic);
-        if (state.operandIndex == 0 && encodeInfo.isControlFlow)
+        if (encodeInfo.isControlFlow && state.operandIndex == encodeInfo.cfOperandIndex)
         {
             const auto targetAddress = labelVA.has_value() ? *labelVA : immValue;
 
@@ -288,7 +295,7 @@ namespace zasm
 
         // Check if this operand is used as the control flow target.
         const auto& encodeInfo = getEncodeVariantInfo(state.req.mnemonic);
-        if (state.operandIndex == 0 && encodeInfo.isControlFlow)
+        if (encodeInfo.isControlFlow && state.operandIndex == encodeInfo.cfOperandIndex)
         {
             const auto targetAddress = immValue;
             const auto [addrRel, branchType] = processRelAddress(encodeInfo, ctx, targetAddress);
@@ -532,10 +539,12 @@ namespace zasm
         if (mode == MachineMode::AMD64)
         {
             req.machine_mode = ZYDIS_MACHINE_MODE_LONG_64;
+            req.allowed_encodings = kAllowedEncodingX64;
         }
         else if (mode == MachineMode::I386)
         {
             req.machine_mode = ZYDIS_MACHINE_MODE_LONG_COMPAT_32;
+            req.allowed_encodings = kAllowedEncodingX86;
         }
         req.mnemonic = static_cast<ZydisMnemonic>(mnemonic.value());
         req.prefixes = getAttribs(attribs);
