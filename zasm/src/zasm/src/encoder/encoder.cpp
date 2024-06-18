@@ -60,8 +60,8 @@ namespace zasm
         data[ZYDIS_MNEMONIC_JBE] = EncodeVariantsInfo{ true, 2, 6 };
         data[ZYDIS_MNEMONIC_JCXZ] = EncodeVariantsInfo{ true, 2, -1 };
         data[ZYDIS_MNEMONIC_JECXZ] = EncodeVariantsInfo{ true, 2, -1 };
-        data[ZYDIS_MNEMONIC_JKNZD] = EncodeVariantsInfo{ true, 2, -1 };
-        data[ZYDIS_MNEMONIC_JKZD] = EncodeVariantsInfo{ true, 2, -1 };
+        data[ZYDIS_MNEMONIC_JKNZD] = EncodeVariantsInfo{ true, 2, 5 };
+        data[ZYDIS_MNEMONIC_JKZD] = EncodeVariantsInfo{ true, 2, 5 };
         data[ZYDIS_MNEMONIC_JRCXZ] = EncodeVariantsInfo{ true, 2, -1 };
         data[ZYDIS_MNEMONIC_JL] = EncodeVariantsInfo{ true, 2, 6 };
         data[ZYDIS_MNEMONIC_JLE] = EncodeVariantsInfo{ true, 2, 6 };
@@ -194,16 +194,17 @@ namespace zasm
         return ErrorCode::None;
     }
 
-    static int64_t getTemporaryRel(EncoderState& state) noexcept
+    static int64_t getTemporaryRel(EncoderState& state, const EncodeVariantsInfo& encodeInfo) noexcept
     {
         auto* ctx = state.ctx;
 
-        std::int64_t kTempRel = kTemporaryRel32Value;
+        std::int64_t kTempRel = 0;
 
-        // NOTE: Workaround for some instructions that only accept rel8
-        if (state.req.mnemonic == ZYDIS_MNEMONIC_JCXZ || state.req.mnemonic == ZYDIS_MNEMONIC_JECXZ
-            || state.req.mnemonic == ZYDIS_MNEMONIC_JKNZD || state.req.mnemonic == ZYDIS_MNEMONIC_LOOP
-            || state.req.mnemonic == ZYDIS_MNEMONIC_LOOPE || state.req.mnemonic == ZYDIS_MNEMONIC_LOOPNE)
+        if (encodeInfo.canEncodeRel32())
+        {
+            kTempRel = kTemporaryRel32Value;
+        }
+        else if (encodeInfo.canEncodeRel8())
         {
             kTempRel = kTemporaryRel8Value;
         }
@@ -217,9 +218,10 @@ namespace zasm
         auto* ctx = state.ctx;
         auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
 
-        // Initially a temporary placeholder. Make sure this is within rel32 if a
-        // context is provided.
-        std::int64_t immValue = getTemporaryRel(state);
+        const auto& encodeInfo = getEncodeVariantInfo(state.req.mnemonic);
+
+        // Initially a temporary placeholder.
+        std::int64_t immValue = getTemporaryRel(state, encodeInfo);
 
         std::optional<std::int64_t> labelVA;
         if (ctx != nullptr && !isLabelExternal(ctx->program, src.getId()))
@@ -232,7 +234,6 @@ namespace zasm
         }
 
         // Check if this operand is used as the control flow target.
-        const auto& encodeInfo = getEncodeVariantInfo(state.req.mnemonic);
         if (state.operandIndex == 0 && encodeInfo.isControlFlow)
         {
             const auto targetAddress = labelVA.has_value() ? *labelVA : immValue;
