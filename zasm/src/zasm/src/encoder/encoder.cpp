@@ -33,6 +33,13 @@ namespace zasm
 
     static constexpr std::int32_t kHintRequiresSize = -1;
 
+    static constexpr auto kAllowedEncodingX86 = static_cast<ZydisEncodableEncoding>(
+        ZYDIS_ENCODABLE_ENCODING_LEGACY | ZYDIS_ENCODABLE_ENCODING_3DNOW);
+
+    static constexpr auto kAllowedEncodingX64 = static_cast<ZydisEncodableEncoding>(
+        ZYDIS_ENCODABLE_ENCODING_LEGACY | ZYDIS_ENCODABLE_ENCODING_3DNOW | ZYDIS_ENCODABLE_ENCODING_XOP
+        | ZYDIS_ENCODABLE_ENCODING_VEX | ZYDIS_ENCODABLE_ENCODING_EVEX);
+
     struct EncodeVariantsInfo
     {
         bool isControlFlow{};
@@ -532,10 +539,12 @@ namespace zasm
         if (mode == MachineMode::AMD64)
         {
             req.machine_mode = ZYDIS_MACHINE_MODE_LONG_64;
+            req.allowed_encodings = kAllowedEncodingX64;
         }
         else if (mode == MachineMode::I386)
         {
             req.machine_mode = ZYDIS_MACHINE_MODE_LONG_COMPAT_32;
+            req.allowed_encodings = kAllowedEncodingX86;
         }
         req.mnemonic = static_cast<ZydisMnemonic>(mnemonic.value());
         req.prefixes = getAttribs(attribs);
