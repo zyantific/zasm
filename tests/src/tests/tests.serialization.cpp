@@ -1229,13 +1229,14 @@ namespace zasm::tests
             std::string("Error at node \"and rbp, 0x123456789abcdf\" with id 0: Impossible instruction"));
     }
 
-    TEST(SerializationTests, TestSerializationJecxzBad)
+    template<typename TMnemonic>
+    static void TestSerializationLabelRangeBad(MachineMode mode, TMnemonic mnemonic, const char* mnemonicName)
     {
-        Program program(MachineMode::AMD64);
+        Program program(mode);
 
         x86::Assembler a(program);
         auto labelLoop = a.createLabel();
-        ASSERT_EQ(a.jecxz(labelLoop), ErrorCode::None);
+        ASSERT_EQ(a.emit(mnemonic, labelLoop), ErrorCode::None);
         ASSERT_EQ(a.dd(0, 256), ErrorCode::None);
         ASSERT_EQ(a.bind(labelLoop), ErrorCode::None);
 
@@ -1243,22 +1244,84 @@ namespace zasm::tests
         auto res = serializer.serialize(program, 0x140015000);
         ASSERT_EQ(res, ErrorCode::AddressOutOfRange);
 
-        ASSERT_EQ(res.getErrorMessage(), std::string("Error at node \"jecxz L0\" with id 0: Label out of range for operand 0"));
+        const auto errMsg = std::string("Error at node \"") + mnemonicName
+            + " L0\" with id 0: Label out of range for operand 0";
+        ASSERT_EQ(res.getErrorMessage(), errMsg);
     }
 
-    TEST(SerializationTests, TestSerializationJecxzGood)
+    template<typename TMnemonic> static void TestSerializationLabelRangeGood(MachineMode mode, TMnemonic mnemonic)
     {
-        Program program(MachineMode::AMD64);
+        Program program(mode);
 
         x86::Assembler a(program);
         auto labelLoop = a.createLabel();
-        ASSERT_EQ(a.jecxz(labelLoop), ErrorCode::None);
+        ASSERT_EQ(a.emit(mnemonic, labelLoop), ErrorCode::None);
         ASSERT_EQ(a.dd(0), ErrorCode::None);
         ASSERT_EQ(a.bind(labelLoop), ErrorCode::None);
 
         Serializer serializer;
         auto res = serializer.serialize(program, 0x140015000);
         ASSERT_EQ(res, ErrorCode::None);
+    }
+
+    TEST(SerializationTests, TestSerializationJcxzBad)
+    {
+        TestSerializationLabelRangeBad(MachineMode::I386, x86::Mnemonic::Jcxz, "jcxz");
+    }
+
+    TEST(SerializationTests, TestSerializationJcxzGood)
+    {
+        TestSerializationLabelRangeGood(MachineMode::I386, x86::Mnemonic::Jcxz);
+    }
+
+    TEST(SerializationTests, TestSerializationJecxzBad)
+    {
+        TestSerializationLabelRangeBad(MachineMode::AMD64, x86::Mnemonic::Jecxz, "jecxz");
+    }
+
+    TEST(SerializationTests, TestSerializationJecxzGood)
+    {
+        TestSerializationLabelRangeGood(MachineMode::AMD64, x86::Mnemonic::Jecxz);
+    }
+
+    TEST(SerializationTests, TestSerializationJrcxzBad)
+    {
+        TestSerializationLabelRangeBad(MachineMode::AMD64, x86::Mnemonic::Jrcxz, "jrcxz");
+    }
+
+    TEST(SerializationTests, TestSerializationJrcxzGood)
+    {
+        TestSerializationLabelRangeGood(MachineMode::AMD64, x86::Mnemonic::Jrcxz);
+    }
+
+    TEST(SerializationTests, TestSerializationLoopBad)
+    {
+        TestSerializationLabelRangeBad(MachineMode::AMD64, x86::Mnemonic::Loop, "loop");
+    }
+
+    TEST(SerializationTests, TestSerializationLoopGood)
+    {
+        TestSerializationLabelRangeGood(MachineMode::AMD64, x86::Mnemonic::Loop);
+    }
+
+    TEST(SerializationTests, TestSerializationLoopeBad)
+    {
+        TestSerializationLabelRangeBad(MachineMode::AMD64, x86::Mnemonic::Loope, "loope");
+    }
+
+    TEST(SerializationTests, TestSerializationLoopeGood)
+    {
+        TestSerializationLabelRangeGood(MachineMode::AMD64, x86::Mnemonic::Loope);
+    }
+
+    TEST(SerializationTests, TestSerializationLoopneBad)
+    {
+        TestSerializationLabelRangeBad(MachineMode::AMD64, x86::Mnemonic::Loopne, "loopne");
+    }
+
+    TEST(SerializationTests, TestSerializationLoopneGood)
+    {
+        TestSerializationLabelRangeGood(MachineMode::AMD64, x86::Mnemonic::Loopne);
     }
 
     TEST(SerializationTests, TestBadMemoryDisplacement)
