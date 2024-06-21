@@ -1,18 +1,16 @@
 # Reference: https://build-cpp.github.io/cmkr/cmake-toml
+[cmake]
+version = "3.25"
+
 [project]
 name = "zasm"
 languages = ["CXX"]
 msvc-runtime = "static"
 
 [options]
-ZASM_BUILD_TESTS = false
-ZASM_BUILD_BENCHMARKS = false
-ZASM_BUILD_EXAMPLES = false
-
-[conditions]
-tests = "ZASM_BUILD_TESTS OR CMKR_ROOT_PROJECT"
-benchmarks = "ZASM_BUILD_BENCHMARKS OR CMKR_ROOT_PROJECT"
-examples = "ZASM_BUILD_EXAMPLES OR CMKR_ROOT_PROJECT"
+ZASM_BUILD_TESTS = "root"
+ZASM_BUILD_BENCHMARKS = "root"
+ZASM_BUILD_EXAMPLES = "root"
 
 [subdir.thirdparty]
 
@@ -39,13 +37,13 @@ link-libraries = [
 ]
 
 [target.zasm_testdata]
-condition = "tests"
+condition = "build-tests"
 type = "interface"
 alias = "zasm::testdata"
 include-directories = ["testdata/include"]
 
 [target.zasm_tests]
-condition = "tests"
+condition = "build-tests"
 type = "executable"
 sources = [
     "tests/src/**.cpp",
@@ -63,7 +61,7 @@ link-libraries = [
 PROJECT_LABEL = "tests"
 
 [target.zasm_benchmarks]
-condition = "tests"
+condition = "build-benchmarks"
 type = "executable"
 sources = [
     "benchmark/src/**.cpp",
@@ -81,7 +79,7 @@ link-libraries = [
 PROJECT_LABEL = "benchmarks"
 
 [target.zasm_example_common]
-condition = "examples"
+condition = "build-examples"
 type = "interface"
 alias = "zasm::examples::common"
 include-directories = ["examples/common"]
@@ -92,7 +90,7 @@ link-libraries = [
 
 ## Examples
 [target.zasm_example_assembler_basic]
-condition = "examples"
+condition = "build-examples"
 type = "executable"
 sources = ["examples/assembler_basic/main.cpp"]
 link-libraries = [
@@ -104,7 +102,7 @@ PROJECT_LABEL = "assembler_basic"
 RUNTIME_OUTPUT_NAME = "example.assembler_basic"
 
 [target.zasm_example_assembler_sections]
-condition = "examples"
+condition = "build-examples"
 type = "executable"
 sources = ["examples/assembler_sections/main.cpp"]
 link-libraries = [
@@ -116,7 +114,7 @@ PROJECT_LABEL = "assembler_sections"
 RUNTIME_OUTPUT_NAME = "example.assembler_sections"
 
 [target.zasm_example_decode_to_assembler]
-condition = "examples"
+condition = "build-examples"
 type = "executable"
 sources = ["examples/decode_to_assembler/main.cpp"]
 link-libraries = [
@@ -128,7 +126,7 @@ PROJECT_LABEL = "decode_to_assembler"
 RUNTIME_OUTPUT_NAME = "example.decode_to_assembler"
 
 [target.zasm_example_program_observer]
-condition = "examples"
+condition = "build-examples"
 type = "executable"
 sources = ["examples/program_observer/main.cpp"]
 link-libraries = [
@@ -140,7 +138,7 @@ PROJECT_LABEL = "program_observer"
 RUNTIME_OUTPUT_NAME = "example.program_observer"
 
 [target.zasm_example_instruction_info]
-condition = "examples"
+condition = "build-examples"
 type = "executable"
 sources = ["examples/instruction_info/main.cpp"]
 link-libraries = [
@@ -152,7 +150,7 @@ PROJECT_LABEL = "instruction_info"
 RUNTIME_OUTPUT_NAME = "example.instruction_info"
 
 [target.zasm_example_modify_program]
-condition = "examples"
+condition = "build-examples"
 type = "executable"
 sources = ["examples/modify_program/main.cpp"]
 link-libraries = [
@@ -164,7 +162,7 @@ PROJECT_LABEL = "modify_program"
 RUNTIME_OUTPUT_NAME = "example.modify_program"
 
 [target.zasm_example_basic_jit]
-condition = "examples"
+condition = "build-examples"
 type = "executable"
 sources = ["examples/basic_jit/main.cpp"]
 link-libraries = [
@@ -176,7 +174,7 @@ PROJECT_LABEL = "basic_jit"
 RUNTIME_OUTPUT_NAME = "example.basic_jit"
 
 [target.zasm_example_modify_instruction]
-condition = "examples"
+condition = "build-examples"
 type = "executable"
 sources = ["examples/modify_instruction/main.cpp"]
 link-libraries = [
@@ -188,7 +186,7 @@ PROJECT_LABEL = "modify_instruction"
 RUNTIME_OUTPUT_NAME = "example.modify_instruction"
 
 [target.zasm_example_memory_operands]
-condition = "examples"
+condition = "build-examples"
 type = "executable"
 sources = ["examples/memory_operands/main.cpp"]
 link-libraries = [
@@ -200,6 +198,6 @@ PROJECT_LABEL = "memory_operands"
 RUNTIME_OUTPUT_NAME = "example.memory_operands"
 
 [[test]]
-condition = "tests"
+condition = "build-tests"
 name = "tests"
 command = "$<TARGET_FILE:zasm_tests>"

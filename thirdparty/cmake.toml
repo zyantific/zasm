@@ -10,13 +10,16 @@ BENCHMARK_USE_BUNDLED_GTEST = false
 [fetch-content.Zydis]
 git = "https://github.com/zyantific/zydis"
 tag = "v4.1.0"
+system = true
 
 [fetch-content.GTest]
-condition = "tests"
+condition = "build-tests"
 git = "https://github.com/google/googletest"
 tag = "release-1.11.0"
+system = true
 
 [fetch-content.GBenchmark]
-condition = "tests"
+condition = "build-benchmarks"
 git = "https://github.com/google/benchmark"
 tag = "v1.6.1"
+system = true
