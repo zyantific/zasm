@@ -169,6 +169,7 @@ if(ZASM_BUILD_TESTS) # build-tests
 		"tests/src/main.cpp"
 		"tests/src/tests/tests.assembler.cpp"
 		"tests/src/tests/tests.decoder.cpp"
+		"tests/src/tests/tests.enumflags.cpp"
 		"tests/src/tests/tests.error.cpp"
 		"tests/src/tests/tests.externals.cpp"
 		"tests/src/tests/tests.formatter.cpp"
