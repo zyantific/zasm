@@ -28,7 +28,7 @@ namespace zasm
             Read = (1U << 0),
             // The operand is written by the instruction (must write).
             Write = (1U << 1),
-            // The operand is conditionally written by the instruction (may write).
+            // The operand is conditionally read by the instruction (may read).
             CondRead = (1U << 2),
             // The operand is conditionally written by the instruction (may write).
             CondWrite = (1U << 3),
