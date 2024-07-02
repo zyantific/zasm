@@ -316,4 +316,35 @@ namespace zasm::tests
         }
     }
 
+    TEST(ProgramTests, TestLabelNodeLookup)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto label = assembler.createLabel();
+        ASSERT_EQ(assembler.mov(x86::eax, Imm(0)), ErrorCode::None);
+        ASSERT_EQ(assembler.mov(x86::eax, Imm(1)), ErrorCode::None);
+        ASSERT_EQ(assembler.mov(x86::eax, Imm(2)), ErrorCode::None);
+        ASSERT_EQ(assembler.bind(label), ErrorCode::None);
+        ASSERT_EQ(assembler.mov(x86::eax, Imm(3)), ErrorCode::None);
+
+        auto* labelNode = program.getNodeForLabel(label);
+        ASSERT_NE(labelNode, nullptr);
+
+        ASSERT_EQ(labelNode->holds<Label>(), true);
+        ASSERT_EQ(labelNode->get<Label>().getId(), label.getId());
+
+        auto* nextNode = labelNode->getNext();
+        ASSERT_NE(nextNode, nullptr);
+
+        ASSERT_EQ(nextNode->holds<Instruction>(), true);
+        const auto& instr = nextNode->get<Instruction>();
+
+        ASSERT_EQ(instr.isOperandType<Imm>(1), true);
+
+        const auto& imm = instr.getOperand<1, Imm>();
+        ASSERT_EQ(imm.value<int>(), 3);
+    }
+
 } // namespace zasm::tests
