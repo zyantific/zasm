@@ -93,6 +93,40 @@ namespace zasm
         return nodeMap[nodeIdx];
     }
 
+    Node* Program::getNodeForLabel(const Label& label)
+    {
+        if (!label.isValid())
+        {
+            return nullptr;
+        }
+
+        const auto entryIdx = static_cast<std::size_t>(label.getId());
+        if (entryIdx >= _state->labels.size())
+        {
+            return nullptr;
+        }
+
+        auto& entry = _state->labels[entryIdx];
+        return entry.node;
+    }
+
+    Node* Program::getNodeForSection(const Section& section)
+    {
+        if (!section.isValid())
+        {
+            return nullptr;
+        }
+
+        const auto entryIdx = static_cast<std::size_t>(section.getId());
+        if (entryIdx >= _state->sections.size())
+        {
+            return nullptr;
+        }
+
+        auto& entry = _state->sections[entryIdx];
+        return entry.node;
+    }
+
     template<bool TNotify, typename F, typename... TArgs>
     static void notifyObservers(const F&& func, const std::vector<Observer*>& observers, TArgs&&... args) noexcept
     {
