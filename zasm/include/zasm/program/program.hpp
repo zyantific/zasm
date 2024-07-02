@@ -256,6 +256,13 @@ namespace zasm
         /// <returns>Returns LabelData on success, Error on failure.</returns>
         Expected<LabelData, Error> getLabelData(const Label& label) const noexcept;
 
+        /// <summary>
+        /// Returns the node for which the label is bound to. The node holds the Label.
+        /// </summary>
+        /// <param name="label">Label</param>
+        /// <returns>Node for which the label is bound to or null if the label is invalid or not bound</returns>
+        Node* getNodeForLabel(const Label& label);
+
     public:
         /// <summary>
         /// Creates a new section that can be used to segment code and data.
@@ -304,6 +311,13 @@ namespace zasm
         /// <param name="align">The new alignment</param>
         /// <returns>Error::None on success otherwise see Error</returns>
         Error setSectionAlign(const Section& section, std::int32_t align) noexcept;
+
+        /// <summary>
+        /// Returns the node for which the section is bound to. The node holds the Section.
+        /// </summary>
+        /// <param name="section">Section</param>
+        /// <returns>Node for which the section is bound to or null if the section is invalid or not bound</returns>
+        Node* getNodeForSection(const Section& section);
     };
 
 } // namespace zasm

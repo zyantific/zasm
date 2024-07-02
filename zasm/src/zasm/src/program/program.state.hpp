@@ -32,7 +32,7 @@ namespace zasm::detail
         StringPool::Id moduleId{ StringPool::Id::Invalid };
 
         // The node that holds/binds the label in the list.
-        const zasm::Node* node{};
+        zasm::Node* node{};
     };
 
     struct SectionData
@@ -43,7 +43,7 @@ namespace zasm::detail
         std::int32_t align{};
 
         // The node that holds/binds the label in the list.
-        const zasm::Node* node{};
+        zasm::Node* node{};
     };
 
     struct NodeStorage
