@@ -4,6 +4,7 @@
 #include <cinttypes>
 #include <cmath>
 #include <cstddef>
+#include <cstdlib>
 #include <cstring>
 #include <zasm/base/register.hpp>
 #include <zasm/formatter/formatter.hpp>
