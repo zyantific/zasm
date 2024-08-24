@@ -1365,4 +1365,27 @@ namespace zasm::tests
         }
     }
 
+    TEST(SerializationTests, Issue_138)
+    {
+        Program program(zasm::MachineMode::AMD64);
+        x86::Assembler assembler(program);
+
+        assembler.mov(x86::ecx, Imm(0xFFFFFFFF));
+
+        zasm::Serializer serializer{};
+        ASSERT_EQ(serializer.serialize(program, 0x140015000), ErrorCode::None);
+
+        const std::array<uint8_t, 5> expected = {
+            0xB9, 0xFF, 0xFF, 0xFF, 0xFF,
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (std::size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+    }
+
 } // namespace zasm::tests

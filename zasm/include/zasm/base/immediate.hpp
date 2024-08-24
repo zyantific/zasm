@@ -8,69 +8,65 @@
 
 namespace zasm
 {
-    class Imm 
+    class Imm
     {
-        union
-        {
-            std::int64_t s;
-            std::uint64_t u;
-        };
+        std::int64_t _value;
 
     public:
         constexpr Imm() noexcept
-            : s{}
+            : _value{}
         {
         }
         constexpr Imm(std::uint32_t imm) noexcept
-            : u{ imm }
+            : _value{ static_cast<std::int32_t>(imm) }
         {
         }
         constexpr Imm(std::int32_t imm) noexcept
-            : s{ imm }
+            : _value{ imm }
         {
         }
         constexpr Imm(std::int64_t imm) noexcept
-            : s{ imm }
+            : _value{ imm }
         {
         }
         constexpr Imm(std::uint64_t imm) noexcept
-            : u{ imm }
+            : _value{ static_cast<std::int64_t>(imm) }
         {
         }
 
         constexpr bool operator==(const Imm& other) const noexcept
         {
-            return u == other.u;
+            return _value == other._value;
         }
 
         constexpr bool operator!=(const Imm& other) const noexcept
         {
-            return u != other.u;
+            return _value != other._value;
         }
 
         template<typename T> constexpr T value() const noexcept
         {
-            return static_cast<T>(s);
+            return static_cast<T>(_value);
         }
 
         template<typename T> Imm& setValue(const T val)
         {
-            s = static_cast<std::int64_t>(val);
+            _value = static_cast<std::int64_t>(val);
 
             return *this;
         }
 
         constexpr BitSize getBitSize() const noexcept
         {
-            if (math::abs(s) > std::numeric_limits<std::uint32_t>::max())
+            if (math::abs(_value) > std::numeric_limits<std::uint32_t>::max())
             {
                 return BitSize::_64;
             }
-            if (math::abs(s) > std::numeric_limits<std::uint16_t>::max())
+            if (math::abs(_value) > std::numeric_limits<std::uint16_t>::max())
             {
                 return BitSize::_32;
             }
-            if (math::abs(s) > std::numeric_limits<std::uint8_t>::max())
+            if (math::abs(_value) > std::numeric_limits<std::uint8_t>::max())
             {
                 return BitSize::_16;
             }
@@ -85,7 +81,7 @@ namespace zasm
 
     namespace detail
     {
-        template<typename T> class ImmT final : public Imm 
+        template<typename T> class ImmT final : public Imm
         {
         public:
             template<typename T2>
