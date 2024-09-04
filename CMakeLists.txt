@@ -24,12 +24,6 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	configure_file(cmake.toml cmake.toml COPYONLY)
 endif()
 
-# Enable support for MSVC_RUNTIME_LIBRARY
-cmake_policy(SET CMP0091 NEW)
-if(NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
-	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-endif()
-
 # Options
 option(ZASM_BUILD_TESTS "" ${CMKR_ROOT_PROJECT})
 option(ZASM_BUILD_BENCHMARKS "" ${CMKR_ROOT_PROJECT})
