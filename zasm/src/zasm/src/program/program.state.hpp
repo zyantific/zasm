@@ -11,6 +11,7 @@
 
 #include <Zydis/Zydis.h>
 #include <cstddef>
+#include <tuple>
 #include <vector>
 #include <zasm/base/label.hpp>
 #include <zasm/base/mode.hpp>
@@ -46,10 +47,24 @@ namespace zasm::detail
         zasm::Node* node{};
     };
 
+    template<typename... TTypes> struct ObjectPools
+    {
+        std::tuple<ObjectPool<TTypes, PoolSize>...> pools;
+
+        template<typename T> auto& getPool()
+        {
+            return std::get<ObjectPool<T, PoolSize>>(pools);
+        }
+    };
+
+    using NodePools = ObjectPools<Sentinel, Instruction, Label, EmbeddedLabel, Data, Section, Align>;
+
     struct NodeStorage
     {
         ObjectPool<Node, PoolSize> nodePool;
         Node::Id nextNodeId{};
+
+        NodePools nodePools;
     };
 
     struct NodeList

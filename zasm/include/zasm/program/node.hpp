@@ -22,6 +22,27 @@ namespace zasm
     };
     ZASM_ENABLE_ENUM_OPERATORS(NodeFlags);
 
+    template<typename T> constexpr std::size_t TypeHash()
+    {
+        std::size_t result{ 14695981039346656037 };
+
+#ifdef _MSC_VER
+#    define F __FUNCSIG__
+#else
+#    define F __PRETTY_FUNCTION__
+#endif
+
+        for (const auto& c : F)
+        {
+            result ^= c;
+            result *= 1099511628211;
+        }
+
+        return result;
+    }
+
+    template<typename T> constexpr std::size_t constexpr_hash = TypeHash<std::decay_t<T>>();
+
     /// <summary>
     /// A type to hold data such as Instruction, Label, Data etc. within a doubly
     /// linked list managed by the Program. The data is internally stored as a variant
@@ -40,7 +61,7 @@ namespace zasm
         NodeFlags _flags{};
         Node* _prev{};
         Node* _next{};
-        std::variant<Sentinel, Instruction, Label, EmbeddedLabel, Data, Section, Align> _data{};
+        std::variant<Sentinel*, Instruction*, Label*, EmbeddedLabel*, Data*, Section*, Align*> _data2{};
 
         union
         {
@@ -51,9 +72,9 @@ namespace zasm
     protected:
         // Internal use only.
         template<typename T>
-        constexpr Node(Id nodeId, T&& val) noexcept
+        constexpr Node(Id nodeId, T* val) noexcept
             : _id{ nodeId }
-            , _data{ std::forward<T>(val) }
+            , _data2{ val }
         {
         }
 
@@ -97,7 +118,7 @@ namespace zasm
         /// <returns>True if the T is the current type</returns>
         template<typename T> constexpr bool holds() const noexcept
         {
-            return std::holds_alternative<T>(_data);
+            return std::holds_alternative<T*>(_data2);
         }
 
         /// <summary>
@@ -108,13 +129,13 @@ namespace zasm
         /// <returns>Returns a reference to the data with the type of T</returns>
         template<typename T> constexpr const T& get() const
         {
-            return std::get<T>(_data);
+            return *std::get<T*>(_data2);
         }
 
         /// <see cref="get"/>
         template<typename T> constexpr T& get()
         {
-            return std::get<T>(_data);
+            return *std::get<T*>(_data2);
         }
 
         /// <summary>
@@ -125,13 +146,19 @@ namespace zasm
         /// <returns>Pointer of type T</returns>
         template<typename T> constexpr const T* getIf() const noexcept
         {
-            return std::get_if<T>(&_data);
+            auto r = std::get_if<T*>(&_data2);
+            if (r == nullptr)
+                return nullptr;
+            return *r;
         }
 
         /// <see cref="getIf"/>
         template<typename T> constexpr T* getIf() noexcept
         {
-            return std::get_if<T>(&_data);
+            auto r = std::get_if<T*>(&_data2);
+            if (r == nullptr)
+                return nullptr;
+            return *r;
         }
 
         /// <summary>
@@ -141,15 +168,15 @@ namespace zasm
         /// <typeparam name="F">Function type</typeparam>
         /// <param name="func">Visitor function</param>
         /// <returns>The result of the visitor function</returns>
-        template<typename F> constexpr auto visit(F&& func) const
+        template<typename TPred> constexpr auto visit(TPred&& func) const
         {
-            return std::visit(std::forward<F>(func), _data);
+            return std::visit([&](auto&& obj) { return func(*obj); }, _data2);
         }
 
         /// <see cref="visit"/>
-        template<typename F> constexpr auto visit(F&& func)
+        template<typename TPred> constexpr auto visit(TPred&& func)
         {
-            return std::visit(std::forward<F>(func), _data);
+            return std::visit([&](auto&& obj) { return func(*obj); }, _data2);
         }
 
         /// <summary>

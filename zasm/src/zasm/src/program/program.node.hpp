@@ -11,8 +11,8 @@ namespace zasm
         {
         public:
             template<typename T>
-            constexpr Node(zasm::Node::Id id, T&& val) noexcept
-                : ::zasm::Node(id, std::forward<T>(val))
+            constexpr Node(zasm::Node::Id id, T* val) noexcept
+                : ::zasm::Node(id, val)
             {
             }
             void setPrev(::zasm::Node* node) noexcept

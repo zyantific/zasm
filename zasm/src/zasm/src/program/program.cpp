@@ -127,8 +127,8 @@ namespace zasm
         return entry.node;
     }
 
-    template<bool TNotify, typename F, typename... TArgs>
-    static void notifyObservers(const F&& func, const std::vector<Observer*>& observers, TArgs&&... args) noexcept
+    template<bool TNotify, typename TPred, typename... TArgs>
+    static void notifyObservers(const TPred&& func, const std::vector<Observer*>& observers, TArgs&&... args) noexcept
     {
         if constexpr (TNotify)
         {
@@ -374,6 +374,20 @@ namespace zasm
 
         // Release.
         auto* nodeToDestroy = detail::toInternal(node);
+
+        node->visit([&](auto& ptr) {
+
+            using T = std::decay_t<decltype(ptr)>;
+
+            auto& objectPool = state.nodePools.getPool<T>();
+            objectPool.destroy(&ptr);
+
+            if (!quickDestroy)
+            {
+                objectPool.deallocate(&ptr, 1);
+            }
+        });
+        
         state.nodePool.destroy(nodeToDestroy);
 
         if (!quickDestroy)
@@ -437,7 +451,7 @@ namespace zasm
         return _state->entryPoint;
     }
 
-    template<typename... TArgs> Node* createNode_(detail::ProgramState& state, TArgs&&... args)
+    template<typename T> Node* createNode_(detail::ProgramState& state, T&& object)
     {
         const auto nextId = state.nextNodeId;
         state.nextNodeId = static_cast<Node::Id>(static_cast<std::underlying_type_t<Node::Id>>(nextId) + 1U);
@@ -449,7 +463,13 @@ namespace zasm
             return nullptr;
         }
 
-        ::new ((void*)node) detail::Node(nextId, std::forward<TArgs&&>(args)...);
+        using ObjectType = std::decay_t<T>;
+        auto& objectPool = state.nodePools.getPool<ObjectType>();
+
+        auto* obj = objectPool.allocate(1);
+        ::new ((void*)obj) ObjectType(std::move(object));
+
+        ::new ((void*)node) detail::Node(nextId, obj);
 
         notifyObservers<true>(&Observer::onNodeCreated, state.observer, node);
 
