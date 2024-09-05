@@ -347,4 +347,26 @@ namespace zasm::tests
         ASSERT_EQ(imm.value<int>(), 3);
     }
 
+    TEST(ProgramTests, TestNodeType)
+    {
+        Program program(MachineMode::AMD64);
+
+        auto testIns = Instruction{}.setMnemonic(x86::Mnemonic::Add);
+
+        auto* node = program.createNode(testIns);
+        ASSERT_NE(node, nullptr);
+
+        ASSERT_TRUE(node->holds<Instruction>());
+
+        ASSERT_FALSE(node->holds<Data>());
+
+        auto* inst = node->getIf<Instruction>();
+        ASSERT_NE(inst, nullptr);
+
+        ASSERT_EQ(testIns, *inst);
+
+        auto* data = node->getIf<Data>();
+        ASSERT_EQ(data, nullptr);
+    }
+
 } // namespace zasm::tests
