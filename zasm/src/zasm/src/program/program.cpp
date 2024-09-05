@@ -376,10 +376,9 @@ namespace zasm
         auto* nodeToDestroy = detail::toInternal(node);
 
         node->visit([&](auto& ptr) {
-
             using T = std::decay_t<decltype(ptr)>;
 
-            auto& objectPool = state.nodePools.getPool<T>();
+            auto& objectPool = state.objectPools.get<T>();
             objectPool.destroy(&ptr);
 
             if (!quickDestroy)
@@ -387,13 +386,14 @@ namespace zasm
                 objectPool.deallocate(&ptr, 1);
             }
         });
-        
-        state.nodePool.destroy(nodeToDestroy);
+
+        auto& nodePool = state.objectPools.get<Node>();
+        nodePool.destroy(nodeToDestroy);
 
         if (!quickDestroy)
         {
             // Release memory, when quickDestroy is true the entire pool will be cleared at once.
-            state.nodePool.deallocate(nodeToDestroy, 1);
+            nodePool.deallocate(nodeToDestroy, 1);
 
             // Remove mapping.
             auto& nodeMap = state.nodeMap;
@@ -438,7 +438,7 @@ namespace zasm
         _state->sections.clear();
         _state->labels.clear();
         _state->symbolNames.clear();
-        _state->nodePool.reset();
+        _state->objectPools.reset();
     }
 
     void Program::setEntryPoint(const Label& label)
@@ -456,19 +456,21 @@ namespace zasm
         const auto nextId = state.nextNodeId;
         state.nextNodeId = static_cast<Node::Id>(static_cast<std::underlying_type_t<Node::Id>>(nextId) + 1U);
 
-        auto& pool = state.nodePool;
-        auto* node = detail::toInternal(pool.allocate(1));
+        auto& nodePool = state.objectPools.get<Node>();
+        auto* node = detail::toInternal(nodePool.allocate(1));
         if (node == nullptr)
         {
             return nullptr;
         }
 
+        // Construct object.
         using ObjectType = std::decay_t<T>;
-        auto& objectPool = state.nodePools.getPool<ObjectType>();
+        auto& objectPool = state.objectPools.get<ObjectType>();
 
         auto* obj = objectPool.allocate(1);
         ::new ((void*)obj) ObjectType(std::move(object));
 
+        // Construct node.
         ::new ((void*)node) detail::Node(nextId, obj);
 
         notifyObservers<true>(&Observer::onNodeCreated, state.observer, node);

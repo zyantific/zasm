@@ -23,8 +23,6 @@ namespace zasm
 
 namespace zasm::detail
 {
-    constexpr std::size_t PoolSize = 1U << 10;
-
     struct LabelData
     {
         Label::Id id{ Label::Id::Invalid };
@@ -47,25 +45,36 @@ namespace zasm::detail
         zasm::Node* node{};
     };
 
-    template<typename... TTypes> struct ObjectPools
+    namespace detail
     {
-        std::tuple<ObjectPool<TTypes, PoolSize>...> pools;
-
-        template<typename T> auto& getPool()
+        template<typename T>
+        struct PoolSize
         {
-            return std::get<ObjectPool<T, PoolSize>>(pools);
-        }
-    };
+            static constexpr std::size_t kSize = 50'000;
+        };
 
-    using NodePools = ObjectPools<Sentinel, Instruction, Label, EmbeddedLabel, Data, Section, Align>;
+        template<> struct PoolSize<Instruction>
+        {
+            static constexpr std::size_t kSize = 30'000;
+        };
 
-    struct NodeStorage
-    {
-        ObjectPool<Node, PoolSize> nodePool;
-        Node::Id nextNodeId{};
+        template<typename... TTypes> struct ObjectPools
+        {
+            std::tuple<ObjectPool<TTypes, PoolSize<TTypes>::kSize>...> pools;
 
-        NodePools nodePools;
-    };
+            template<typename T> auto& get()
+            {
+                return std::get<ObjectPool<T, PoolSize<T>::kSize>>(pools);
+            }
+
+            void reset()
+            {
+                std::apply([](auto&... pool) { (pool.reset(), ...); }, pools);
+            }
+        };
+    } // namespace detail
+
+    using ObjectPools = detail::ObjectPools<zasm::Node, Sentinel, Instruction, Label, EmbeddedLabel, Data, Section, Align>;
 
     struct NodeList
     {
@@ -79,7 +88,7 @@ namespace zasm::detail
         StringPool symbolNames;
     };
 
-    struct ProgramState : NodeStorage, NodeList, Symbols
+    struct ProgramState : NodeList, Symbols
     {
         MachineMode mode{};
 
@@ -93,6 +102,9 @@ namespace zasm::detail
         std::vector<Node*> nodeMap;
 
         Label entryPoint{ Label::Id::Invalid };
+
+        ObjectPools objectPools;
+        Node::Id nextNodeId{};
 
         ProgramState(MachineMode m)
             : mode(m)
