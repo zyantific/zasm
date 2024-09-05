@@ -22,27 +22,6 @@ namespace zasm
     };
     ZASM_ENABLE_ENUM_OPERATORS(NodeFlags);
 
-    template<typename T> constexpr std::size_t TypeHash()
-    {
-        std::size_t result{ 14695981039346656037 };
-
-#ifdef _MSC_VER
-#    define F __FUNCSIG__
-#else
-#    define F __PRETTY_FUNCTION__
-#endif
-
-        for (const auto& c : F)
-        {
-            result ^= c;
-            result *= 1099511628211;
-        }
-
-        return result;
-    }
-
-    template<typename T> constexpr std::size_t constexpr_hash = TypeHash<std::decay_t<T>>();
-
     /// <summary>
     /// A type to hold data such as Instruction, Label, Data etc. within a doubly
     /// linked list managed by the Program. The data is internally stored as a variant
