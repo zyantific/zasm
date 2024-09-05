@@ -40,7 +40,7 @@ namespace zasm
         NodeFlags _flags{};
         Node* _prev{};
         Node* _next{};
-        std::variant<Sentinel*, Instruction*, Label*, EmbeddedLabel*, Data*, Section*, Align*> _data2{};
+        std::variant<Sentinel*, Instruction*, Label*, EmbeddedLabel*, Data*, Section*, Align*> _data{};
 
         union
         {
@@ -53,7 +53,7 @@ namespace zasm
         template<typename T>
         constexpr Node(Id nodeId, T* val) noexcept
             : _id{ nodeId }
-            , _data2{ val }
+            , _data{ val }
         {
         }
 
@@ -97,7 +97,7 @@ namespace zasm
         /// <returns>True if the T is the current type</returns>
         template<typename T> constexpr bool holds() const noexcept
         {
-            return std::holds_alternative<T*>(_data2);
+            return std::holds_alternative<T*>(_data);
         }
 
         /// <summary>
@@ -108,13 +108,13 @@ namespace zasm
         /// <returns>Returns a reference to the data with the type of T</returns>
         template<typename T> constexpr const T& get() const
         {
-            return *std::get<T*>(_data2);
+            return *std::get<T*>(_data);
         }
 
         /// <see cref="get"/>
         template<typename T> constexpr T& get()
         {
-            return *std::get<T*>(_data2);
+            return *std::get<T*>(_data);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace zasm
         /// <returns>Pointer of type T</returns>
         template<typename T> constexpr const T* getIf() const noexcept
         {
-            auto r = std::get_if<T*>(&_data2);
+            auto r = std::get_if<T*>(&_data);
             if (r == nullptr)
                 return nullptr;
             return *r;
@@ -134,7 +134,7 @@ namespace zasm
         /// <see cref="getIf"/>
         template<typename T> constexpr T* getIf() noexcept
         {
-            auto r = std::get_if<T*>(&_data2);
+            auto r = std::get_if<T*>(&_data);
             if (r == nullptr)
                 return nullptr;
             return *r;
@@ -149,13 +149,13 @@ namespace zasm
         /// <returns>The result of the visitor function</returns>
         template<typename TPred> constexpr auto visit(TPred&& func) const
         {
-            return std::visit([&](auto&& obj) { return func(*obj); }, _data2);
+            return std::visit([&](auto&& obj) { return func(*obj); }, _data);
         }
 
         /// <see cref="visit"/>
         template<typename TPred> constexpr auto visit(TPred&& func)
         {
-            return std::visit([&](auto&& obj) { return func(*obj); }, _data2);
+            return std::visit([&](auto&& obj) { return func(*obj); }, _data);
         }
 
         /// <summary>
