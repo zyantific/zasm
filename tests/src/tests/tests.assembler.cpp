@@ -51,14 +51,14 @@ namespace zasm::tests
         Program program(MachineMode::AMD64);
 
         x86::Assembler assembler(program);
-        
+
         ASSERT_EQ(assembler.mov(x86::rax, x86::rax), ErrorCode::None);
         auto* nodeA = assembler.getCursor();
         ASSERT_EQ(assembler.mov(x86::rdx, x86::rdx), ErrorCode::None);
         auto* nodeB = assembler.getCursor();
         ASSERT_EQ(assembler.mov(x86::rbx, x86::rbx), ErrorCode::None);
         auto* nodeC = assembler.getCursor();
-        
+
         program.destroy(nodeC);
         ASSERT_EQ(assembler.getCursor(), nodeB);
 

@@ -120,10 +120,13 @@ namespace zasm::benchmarks
             assembler.setCursor(nullptr);
             state.ResumeTiming();
 
-            for (const auto& instr : zasm::tests::data::Instructions)
+            for (int i = 0; i < 100; i++)
             {
-                instr.emitter(assembler);
-                numInstructions++;
+                for (const auto& instr : zasm::tests::data::Instructions)
+                {
+                    instr.emitter(assembler);
+                    numInstructions++;
+                }
             }
         }
 

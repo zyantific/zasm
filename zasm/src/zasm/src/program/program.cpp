@@ -127,8 +127,8 @@ namespace zasm
         return entry.node;
     }
 
-    template<bool TNotify, typename F, typename... TArgs>
-    static void notifyObservers(const F&& func, const std::vector<Observer*>& observers, TArgs&&... args) noexcept
+    template<bool TNotify, typename TPred, typename... TArgs>
+    static void notifyObservers(const TPred&& func, const std::vector<Observer*>& observers, TArgs&&... args) noexcept
     {
         if constexpr (TNotify)
         {
@@ -374,12 +374,26 @@ namespace zasm
 
         // Release.
         auto* nodeToDestroy = detail::toInternal(node);
-        state.nodePool.destroy(nodeToDestroy);
+
+        node->visit([&](auto& ptr) {
+            using T = std::decay_t<decltype(ptr)>;
+
+            auto& objectPool = state.objectPools.get<T>();
+            objectPool.destroy(&ptr);
+
+            if (!quickDestroy)
+            {
+                objectPool.deallocate(&ptr, 1);
+            }
+        });
+
+        auto& nodePool = state.objectPools.get<Node>();
+        nodePool.destroy(nodeToDestroy);
 
         if (!quickDestroy)
         {
             // Release memory, when quickDestroy is true the entire pool will be cleared at once.
-            state.nodePool.deallocate(nodeToDestroy, 1);
+            nodePool.deallocate(nodeToDestroy, 1);
 
             // Remove mapping.
             auto& nodeMap = state.nodeMap;
@@ -424,7 +438,7 @@ namespace zasm
         _state->sections.clear();
         _state->labels.clear();
         _state->symbolNames.clear();
-        _state->nodePool.reset();
+        _state->objectPools.reset();
     }
 
     void Program::setEntryPoint(const Label& label)
@@ -437,19 +451,27 @@ namespace zasm
         return _state->entryPoint;
     }
 
-    template<typename... TArgs> Node* createNode_(detail::ProgramState& state, TArgs&&... args)
+    template<typename T> Node* createNode_(detail::ProgramState& state, T&& object)
     {
         const auto nextId = state.nextNodeId;
         state.nextNodeId = static_cast<Node::Id>(static_cast<std::underlying_type_t<Node::Id>>(nextId) + 1U);
 
-        auto& pool = state.nodePool;
-        auto* node = detail::toInternal(pool.allocate(1));
+        auto& nodePool = state.objectPools.get<Node>();
+        auto* node = detail::toInternal(nodePool.allocate(1));
         if (node == nullptr)
         {
             return nullptr;
         }
 
-        ::new ((void*)node) detail::Node(nextId, std::forward<TArgs&&>(args)...);
+        // Construct object.
+        using ObjectType = std::decay_t<T>;
+        auto& objectPool = state.objectPools.get<ObjectType>();
+
+        auto* obj = objectPool.allocate(1);
+        ::new ((void*)obj) ObjectType(std::move(object));
+
+        // Construct node.
+        ::new ((void*)node) detail::Node(nextId, obj);
 
         notifyObservers<true>(&Observer::onNodeCreated, state.observer, node);
 
