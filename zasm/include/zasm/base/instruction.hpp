@@ -114,7 +114,7 @@ namespace zasm
 
             assert(T::kInstrType == _type);
 
-            return *reinterpret_cast<T*>(this);
+            return static_cast<T&>(*this);
         }
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace zasm
 
             assert(T::kInstrType == _type);
 
-            return *reinterpret_cast<const T*>(this);
+            return static_cast<const T&>(*this);
         }
     };
 
