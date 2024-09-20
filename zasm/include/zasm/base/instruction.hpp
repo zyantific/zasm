@@ -86,22 +86,6 @@ namespace zasm
             return *this;
         }
 
-        template<typename TPred> auto visit(TPred&& fn) const
-        {
-            if (_type == Type::Detail)
-                return fn(static_cast<const InstructionDetail&>(*this));
-            else
-                return fn(static_cast<const Instruction&>(*this));
-        }
-
-        template<typename TPred> auto visit(TPred&& fn)
-        {
-            if (_type == Type::Detail)
-                return fn(static_cast<InstructionDetail&>(*this));
-            else
-                return fn(static_cast<Instruction&>(*this));
-        }
-
         /// <summary>
         /// Casts this object to T. T must be a type that inherits InstructionBase and has kInstrType.
         /// Casting to the wrong type is UB.
