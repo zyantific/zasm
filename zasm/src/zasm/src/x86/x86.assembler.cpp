@@ -145,6 +145,12 @@ namespace zasm::x86
         return emit(instr.getAttribs(), instr.getMnemonic(), instr.getOperandCount(), ops.data());
     }
 
+    Error Assembler::emit(const InstructionDetail& instr)
+    {
+        const auto& ops = instr.getOperands();
+        return emit(instr.getAttribs(), instr.getMnemonic(), instr.getVisibleOperandCount(), ops.data());
+    }
+
     Error Assembler::embedLabel(Label label)
     {
         BitSize size = BitSize::_0;
