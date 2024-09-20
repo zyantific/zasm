@@ -17,7 +17,8 @@ namespace zasm
     class InstructionDetail;
 
     /// <summary>
-    /// Lightweight instruction object that represents the instruction signature rather than the full instruction.
+    /// Lightweight instruction object that represents the instruction signature rather than the full instruction,
+    /// this is the type that is stored as a node in the Program to keep the memory footprint low.
     /// </summary>
     class Instruction final : public TInstructionBase<Instruction, 5>
     {
@@ -52,7 +53,9 @@ namespace zasm
         }
 
         /// <summary>
-        /// Returns InstructionInfo or zasm::Error for given mode and instruction.
+        /// Returns InstructionDetail or zasm::Error for given mode and instruction.
+        /// NOTE: The function is doing a bit of processing, so it should be only called when
+        ///       all the instruction details are required.
         /// </summary>
         Expected<InstructionDetail, Error> getDetail(MachineMode mode) const;
 
@@ -120,6 +123,10 @@ namespace zasm
             return !(*this == other);
         }
 
+        /// <summary>
+        /// Returns the instruction category, this is target architecture specific.
+        /// </summary>
+        /// <returns>Instruction Category</returns>
         constexpr Category getCategory() const noexcept
         {
             return _category;
@@ -148,11 +155,20 @@ namespace zasm
             return opCount;
         }
 
+        /// <summary>
+        /// Returns a reference to the array that holds the visibility for each operand.
+        /// </summary>
+        /// <returns>Reference to operands visibility</returns>
         constexpr const OperandsVisibility& getOperandsVisibility() const noexcept
         {
             return _opsVisibility;
         }
 
+        /// <summary>
+        /// Returns the operand visibility for the specified index.
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>Operand Visibility</returns>
         constexpr Operand::Visibility getOperandVisibility(std::size_t index) const noexcept
         {
             if (index >= _opCount)
@@ -162,21 +178,41 @@ namespace zasm
             return _opsVisibility.get(index);
         }
 
+        /// <summary>
+        /// Returns true if the operand specified by the index is hidden.
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
         constexpr bool isOperandHidden(std::size_t index) const noexcept
         {
             return getOperandVisibility(index) == Operand::Visibility::Hidden;
         }
 
+        /// <summary>
+        /// Returns true if the operand specified by the index is explicit.
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
         constexpr bool isOperandExplicit(std::size_t index) const noexcept
         {
             return getOperandVisibility(index) == Operand::Visibility::Explicit;
         }
 
+        /// <summary>
+        /// Returns true if the operand specified by the index is implicit.
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
         constexpr bool isOperandImplicit(std::size_t index) const noexcept
         {
             return getOperandVisibility(index) == Operand::Visibility::Implicit;
         }
 
+        /// <summary>
+        /// Returns the operand access mask specified by the index.
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>Access mask</returns>
         constexpr Operand::Access getOperandAccess(std::size_t index) const noexcept
         {
             if (index >= _opCount)
@@ -184,6 +220,56 @@ namespace zasm
                 return Operand::Access::None;
             }
             return _access.get(index);
+        }
+
+        /// <summary>
+        /// Returns true if the operand at the specified index contains the access mask.
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
+        constexpr bool hasOperandAccess(std::size_t index, Operand::Access accessMask)
+        {
+            return (getOperandAccess(index) & accessMask) != Operand::Access::None;
+        }
+
+        /// <summary>
+        /// Returns true if the operand is read by the instruction (may read).
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
+        constexpr bool isOperandRead(std::size_t index)
+        {
+            return hasOperandAccess(index, Operand::Access::MaskRead);
+        }
+
+        /// <summary>
+        /// Returns true if the operand is conditionally read by the instruction (may read).
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
+        constexpr bool isOperandCondRead(std::size_t index)
+        {
+            return hasOperandAccess(index, Operand::Access::CondRead);
+        }
+
+        /// <summary>
+        /// Returns true if the operand is written by the instruction (may write).
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
+        constexpr bool isOperandWrite(std::size_t index)
+        {
+            return hasOperandAccess(index, Operand::Access::MaskWrite);
+        }
+
+        /// <summary>
+        /// Returns true if the operand is conditionally written by the instruction (may write).
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
+        constexpr bool isOperandCondWrite(std::size_t index)
+        {
+            return hasOperandAccess(index, Operand::Access::CondWrite);
         }
 
         constexpr const OperandsAccess& getOperandsAccess() const noexcept
