@@ -1777,4 +1777,119 @@ namespace zasm::x86
         static constexpr detail::Mnemonic<ZYDIS_MNEMONIC_XTEST> Xtest{};
     } // namespace Mnemonic
 
+    constexpr bool isBranching(zasm::InstrMnemonic mnemonic)
+    {
+        switch (mnemonic)
+        {
+            case Mnemonic::Call:
+            case Mnemonic::Ret:
+            case Mnemonic::Jb:
+            case Mnemonic::Jbe:
+            case Mnemonic::Jcxz:
+            case Mnemonic::Jecxz:
+            case Mnemonic::Jknzd:
+            case Mnemonic::Jkzd:
+            case Mnemonic::Jl:
+            case Mnemonic::Jle:
+            case Mnemonic::Jmp:
+            case Mnemonic::Jnb:
+            case Mnemonic::Jnbe:
+            case Mnemonic::Jnl:
+            case Mnemonic::Jnle:
+            case Mnemonic::Jno:
+            case Mnemonic::Jnp:
+            case Mnemonic::Jns:
+            case Mnemonic::Jnz:
+            case Mnemonic::Jo:
+            case Mnemonic::Jp:
+            case Mnemonic::Jrcxz:
+            case Mnemonic::Js:
+            case Mnemonic::Jz:
+                return true;
+        }
+
+        return false;
+    }
+
+    constexpr bool isBranching(const Instruction& instr)
+    {
+        return isBranching(instr.getMnemonic());
+    }
+
+    constexpr bool isCondBranching(zasm::InstrMnemonic mnemonic)
+    {
+        switch (mnemonic)
+        {
+            case Mnemonic::Jb:
+            case Mnemonic::Jbe:
+            case Mnemonic::Jcxz:
+            case Mnemonic::Jecxz:
+            case Mnemonic::Jknzd:
+            case Mnemonic::Jkzd:
+            case Mnemonic::Jl:
+            case Mnemonic::Jle:
+            case Mnemonic::Jnb:
+            case Mnemonic::Jnbe:
+            case Mnemonic::Jnl:
+            case Mnemonic::Jnle:
+            case Mnemonic::Jno:
+            case Mnemonic::Jnp:
+            case Mnemonic::Jns:
+            case Mnemonic::Jnz:
+            case Mnemonic::Jo:
+            case Mnemonic::Jp:
+            case Mnemonic::Jrcxz:
+            case Mnemonic::Js:
+            case Mnemonic::Jz:
+                return true;
+        }
+
+        return false;
+    }
+
+    constexpr bool isCondBranching(const Instruction& instr)
+    {
+        return isCondBranching(instr.getMnemonic());
+    }
+
+    constexpr bool isSyscall(zasm::InstrMnemonic mnemonic)
+    {
+        return mnemonic == Mnemonic::Syscall;
+    }
+
+    constexpr bool isSyscall(const Instruction& instr)
+    {
+        return isSyscall(instr.getMnemonic());
+    }
+
+    constexpr bool isCall(zasm::InstrMnemonic mnemonic)
+    {
+        return mnemonic == Mnemonic::Call;
+    }
+
+    constexpr bool isCall(const Instruction& instr)
+    {
+        return isCall(instr.getMnemonic());
+    }
+
+    constexpr bool isRet(zasm::InstrMnemonic mnemonic)
+    {
+        return mnemonic == Mnemonic::Ret;
+    }
+
+    constexpr bool isRet(const Instruction& instr)
+    {
+        return isRet(instr.getMnemonic());
+    }
+
+    constexpr bool isJmp(zasm::InstrMnemonic mnemonic)
+    {
+        return mnemonic == Mnemonic::Jmp;
+    }
+
+    constexpr bool isJmp(const Instruction& instr)
+    {
+        return isJmp(instr.getMnemonic());
+    }
+
 } // namespace zasm::x86
