@@ -19,29 +19,31 @@ namespace zasm
     /// <summary>
     /// Lightweight instruction object that represents the instruction signature rather than the full instruction.
     /// </summary>
-    class Instruction final : public InstructionBase<Instruction, 5>
+    class Instruction final : public TInstructionBase<Instruction, 5>
     {
     public:
+        static constexpr auto kInstrType = InstructionBase::Type::Signanture;
+
         constexpr Instruction() noexcept = default;
 
         constexpr Instruction(Mnemonic mnemonic) noexcept
-            : InstructionBase({}, mnemonic, {}, {})
+            : TInstructionBase({}, mnemonic, {}, {})
         {
         }
 
         constexpr Instruction(Mnemonic mnemonic, OperandCount opCount, const Operands& operands) noexcept
-            : InstructionBase({}, mnemonic, opCount, operands)
+            : TInstructionBase({}, mnemonic, opCount, operands)
         {
         }
 
         constexpr Instruction(Attribs attribs, Mnemonic mnemonic, OperandCount opCount, const Operands& operands) noexcept
-            : InstructionBase(attribs, mnemonic, opCount, operands)
+            : TInstructionBase(attribs, mnemonic, opCount, operands)
         {
         }
 
         constexpr bool operator==(const Instruction& other) const
         {
-            return InstructionBase::operator==(other);
+            return TInstructionBase::operator==(other);
         }
 
         constexpr bool operator!=(const Instruction& other) const
@@ -52,14 +54,16 @@ namespace zasm
         /// <summary>
         /// Returns InstructionInfo or zasm::Error for given mode and instruction.
         /// </summary>
-        Expected<const InstructionDetail, Error> getDetail(MachineMode mode) const;
+        Expected<InstructionDetail, Error> getDetail(MachineMode mode) const;
 
-        static Expected<const InstructionDetail, Error> getDetail(MachineMode mode, const Instruction& instr);
+        static Expected<InstructionDetail, Error> getDetail(MachineMode mode, const Instruction& instr);
     };
 
-    class InstructionDetail final : public InstructionBase<InstructionDetail, 10>
+    class InstructionDetail final : public TInstructionBase<InstructionDetail, 10>
     {
     public:
+        static constexpr auto kInstrType = InstructionBase::Type::Detail;
+
         using OperandsAccess = Packed<std::uint32_t, Operand::Access, 3>;
         using OperandsVisibility = Packed<std::uint32_t, Operand::Visibility, 3>;
 
@@ -96,7 +100,7 @@ namespace zasm
             Attribs attribs, Mnemonic mnemonic, OperandCount opCount, const Operands& operands, const OperandsAccess& access,
             const OperandsVisibility& opsVisibility, const CPUFlags& flags, const Category& category,
             Length length = 0) noexcept
-            : InstructionBase{ attribs, mnemonic, opCount, operands }
+            : TInstructionBase{ attribs, mnemonic, opCount, operands }
             , _access{ access }
             , _opsVisibility{ opsVisibility }
             , _cpuFlags{ flags }
@@ -107,7 +111,7 @@ namespace zasm
 
         constexpr bool operator==(const InstructionDetail& other) const
         {
-            return InstructionBase::operator==(other) && _access == other._access && _opsVisibility == other._opsVisibility
+            return TInstructionBase::operator==(other) && _access == other._access && _opsVisibility == other._opsVisibility
                 && _cpuFlags == other._cpuFlags && _category == other._category && _length == other._length;
         }
 

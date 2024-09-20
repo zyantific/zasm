@@ -78,4 +78,32 @@ namespace zasm::tests
         }
     }
 
+    TEST(InstructionTests, TestVisit)
+    {
+        auto ins = zasm::Instruction()                  //
+                       .setMnemonic(x86::Mnemonic::Mov) //
+                       .addOperand(x86::rax)            //
+                       .addOperand(x86::rdx);           //
+
+        // Test if the conversion from base to upper works.
+        auto testVisit = [](InstructionBase& base) {
+            return base.visit([](auto&& real) {
+                //
+                real.setMnemonic(x86::Mnemonic::Sub);
+                return real.getOperandCount();
+            });
+        };
+
+        auto detail = ins.getDetail(MachineMode::AMD64);
+        detail->addOperand(x86::rdx);
+
+        auto opCount1 = testVisit(ins);
+        ASSERT_EQ(ins.getMnemonic(), x86::Mnemonic::Sub);
+        ASSERT_EQ(opCount1, 2);
+
+        auto opCount2 = testVisit(*detail);
+        ASSERT_EQ(detail->getMnemonic(), x86::Mnemonic::Sub);
+        ASSERT_EQ(opCount2, 3);
+    }
+
 } // namespace zasm::tests

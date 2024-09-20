@@ -1811,7 +1811,7 @@ namespace zasm::x86
         return false;
     }
 
-    constexpr bool isBranching(const Instruction& instr)
+    constexpr bool isBranching(const InstructionBase& instr)
     {
         return isBranching(instr.getMnemonic());
     }
@@ -1847,7 +1847,7 @@ namespace zasm::x86
         return false;
     }
 
-    constexpr bool isCondBranching(const Instruction& instr)
+    constexpr bool isCondBranching(const InstructionBase& instr)
     {
         return isCondBranching(instr.getMnemonic());
     }
@@ -1857,7 +1857,7 @@ namespace zasm::x86
         return mnemonic == Mnemonic::Syscall;
     }
 
-    constexpr bool isSyscall(const Instruction& instr)
+    constexpr bool isSyscall(const InstructionBase& instr)
     {
         return isSyscall(instr.getMnemonic());
     }
@@ -1867,7 +1867,7 @@ namespace zasm::x86
         return mnemonic == Mnemonic::Call;
     }
 
-    constexpr bool isCall(const Instruction& instr)
+    constexpr bool isCall(const InstructionBase& instr)
     {
         return isCall(instr.getMnemonic());
     }
@@ -1877,7 +1877,7 @@ namespace zasm::x86
         return mnemonic == Mnemonic::Ret;
     }
 
-    constexpr bool isRet(const Instruction& instr)
+    constexpr bool isRet(const InstructionBase& instr)
     {
         return isRet(instr.getMnemonic());
     }
@@ -1887,7 +1887,7 @@ namespace zasm::x86
         return mnemonic == Mnemonic::Jmp;
     }
 
-    constexpr bool isJmp(const Instruction& instr)
+    constexpr bool isJmp(const InstructionBase& instr)
     {
         return isJmp(instr.getMnemonic());
     }

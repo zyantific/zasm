@@ -25,7 +25,7 @@ namespace zasm
         return nullptr;
     }
 
-    Expected<const InstructionDetail, Error> Instruction::getDetail(MachineMode mode, const Instruction& instr)
+    Expected<InstructionDetail, Error> Instruction::getDetail(MachineMode mode, const Instruction& instr)
     {
         const auto& operands = instr.getOperands();
         const auto opCount = instr.getOperandCount();
@@ -72,7 +72,7 @@ namespace zasm
         return decoded;
     }
 
-    Expected<const InstructionDetail, zasm::Error> Instruction::getDetail(MachineMode mode) const
+    Expected<InstructionDetail, zasm::Error> Instruction::getDetail(MachineMode mode) const
     {
         return getDetail(mode, *this);
     }
