@@ -10,46 +10,60 @@
 
 namespace zasm
 {
-    /// <summary>
-    /// Base type for Instruction and InstructionDetail, not to be used directly.
-    /// </summary>
-    template<typename TBase, std::size_t TMaxOperands> class InstructionBase
+    class Instruction;
+    class InstructionDetail;
+
+    namespace detail
+    {
+        template<typename T, typename = void> struct IsInstructionType : std::false_type
+        {
+        };
+
+        template<typename T> struct IsInstructionType<T, std::void_t<decltype(T::kInstrType)>> : std::true_type
+        {
+        };
+    } // namespace detail
+
+    class InstructionBase
     {
     public:
         using Length = std::uint8_t;
         using Mnemonic = InstrMnemonic;
         using Attribs = InstrAttribs;
         using Category = InstrCategory;
-
         using OperandCount = std::uint8_t;
-        using Operands = std::array<Operand, TMaxOperands>;
+
+        enum class Type : uint8_t
+        {
+            Signanture,
+            Detail,
+        };
 
     protected:
         Attribs _attribs{};
         OperandCount _opCount{};
         Mnemonic _mnemonic{};
-        Operands _operands{};
+        Type _type{};
 
     protected:
         constexpr InstructionBase() = default;
-        constexpr InstructionBase(Attribs attribs, Mnemonic mnemonic, OperandCount opCount, const Operands& ops) noexcept
-            : _attribs{ attribs }
+        constexpr InstructionBase(Type type, Attribs attribs, Mnemonic mnemonic, OperandCount opCount) noexcept
+            : _type{ type }
+            , _attribs{ attribs }
             , _opCount{ opCount }
             , _mnemonic{ mnemonic }
-            , _operands{ ops }
         {
         }
 
     public:
-        constexpr bool operator==(const InstructionBase& other) const
+        /// <summary>
+        /// Returns the instruction type of this object. The type can be detail or signature. This is only
+        /// relevant when casting between types.
+        /// </summary>
+        /// <returns>Instruction type</returns>
+        constexpr Type getType() const noexcept
         {
-            return _attribs == other._attribs && _mnemonic == other._mnemonic && _opCount == other._opCount
-                && _operands == other._operands;
-        }
-
-        constexpr bool operator!=(const InstructionBase& other) const
-        {
-            return !(*this == other);
+            return _type;
         }
 
         /// <summary>
@@ -58,6 +72,80 @@ namespace zasm
         constexpr Mnemonic getMnemonic() const noexcept
         {
             return _mnemonic;
+        }
+
+        /// <summary>
+        /// Sets a new mnemonic for this instructions, this must be one of the architecture defined mnemonic
+        /// ex.: x86::Mnemonic::Mov
+        /// </summary>
+        /// <param name="mnemonic">New mnemonic</param>
+        /// <returns>Instruction&</returns>
+        template<typename T> constexpr InstructionBase& setMnemonic(T mnemonic)
+        {
+            _mnemonic = static_cast<Mnemonic>(mnemonic);
+            return *this;
+        }
+
+        /// <summary>
+        /// Casts this object to T. T must be a type that inherits InstructionBase and has kInstrType.
+        /// Casting to the wrong type is UB.
+        /// </summary>
+        /// <typeparam name="T">New type</typeparam>
+        /// <returns>Reference as T</returns>
+        template<typename T> T& as()
+        {
+            static_assert(detail::IsInstructionType<T>::value, "T is not a supported instruction type.");
+
+            assert(T::kInstrType == _type);
+
+            return static_cast<T&>(*this);
+        }
+
+        /// <summary>
+        /// Casts this object to T. T must be a type that inherits InstructionBase and has kInstrType.
+        /// Casting to the wrong type is UB.
+        /// </summary>
+        /// <typeparam name="T">New type</typeparam>
+        /// <returns>Reference as T</returns>
+        template<typename T> const T& as() const
+        {
+            static_assert(detail::IsInstructionType<T>::value, "T is not a supported instruction type.");
+
+            assert(T::kInstrType == _type);
+
+            return static_cast<const T&>(*this);
+        }
+    };
+
+    /// <summary>
+    /// Base type for Instruction and InstructionDetail, not to be used directly.
+    /// </summary>
+    template<typename TBase, std::size_t TMaxOperands> class TInstructionBase : public InstructionBase
+    {
+    public:
+        using Operands = std::array<Operand, TMaxOperands>;
+
+    protected:
+        Operands _operands{};
+
+    protected:
+        constexpr TInstructionBase() = default;
+        constexpr TInstructionBase(Attribs attribs, Mnemonic mnemonic, OperandCount opCount, const Operands& ops) noexcept
+            : InstructionBase(TBase::kInstrType, attribs, mnemonic, opCount)
+            , _operands{ ops }
+        {
+        }
+
+    public:
+        constexpr bool operator==(const TInstructionBase& other) const
+        {
+            return _attribs == other._attribs && _mnemonic == other._mnemonic && _opCount == other._opCount
+                && _operands == other._operands;
+        }
+
+        constexpr bool operator!=(const TInstructionBase& other) const
+        {
+            return !(*this == other);
         }
 
         /// <summary>

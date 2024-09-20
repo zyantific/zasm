@@ -17,31 +17,34 @@ namespace zasm
     class InstructionDetail;
 
     /// <summary>
-    /// Lightweight instruction object that represents the instruction signature rather than the full instruction.
+    /// Lightweight instruction object that represents the instruction signature rather than the full instruction,
+    /// this is the type that is stored as a node in the Program to keep the memory footprint low.
     /// </summary>
-    class Instruction final : public InstructionBase<Instruction, 5>
+    class Instruction final : public TInstructionBase<Instruction, 5>
     {
     public:
+        static constexpr auto kInstrType = InstructionBase::Type::Signanture;
+
         constexpr Instruction() noexcept = default;
 
         constexpr Instruction(Mnemonic mnemonic) noexcept
-            : InstructionBase({}, mnemonic, {}, {})
+            : TInstructionBase({}, mnemonic, {}, {})
         {
         }
 
         constexpr Instruction(Mnemonic mnemonic, OperandCount opCount, const Operands& operands) noexcept
-            : InstructionBase({}, mnemonic, opCount, operands)
+            : TInstructionBase({}, mnemonic, opCount, operands)
         {
         }
 
         constexpr Instruction(Attribs attribs, Mnemonic mnemonic, OperandCount opCount, const Operands& operands) noexcept
-            : InstructionBase(attribs, mnemonic, opCount, operands)
+            : TInstructionBase(attribs, mnemonic, opCount, operands)
         {
         }
 
         constexpr bool operator==(const Instruction& other) const
         {
-            return InstructionBase::operator==(other);
+            return TInstructionBase::operator==(other);
         }
 
         constexpr bool operator!=(const Instruction& other) const
@@ -50,16 +53,20 @@ namespace zasm
         }
 
         /// <summary>
-        /// Returns InstructionInfo or zasm::Error for given mode and instruction.
+        /// Returns InstructionDetail or zasm::Error for given mode and instruction.
+        /// NOTE: The function is doing a bit of processing, so it should be only called when
+        ///       all the instruction details are required.
         /// </summary>
-        Expected<const InstructionDetail, Error> getDetail(MachineMode mode) const;
+        Expected<InstructionDetail, Error> getDetail(MachineMode mode) const;
 
-        static Expected<const InstructionDetail, Error> getDetail(MachineMode mode, const Instruction& instr);
+        static Expected<InstructionDetail, Error> getDetail(MachineMode mode, const Instruction& instr);
     };
 
-    class InstructionDetail final : public InstructionBase<InstructionDetail, 10>
+    class InstructionDetail final : public TInstructionBase<InstructionDetail, 10>
     {
     public:
+        static constexpr auto kInstrType = InstructionBase::Type::Detail;
+
         using OperandsAccess = Packed<std::uint32_t, Operand::Access, 3>;
         using OperandsVisibility = Packed<std::uint32_t, Operand::Visibility, 3>;
 
@@ -96,7 +103,7 @@ namespace zasm
             Attribs attribs, Mnemonic mnemonic, OperandCount opCount, const Operands& operands, const OperandsAccess& access,
             const OperandsVisibility& opsVisibility, const CPUFlags& flags, const Category& category,
             Length length = 0) noexcept
-            : InstructionBase{ attribs, mnemonic, opCount, operands }
+            : TInstructionBase{ attribs, mnemonic, opCount, operands }
             , _access{ access }
             , _opsVisibility{ opsVisibility }
             , _cpuFlags{ flags }
@@ -107,7 +114,7 @@ namespace zasm
 
         constexpr bool operator==(const InstructionDetail& other) const
         {
-            return InstructionBase::operator==(other) && _access == other._access && _opsVisibility == other._opsVisibility
+            return TInstructionBase::operator==(other) && _access == other._access && _opsVisibility == other._opsVisibility
                 && _cpuFlags == other._cpuFlags && _category == other._category && _length == other._length;
         }
 
@@ -116,6 +123,10 @@ namespace zasm
             return !(*this == other);
         }
 
+        /// <summary>
+        /// Returns the instruction category, this is target architecture specific.
+        /// </summary>
+        /// <returns>Instruction Category</returns>
         constexpr Category getCategory() const noexcept
         {
             return _category;
@@ -144,11 +155,20 @@ namespace zasm
             return opCount;
         }
 
+        /// <summary>
+        /// Returns a reference to the array that holds the visibility for each operand.
+        /// </summary>
+        /// <returns>Reference to operands visibility</returns>
         constexpr const OperandsVisibility& getOperandsVisibility() const noexcept
         {
             return _opsVisibility;
         }
 
+        /// <summary>
+        /// Returns the operand visibility for the specified index.
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>Operand Visibility</returns>
         constexpr Operand::Visibility getOperandVisibility(std::size_t index) const noexcept
         {
             if (index >= _opCount)
@@ -158,21 +178,41 @@ namespace zasm
             return _opsVisibility.get(index);
         }
 
+        /// <summary>
+        /// Returns true if the operand specified by the index is hidden.
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
         constexpr bool isOperandHidden(std::size_t index) const noexcept
         {
             return getOperandVisibility(index) == Operand::Visibility::Hidden;
         }
 
+        /// <summary>
+        /// Returns true if the operand specified by the index is explicit.
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
         constexpr bool isOperandExplicit(std::size_t index) const noexcept
         {
             return getOperandVisibility(index) == Operand::Visibility::Explicit;
         }
 
+        /// <summary>
+        /// Returns true if the operand specified by the index is implicit.
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
         constexpr bool isOperandImplicit(std::size_t index) const noexcept
         {
             return getOperandVisibility(index) == Operand::Visibility::Implicit;
         }
 
+        /// <summary>
+        /// Returns the operand access mask specified by the index.
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>Access mask</returns>
         constexpr Operand::Access getOperandAccess(std::size_t index) const noexcept
         {
             if (index >= _opCount)
@@ -180,6 +220,56 @@ namespace zasm
                 return Operand::Access::None;
             }
             return _access.get(index);
+        }
+
+        /// <summary>
+        /// Returns true if the operand at the specified index contains the access mask.
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
+        constexpr bool hasOperandAccess(std::size_t index, Operand::Access accessMask)
+        {
+            return (getOperandAccess(index) & accessMask) != Operand::Access::None;
+        }
+
+        /// <summary>
+        /// Returns true if the operand is read by the instruction (may read).
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
+        constexpr bool isOperandRead(std::size_t index)
+        {
+            return hasOperandAccess(index, Operand::Access::MaskRead);
+        }
+
+        /// <summary>
+        /// Returns true if the operand is conditionally read by the instruction (may read).
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
+        constexpr bool isOperandCondRead(std::size_t index)
+        {
+            return hasOperandAccess(index, Operand::Access::CondRead);
+        }
+
+        /// <summary>
+        /// Returns true if the operand is written by the instruction (may write).
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
+        constexpr bool isOperandWrite(std::size_t index)
+        {
+            return hasOperandAccess(index, Operand::Access::MaskWrite);
+        }
+
+        /// <summary>
+        /// Returns true if the operand is conditionally written by the instruction (may write).
+        /// </summary>
+        /// <param name="index">Operand Index</param>
+        /// <returns>bool</returns>
+        constexpr bool isOperandCondWrite(std::size_t index)
+        {
+            return hasOperandAccess(index, Operand::Access::CondWrite);
         }
 
         constexpr const OperandsAccess& getOperandsAccess() const noexcept

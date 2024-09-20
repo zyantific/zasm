@@ -87,7 +87,7 @@ namespace zasm::x86
 
         /// <summary>
         /// Creates a new alignment node that will align the next node to the specified alignment when
-        /// serialized. 
+        /// serialized.
         /// To align code the type should be Align::Type::Code otherwise Align::Type::Data
         /// </summary>
         Error align(Align::Type type, std::uint32_t align);
@@ -118,6 +118,7 @@ namespace zasm::x86
 
         Error emit(Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, std::size_t numOps, const Operand* ops);
         Error emit(const Instruction& instr);
+        Error emit(const InstructionDetail& instr);
 
     private:
         void addAttrib(Instruction::Attribs attrib) noexcept
