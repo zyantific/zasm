@@ -18,15 +18,15 @@ namespace zasm
 
 namespace zasm::x86
 {
-    class Assembler final : public Emitter<Assembler>, public Observer
+    class Assembler : public Emitter<Assembler>, public Observer
     {
         Program& _program;
         Node* _cursor{};
         InstrAttribs _attribState{};
 
     public:
-        Assembler(Program& _program);
-        ~Assembler();
+        explicit Assembler(Program& _program);
+        virtual ~Assembler();
 
         /// <summary>
         /// Sets the node at where the next node will be inserted after.

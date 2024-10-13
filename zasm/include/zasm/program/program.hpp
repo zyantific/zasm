@@ -23,7 +23,7 @@ namespace zasm
 
     class Observer;
 
-    class Program final
+    class Program
     {
         std::unique_ptr<detail::ProgramState> _state;
 
@@ -39,11 +39,11 @@ namespace zasm
         /// Constructs an empty program with the specified machine mode.
         /// </summary>
         /// <param name="mode">Machine Mode</param>
-        Program(MachineMode mode);
+        explicit Program(MachineMode mode);
 
         Program(const Program&) = delete;
         Program(Program&& other) noexcept;
-        ~Program();
+        virtual ~Program();
 
         Program& operator=(const Program&) = delete;
         Program& operator=(Program&& other) noexcept;
