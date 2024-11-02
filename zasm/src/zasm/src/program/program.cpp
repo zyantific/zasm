@@ -110,6 +110,54 @@ namespace zasm
         return entry.node;
     }
 
+    const char* Program::getLabelName(const Label& label) const noexcept
+    {
+        if (!label.isValid())
+        {
+            return nullptr;
+        }
+
+        const auto entryIdx = static_cast<std::size_t>(label.getId());
+        if (entryIdx >= _state->labels.size())
+        {
+            return nullptr;
+        }
+
+        auto& entry = _state->labels[entryIdx];
+        if (entry.nameId != StringPool::Id::Invalid)
+        {
+            return _state->symbolNames.get(entry.nameId);
+        }
+
+        return nullptr;
+    }
+
+    void Program::setLabelName(const Label& label, const char* name)
+    {
+        if (!label.isValid())
+        {
+            return;
+        }
+
+        const auto entryIdx = static_cast<std::size_t>(label.getId());
+        if (entryIdx >= _state->labels.size())
+        {
+            return;
+        }
+
+        auto& entry = _state->labels[entryIdx];
+        if (entry.nameId != StringPool::Id::Invalid)
+        {
+            _state->symbolNames.release(entry.nameId);
+            entry.nameId = StringPool::Id::Invalid;
+        }
+
+        if (name != nullptr)
+        {
+            entry.nameId = _state->symbolNames.aquire(name);
+        }
+    }
+
     Node* Program::getNodeForSection(const Section& section)
     {
         if (!section.isValid())

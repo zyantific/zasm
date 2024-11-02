@@ -263,6 +263,20 @@ namespace zasm
         /// <returns>Node for which the label is bound to or null if the label is invalid or not bound</returns>
         Node* getNodeForLabel(const Label& label);
 
+        /// <summary>
+        /// Returns the current assigned label name, returns nullptr if the label is invalid or has no name.
+        /// </summary>
+        /// <param name="label">Label</param>
+        /// <returns>Label name or nullptr</returns>
+        const char* getLabelName(const Label& label) const noexcept;
+
+        /// <summary>
+        /// Assigns a name to a label.
+        /// </summary>
+        /// <param name="label">Label</param>
+        /// <param name="name">The new name, pasing nullptr will clear the name, the string will be copied</param>
+        void setLabelName(const Label& label, const char* name);
+
     public:
         /// <summary>
         /// Creates a new section that can be used to segment code and data.
