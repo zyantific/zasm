@@ -1,9 +1,11 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <iterator>
+#include <memory>
 #include <string.h>
 #include <string>
 #include <string_view>
@@ -16,34 +18,59 @@ namespace zasm
 
     class StringPool
     {
-        struct Entry
-        {
-            std::size_t hash{};
-            std::int32_t offset{};
-            std::int32_t len{};
-            std::int32_t capacity{};
-            std::int32_t refCount{};
-        };
-
-        std::vector<Entry> _entries;
-        std::vector<char> _data;
-
     public:
         enum class Id : std::int32_t
         {
             Invalid = -1,
         };
 
-    public:
-        // NOLINTNEXTLINE
-        template<size_t N> Id aquire(const char (&value)[N])
+        static constexpr std::size_t kMaxStringSize = 0xFFFF;
+        static constexpr std::size_t kAverageStringSize = 24;
+        static constexpr std::size_t kStringsPerBlock = 4096;
+        static constexpr std::size_t kBlockSize = kAverageStringSize * kStringsPerBlock;
+        static constexpr std::size_t kUnspecifiedSize = ~std::size_t{ 0 };
+
+        // 16 bit prime number.
+        static constexpr std::size_t kMaxHashBuckets = 39119;
+
+    private:
+        struct Entry
         {
-            return aquire_(value, N);
+            std::size_t hash{};
+            std::size_t blockIndex{};
+            std::size_t sortedIndex{};
+            std::int32_t offsetInBlock{};
+            std::int32_t len{};
+            std::int32_t capacity{};
+            std::int32_t refCount{};
+        };
+
+        std::vector<Entry> _entries;
+        std::vector<Id> _freeEntries;
+        std::vector<std::vector<Id>> _hashBuckets;
+
+        struct Block
+        {
+            std::size_t index{};
+            std::size_t used{};
+            std::array<char, kBlockSize> data{};
+        };
+
+        std::vector<std::unique_ptr<Block>> _blocks;
+
+    public:
+        StringPool()
+        {
+            _hashBuckets.resize(kMaxHashBuckets);
         }
 
-        Id aquire(const char* value)
+        Id aquire(const char* value, std::size_t size = kUnspecifiedSize)
         {
-            return aquire_(value, strlen(value));
+            if (size == kUnspecifiedSize)
+            {
+                size = std::strlen(value);
+            }
+            return aquire_(value, size);
         }
 
         Id aquire(const std::string& val)
@@ -60,14 +87,26 @@ namespace zasm
             }
 
             const auto newRefCount = --entry->refCount;
+            assert(newRefCount >= 0);
+
+            if (newRefCount == 0)
+            {
+                _freeEntries.push_back(stringId);
+
+                const auto bucketIndex = entry->hash % kMaxHashBuckets;
+                auto& bucket = _hashBuckets[bucketIndex];
+
+                bucket.erase(bucket.begin() + entry->sortedIndex);
+            }
+
             return newRefCount;
         }
 
-        // NOLINTNEXTLINE
-        template<std::size_t N> Id find(const char (&value)[N]) const noexcept
+        Id find(const char* str) const noexcept
         {
-            const auto hash = getHash(value, N);
-            return find(value, N, hash);
+            const auto len = std::strlen(str);
+            const auto hash = getHash(str, len);
+            return find_(str, len, hash);
         }
 
         bool isValid(Id stringId) const noexcept
@@ -84,7 +123,7 @@ namespace zasm
                 return nullptr;
             }
 
-            return _data.data() + entry->offset;
+            return _blocks[entry->blockIndex]->data.data() + entry->offsetInBlock;
         }
 
         int32_t getLength(Id stringId) const noexcept
@@ -111,12 +150,7 @@ namespace zasm
         void clear() noexcept
         {
             _entries.clear();
-            _data.clear();
-        }
-
-        const char* data() const noexcept
-        {
-            return _data.data();
+            _blocks.clear();
         }
 
         std::size_t size() const noexcept
@@ -126,6 +160,7 @@ namespace zasm
 
         Error save(IStream& stream) const
         {
+            // Serialize entries.
             const auto entryCount = static_cast<std::uint32_t>(_entries.size());
             if (auto len = stream.write(&entryCount, sizeof(entryCount)); len == 0)
             {
@@ -138,7 +173,15 @@ namespace zasm
                 {
                     return ErrorCode::InvalidParameter;
                 }
-                if (auto len = stream.write(entry.offset); len == 0)
+                if (auto len = stream.write(entry.blockIndex); len == 0)
+                {
+                    return ErrorCode::InvalidParameter;
+                }
+                if (auto len = stream.write(entry.sortedIndex); len == 0)
+                {
+                    return ErrorCode::InvalidParameter;
+                }
+                if (auto len = stream.write(entry.offsetInBlock); len == 0)
                 {
                     return ErrorCode::InvalidParameter;
                 }
@@ -156,15 +199,57 @@ namespace zasm
                 }
             }
 
-            const auto dataSize = static_cast<std::uint32_t>(_data.size());
-            if (auto len = stream.write(dataSize); len == 0)
+            // Serialize free entries.
+            const auto freeEntryCount = static_cast<std::uint32_t>(_freeEntries.size());
+            if (auto len = stream.write(&freeEntryCount, sizeof(freeEntryCount)); len == 0)
             {
                 return ErrorCode::InvalidParameter;
             }
 
-            if (dataSize > 0)
+            for (const auto& freeEntry : _freeEntries)
             {
-                if (auto len = stream.write(_data.data(), dataSize); len == 0)
+                if (auto len = stream.write(freeEntry); len == 0)
+                {
+                    return ErrorCode::InvalidParameter;
+                }
+            }
+
+            // Serialize hash buckets.
+            for (const auto& bucket : _hashBuckets)
+            {
+                const auto bucketSize = static_cast<std::uint32_t>(bucket.size());
+                if (auto len = stream.write(&bucketSize, sizeof(bucketSize)); len == 0)
+                {
+                    return ErrorCode::InvalidParameter;
+                }
+
+                for (const auto& id : bucket)
+                {
+                    if (auto len = stream.write(id); len == 0)
+                    {
+                        return ErrorCode::InvalidParameter;
+                    }
+                }
+            }
+
+            // Serialize blocks.
+            const auto blockCount = static_cast<std::uint32_t>(_blocks.size());
+            if (auto len = stream.write(&blockCount, sizeof(blockCount)); len == 0)
+            {
+                return ErrorCode::InvalidParameter;
+            }
+
+            for (const auto& block : _blocks)
+            {
+                if (auto len = stream.write(block->index); len == 0)
+                {
+                    return ErrorCode::InvalidParameter;
+                }
+                if (auto len = stream.write(block->used); len == 0)
+                {
+                    return ErrorCode::InvalidParameter;
+                }
+                if (auto len = stream.write(block->data.data(), block->used); len == 0)
                 {
                     return ErrorCode::InvalidParameter;
                 }
@@ -175,8 +260,7 @@ namespace zasm
 
         Error load(IStream& stream)
         {
-            clear();
-
+            // Deserialize entries.
             std::uint32_t entryCount{};
             if (auto len = stream.read(&entryCount, sizeof(entryCount)); len == 0)
             {
@@ -191,7 +275,15 @@ namespace zasm
                 {
                     return ErrorCode::InvalidParameter;
                 }
-                if (auto len = stream.read(entry.offset); len == 0)
+                if (auto len = stream.read(entry.blockIndex); len == 0)
+                {
+                    return ErrorCode::InvalidParameter;
+                }
+                if (auto len = stream.read(entry.sortedIndex); len == 0)
+                {
+                    return ErrorCode::InvalidParameter;
+                }
+                if (auto len = stream.read(entry.offsetInBlock); len == 0)
                 {
                     return ErrorCode::InvalidParameter;
                 }
@@ -209,24 +301,76 @@ namespace zasm
                 }
             }
 
-            std::uint32_t dataSize{};
-            if (auto len = stream.read(&dataSize, sizeof(dataSize)); len == 0)
+            // Deserialize free entries.
+            std::uint32_t freeEntryCount{};
+            if (auto len = stream.read(&freeEntryCount, sizeof(freeEntryCount)); len == 0)
             {
                 return ErrorCode::InvalidParameter;
             }
 
-            std::vector<char> loadedData;
-            if (dataSize > 0)
+            auto freeEntries = std::vector<Id>();
+            freeEntries.resize(freeEntryCount);
+            for (auto& freeEntry : freeEntries)
             {
-                loadedData.resize(dataSize);
-                if (auto len = stream.read(loadedData.data(), dataSize); len == 0)
+                if (auto len = stream.read(freeEntry); len == 0)
                 {
                     return ErrorCode::InvalidParameter;
                 }
             }
 
+            // Deserialize hash buckets.
+            auto hashBuckets = std::vector<std::vector<Id>>();
+            hashBuckets.resize(kMaxHashBuckets);
+            for (auto& bucket : hashBuckets)
+            {
+                std::uint32_t bucketSize{};
+                if (auto len = stream.read(&bucketSize, sizeof(bucketSize)); len == 0)
+                {
+                    return ErrorCode::InvalidParameter;
+                }
+
+                bucket.resize(bucketSize);
+                for (auto& id : bucket)
+                {
+                    if (auto len = stream.read(id); len == 0)
+                    {
+                        return ErrorCode::InvalidParameter;
+                    }
+                }
+            }
+
+            // Deserialize blocks.
+            std::uint32_t blockCount{};
+            if (auto len = stream.read(&blockCount, sizeof(blockCount)); len == 0)
+            {
+                return ErrorCode::InvalidParameter;
+            }
+
+            auto blocks = std::vector<std::unique_ptr<Block>>();
+            blocks.resize(blockCount);
+            for (auto& block : blocks)
+            {
+                block = std::make_unique<Block>();
+
+                if (auto len = stream.read(block->index); len == 0)
+                {
+                    return ErrorCode::InvalidParameter;
+                }
+                if (auto len = stream.read(block->used); len == 0)
+                {
+                    return ErrorCode::InvalidParameter;
+                }
+                if (auto len = stream.read(block->data.data(), block->used); len == 0)
+                {
+                    return ErrorCode::InvalidParameter;
+                }
+            }
+
+            // Swap state.
             _entries = std::move(loadedEntries);
-            _data = std::move(loadedData);
+            _freeEntries = std::move(freeEntries);
+            _hashBuckets = std::move(hashBuckets);
+            _blocks = std::move(blocks);
 
             return ErrorCode::None;
         }
@@ -241,7 +385,13 @@ namespace zasm
             {
                 return nullptr;
             }
-            if (self._entries[idx].refCount <= 0)
+
+            const auto refCount = self._entries[idx].refCount;
+#ifndef IN_TESTS
+            assert(refCount > 0);
+#endif
+
+            if (refCount <= 0)
             {
                 return nullptr;
             }
@@ -251,29 +401,80 @@ namespace zasm
 
         Id find_(const char* buf, std::size_t len, std::size_t hash) const noexcept
         {
-            auto it = std::find_if(std::begin(_entries), std::end(_entries), [&](const auto& entry) noexcept {
-                if (entry.refCount == 0 || entry.hash != hash || entry.len != len)
-                {
-                    return false;
-                }
-                const char* str = _data.data() + entry.offset;
-                return memcmp(buf, str, len) == 0;
+            const auto bucketIndex = hash % kMaxHashBuckets;
+            const auto& bucket = _hashBuckets[bucketIndex];
+
+            // Find the lowest hash.
+            auto itLowest = std::lower_bound(bucket.begin(), bucket.end(), Id::Invalid, [&](Id id, Id) {
+                return _entries[static_cast<std::size_t>(id)].hash < hash;
             });
-            if (it != std::end(_entries))
+
+            // Iterate all matching hashes and compare the string.
+            for (auto it = itLowest; it != bucket.end(); ++it)
             {
-                const auto index = std::distance(_entries.begin(), it);
-                return static_cast<Id>(index);
+                const auto id = *it;
+                const auto& entry = _entries[static_cast<std::size_t>(id)];
+                if (entry.hash != hash)
+                {
+                    break;
+                }
+
+                if (entry.len != len)
+                {
+                    continue;
+                }
+
+                const auto* str = _blocks[entry.blockIndex]->data.data() + entry.offsetInBlock;
+                if (std::memcmp(str, buf, len) == 0)
+                {
+                    return id;
+                }
             }
+
             return Id::Invalid;
         }
 
-        Id aquire_(const char* buf, std::size_t len)
+        Block& getBlock(std::size_t len)
         {
-            constexpr std::int32_t kTerminatorLength = 1;
+            // If there are no blocks create a new one.
+            if (_blocks.empty())
+            {
+                _blocks.emplace_back(std::make_unique<Block>());
+                return *_blocks.back();
+            }
 
-            const auto hash = getHash(buf, len);
+            // See if the last block has enough space.
+            auto& lastBlock = *_blocks.back();
+            if (lastBlock.used + len < kBlockSize)
+            {
+                return lastBlock;
+            }
 
-            auto stringId = find_(buf, len, hash);
+            // Create a new block.
+            auto newBlock = std::make_unique<Block>();
+            newBlock->index = _blocks.size();
+            _blocks.emplace_back(std::move(newBlock));
+
+            return *_blocks.back();
+        }
+
+        Id aquire_(const char* inputStr, std::size_t len)
+        {
+            const auto hash = getHash(inputStr, len);
+            return aquire_(inputStr, len, hash);
+        }
+
+        Id aquire_(const char* inputStr, std::size_t len, std::size_t hash)
+        {
+            // Strings can not be larger than kMaxStringSize.
+            if (len >= kMaxStringSize)
+            {
+                assert(len < kMaxStringSize);
+                return Id::Invalid;
+            }
+
+            // Find existing string and increase ref count.
+            auto stringId = find_(inputStr, len, hash);
             if (stringId != Id::Invalid)
             {
                 auto& entry = _entries[static_cast<std::size_t>(stringId)];
@@ -282,48 +483,82 @@ namespace zasm
             }
 
             const auto len2 = static_cast<std::int32_t>(len);
+            constexpr std::int32_t kTerminatorLength = 1;
 
             // Use empty entry if any exist.
-            auto itEntry = std::find_if(_entries.begin(), _entries.end(), [&](auto&& entry) {
+            // TODO: Optimize this, we should prioritize finding entries at the end of the list.
+            //       This would mean shrinking the vector has less to copy.
+            auto itEntry = std::find_if(_freeEntries.begin(), _freeEntries.end(), [&](Id id) {
+                auto& entry = _entries[static_cast<std::size_t>(id)];
                 return entry.refCount <= 0 && entry.capacity >= len2 + kTerminatorLength;
             });
 
-            if (itEntry != _entries.end())
+            const auto insertToHashBucket = [&](Entry& entry, Id id) {
+                const auto bucketIndex = entry.hash % kMaxHashBuckets;
+                auto& bucket = _hashBuckets[bucketIndex];
+
+                auto sortedIt = std::lower_bound(bucket.begin(), bucket.end(), id, [&](Id id, Id id2) {
+                    return _entries[static_cast<std::size_t>(id)].hash < _entries[static_cast<std::size_t>(id2)].hash;
+                });
+
+                const auto sortedIndex = static_cast<std::size_t>(std::distance(bucket.begin(), sortedIt));
+                bucket.insert(sortedIt, id);
+
+                return sortedIndex;
+            };
+
+            const auto writeStringToBlock = [&](std::size_t blockOffset, Block& block) {
+                std::memcpy(block.data.data() + blockOffset, inputStr, len2);
+                // Ensure null termination.
+                block.data[blockOffset + len2] = '\0';
+            };
+
+            if (itEntry != _freeEntries.end())
             {
                 // Found empty space.
-                auto& entry = *itEntry;
+                stringId = *itEntry;
+                auto& entry = _entries[static_cast<std::size_t>(stringId)];
 
-                stringId = static_cast<Id>(std::distance(_entries.begin(), itEntry));
-                std::memcpy(_data.data() + entry.offset, buf, len2);
-
-                // Ensure null termination.
-                const auto termOffset = static_cast<std::size_t>(entry.offset) + len2;
-                _data[termOffset] = '\0';
+                auto& block = _blocks[entry.blockIndex];
+                writeStringToBlock(entry.offsetInBlock, *block);
 
                 entry.hash = hash;
                 entry.len = len2;
                 entry.refCount = 1;
+                entry.sortedIndex = insertToHashBucket(entry, stringId);
+
+                _freeEntries.erase(itEntry);
 
                 return stringId;
             }
 
             // New entry.
-            const auto offset = static_cast<std::int32_t>(_data.size());
-            std::copy_n(buf, len, std::back_insert_iterator(_data));
+            auto& block = getBlock(len2 + kTerminatorLength);
+            const auto offset = static_cast<std::int32_t>(block.used);
 
-            // Ensure null termination.
-            _data.push_back('\0');
+            writeStringToBlock(offset, block);
+            block.used += len2 + kTerminatorLength;
 
             stringId = static_cast<Id>(_entries.size());
 
-            _entries.push_back({ hash, offset, len2, len2 + kTerminatorLength, 1 });
+            auto& entry = _entries.emplace_back();
+            entry.hash = hash;
+            entry.blockIndex = block.index;
+            entry.offsetInBlock = offset;
+            entry.len = len2;
+            entry.capacity = len2 + kTerminatorLength;
+            entry.refCount = 1;
+            entry.sortedIndex = insertToHashBucket(entry, stringId);
 
             return stringId;
         }
 
         static constexpr std::size_t getHash(const char* buf, size_t len) noexcept
         {
-            if (buf == nullptr)
+            assert(buf != nullptr);
+            assert(len > 0);
+
+            if (buf == nullptr || len == 0)
             {
                 return 0;
             }
@@ -340,6 +575,7 @@ namespace zasm
                 result ^= static_cast<unsigned char>(buf[i]);
                 result *= prime;
             }
+
             return result;
         }
     };
