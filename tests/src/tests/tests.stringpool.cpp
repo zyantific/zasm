@@ -1,4 +1,6 @@
 #include <gtest/gtest.h>
+
+#define IN_TESTS
 #include <zasm/core/stringpool.hpp>
 
 namespace zasm::tests
@@ -85,6 +87,40 @@ namespace zasm::tests
         ASSERT_NE(id5, id1);
         ASSERT_EQ(pool.getLength(id5), std::size(str5) - 1);
         ASSERT_EQ(pool.getRefCount(id5), 1);
+    }
+
+    TEST(StringPoolTests, TestManyStrings)
+    {
+        StringPool pool;
+
+        std::vector<StringPool::Id> ids;
+
+        constexpr auto kTestSize = 1'000'000;
+        for (auto i = 0U; i < kTestSize; i++)
+        {
+            std::string str = std::string("hello") + std::to_string(i);
+
+            const auto id = pool.aquire(str);
+            ASSERT_NE(id, StringPool::Id::Invalid);
+            ASSERT_EQ(pool.getLength(id), str.size());
+            ASSERT_EQ(pool.getRefCount(id), 1);
+
+            const auto* cstr = pool.get(id);
+            ASSERT_NE(cstr, nullptr);
+            ASSERT_EQ(strcmp(cstr, str.c_str()), 0);
+
+            ids.push_back(id);
+        }
+
+        // Validate that the contents still match.
+        for (auto i = 0U; i < kTestSize; i++)
+        {
+            std::string str = std::string("hello") + std::to_string(i);
+
+            const auto* cstr = pool.get(ids[i]);
+            ASSERT_NE(cstr, nullptr);
+            ASSERT_EQ(strcmp(cstr, str.c_str()), 0);
+        }
     }
 
 } // namespace zasm::tests
