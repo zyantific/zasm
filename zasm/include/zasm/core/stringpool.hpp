@@ -151,6 +151,11 @@ namespace zasm
         {
             _entries.clear();
             _blocks.clear();
+            _freeEntries.clear();
+            for (auto& bucket : _hashBuckets)
+            {
+                bucket.clear();
+            }
         }
 
         std::size_t size() const noexcept
