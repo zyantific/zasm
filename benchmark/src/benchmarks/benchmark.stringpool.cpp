@@ -59,6 +59,40 @@ namespace zasm::benchmarks
     }
     BENCHMARK(BM_StringPool_Release)->Range(0, kTestSize)->Unit(benchmark::kMillisecond);
 
+    static void BM_StringPool_Reuse(benchmark::State& state)
+    {
+        StringPool pool;
+        for (auto _ : state)
+        {
+            std::vector<StringPool::Id> stringIds;
+
+            state.PauseTiming();
+            for (auto i = 0; i < state.range(0); ++i)
+            {
+                const auto& str = kInputStrings[i];
+
+                auto stringId = pool.aquire(str);
+                stringIds.push_back(stringId);
+            }
+
+            // Clear.
+            for (auto i = 0; i < state.range(0); ++i)
+            {
+                auto stringId = pool.release(stringIds[i]);
+            }
+            state.ResumeTiming();
+
+            for (auto i = 0; i < state.range(0); ++i)
+            {
+                const auto& str = kInputStrings[i];
+
+                auto stringId = pool.aquire(str);
+                benchmark::DoNotOptimize(stringId);
+            }
+        }
+    }
+    BENCHMARK(BM_StringPool_Reuse)->Range(0, kTestSize)->Unit(benchmark::kMillisecond);
+
     static void BM_StringPool_Get(benchmark::State& state)
     {
         StringPool pool;
