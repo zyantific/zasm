@@ -39,6 +39,48 @@ namespace zasm::tests
         ASSERT_EQ(strcmp(cstr2, str2), 0);
     }
 
+    TEST(StringPoolTests, TestDuplicate)
+    {
+        StringPool pool;
+
+        constexpr const char str1[] = "hello";
+        constexpr const char str2[] = "hello";
+        constexpr const char str3[] = "hello";
+        constexpr const char str4[] = "hello1";
+
+        const auto id0 = pool.acquire(str1);
+        ASSERT_NE(id0, StringPool::Id::Invalid);
+        ASSERT_EQ(pool.getLength(id0), std::size(str1) - 1);
+        ASSERT_EQ(pool.getRefCount(id0), 1);
+        const auto* cstr0 = pool.get(id0);
+        ASSERT_NE(cstr0, nullptr);
+        ASSERT_EQ(strcmp(cstr0, str1), 0);
+
+        const auto id1 = pool.acquire(str2);
+        ASSERT_NE(id1, StringPool::Id::Invalid);
+        ASSERT_EQ(id1, id0);
+        ASSERT_EQ(pool.getLength(id1), std::size(str2) - 1);
+        ASSERT_EQ(pool.getRefCount(id1), 2);
+        const auto* cstr2 = pool.get(id1);
+        ASSERT_EQ(strcmp(cstr2, str2), 0);
+
+        const auto id2 = pool.acquire(str3);
+        ASSERT_NE(id2, StringPool::Id::Invalid);
+        ASSERT_EQ(id2, id0);
+        ASSERT_EQ(pool.getLength(id2), std::size(str3) - 1);
+        ASSERT_EQ(pool.getRefCount(id2), 3);
+        const auto* cstr3 = pool.get(id2);
+        ASSERT_EQ(strcmp(cstr3, str3), 0);
+
+        const auto id3 = pool.acquire(str4);
+        ASSERT_NE(id3, StringPool::Id::Invalid);
+        ASSERT_NE(id3, id0);
+        ASSERT_EQ(pool.getLength(id3), std::size(str4) - 1);
+        ASSERT_EQ(pool.getRefCount(id3), 1);
+        const auto* cstr4 = pool.get(id3);
+        ASSERT_EQ(strcmp(cstr4, str4), 0);
+    }
+
     TEST(StringPoolTests, TestRelease)
     {
         StringPool pool;
