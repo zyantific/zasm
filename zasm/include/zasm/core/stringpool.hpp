@@ -27,8 +27,8 @@ namespace zasm
         static constexpr std::size_t kAverageStringSize = 24;
         static constexpr std::size_t kStringsPerBlock = 4096;
         static constexpr std::size_t kBlockSize = kAverageStringSize * kStringsPerBlock;
-        static constexpr std::size_t kUnspecifiedSize = ~std::size_t{ 0 };
         static constexpr std::size_t kMinStringCapacity = 16;
+        static constexpr std::size_t kUnspecifiedSize = ~std::size_t{ 0 };
 
         static_assert(kBlockSize >= kMaxStringSize, "Block size must be bigger than max string size.");
 
@@ -36,13 +36,21 @@ namespace zasm
         static constexpr std::size_t kMaxHashBuckets = 39119;
 
     private:
+        using StringSize = std::conditional_t<
+            kMaxStringSize <= std::numeric_limits<std::uint16_t>::max(), std::uint16_t, std::uint32_t>;
+
+        using BlockOffset = std::conditional_t<
+            kBlockSize <= std::numeric_limits<std::uint32_t>::max(), std::uint32_t, std::uint64_t>;
+
+        using BlockIndex = std::uint32_t;
+
         struct Entry
         {
-            std::size_t hash{};
-            std::size_t blockIndex{};
-            std::int32_t offsetInBlock{};
-            std::int32_t len{};
-            std::int32_t capacity{};
+            std::uint64_t hash{};
+            BlockIndex blockIndex{};
+            BlockOffset offsetInBlock{};
+            StringSize len{};
+            StringSize capacity{};
             std::int32_t refCount{};
             Id nextFreeId{ Id::Invalid };
         };
@@ -54,8 +62,8 @@ namespace zasm
 
         struct Block
         {
-            std::size_t index{};
-            std::size_t used{};
+            BlockIndex index{};
+            std::uint32_t used{};
             std::array<char, kBlockSize> data{};
         };
 
@@ -74,6 +82,11 @@ namespace zasm
                 size = std::strlen(value);
             }
             return aquire_(value, size);
+        }
+
+        Id aquire(std::string_view str)
+        {
+            return aquire_(str.data(), str.size());
         }
 
         Id aquire(const std::string& val)
@@ -131,7 +144,7 @@ namespace zasm
             return _blocks[entry->blockIndex]->data.data() + entry->offsetInBlock;
         }
 
-        int32_t getLength(Id stringId) const noexcept
+        std::size_t getLength(Id stringId) const noexcept
         {
             const auto* entry = getEntry(*this, stringId);
             if (entry == nullptr)
@@ -403,7 +416,7 @@ namespace zasm
             return &self._entries[idx];
         }
 
-        Id find_(const char* buf, std::size_t len, std::size_t hash) const noexcept
+        Id find_(const char* buf, std::size_t len, std::uint64_t hash) const noexcept
         {
             const auto bucketIndex = hash % kMaxHashBuckets;
             const auto& bucket = _hashBuckets[bucketIndex];
@@ -456,7 +469,7 @@ namespace zasm
 
             // Create a new block.
             auto newBlock = std::make_unique<Block>();
-            newBlock->index = _blocks.size();
+            newBlock->index = static_cast<BlockIndex>(_blocks.size());
             _blocks.emplace_back(std::move(newBlock));
 
             return *_blocks.back();
@@ -504,7 +517,7 @@ namespace zasm
             return aquire_(inputStr, len, hash);
         }
 
-        Id aquire_(const char* inputStr, std::size_t len, std::size_t hash)
+        Id aquire_(const char* inputStr, std::size_t len, std::uint64_t hash)
         {
             // Strings can not be larger than kMaxStringSize.
             if (len >= kMaxStringSize)
@@ -589,7 +602,7 @@ namespace zasm
             return stringId;
         }
 
-        static constexpr std::size_t getHash(const char* buf, size_t len) noexcept
+        static constexpr std::uint64_t getHash(const char* buf, size_t len) noexcept
         {
             assert(buf != nullptr);
             assert(len > 0);
@@ -598,14 +611,11 @@ namespace zasm
             {
                 return 0;
             }
-#ifdef _M_AMD64
-            constexpr std::size_t offset = 0xcbf29ce484222325ULL;
-            constexpr std::size_t prime = 0x00000100000001B3ULL;
-#else
-            constexpr std::size_t offset = 0x811c9dc5U;
-            constexpr std::size_t prime = 0x01000193U;
-#endif
-            std::size_t result = offset;
+
+            constexpr std::uint64_t offset = 0xcbf29ce484222325ULL;
+            constexpr std::uint64_t prime = 0x00000100000001B3ULL;
+
+            std::uint64_t result = offset;
             for (std::size_t i = 0; i < len; ++i)
             {
                 result ^= static_cast<unsigned char>(buf[i]);
