@@ -23,7 +23,7 @@ namespace zasm::benchmarks
         return strings;
     }();
 
-    static void BM_StringPool_Aquire(benchmark::State& state)
+    static void BM_StringPool_Acquire(benchmark::State& state)
     {
         StringPool pool;
         for (auto _ : state)
@@ -32,12 +32,12 @@ namespace zasm::benchmarks
             {
                 const auto& str = kInputStrings[i];
 
-                auto stringId = pool.aquire(str);
+                auto stringId = pool.acquire(str);
                 benchmark::DoNotOptimize(stringId);
             }
         }
     }
-    BENCHMARK(BM_StringPool_Aquire)->Range(0, kTestSize)->Unit(benchmark::kMillisecond);
+    BENCHMARK(BM_StringPool_Acquire)->Range(0, kTestSize)->Unit(benchmark::kMillisecond);
 
     static void BM_StringPool_Release(benchmark::State& state)
     {
@@ -49,7 +49,7 @@ namespace zasm::benchmarks
                 state.PauseTiming();
                 const auto& str = kInputStrings[i];
 
-                auto stringId = pool.aquire(str);
+                auto stringId = pool.acquire(str);
                 state.ResumeTiming();
 
                 auto refCount = pool.release(stringId);
@@ -71,7 +71,7 @@ namespace zasm::benchmarks
             {
                 const auto& str = kInputStrings[i];
 
-                auto stringId = pool.aquire(str);
+                auto stringId = pool.acquire(str);
                 stringIds.push_back(stringId);
             }
 
@@ -86,7 +86,7 @@ namespace zasm::benchmarks
             {
                 const auto& str = kInputStrings[i];
 
-                auto stringId = pool.aquire(str);
+                auto stringId = pool.acquire(str);
                 benchmark::DoNotOptimize(stringId);
             }
         }
@@ -103,7 +103,7 @@ namespace zasm::benchmarks
                 state.PauseTiming();
                 const auto& str = kInputStrings[i];
 
-                auto stringId = pool.aquire(str);
+                auto stringId = pool.acquire(str);
                 state.ResumeTiming();
 
                 const char* res = pool.get(stringId);
@@ -123,7 +123,7 @@ namespace zasm::benchmarks
                 state.PauseTiming();
                 const auto& str = kInputStrings[i];
 
-                auto stringId = pool.aquire(str);
+                auto stringId = pool.acquire(str);
                 state.ResumeTiming();
 
                 auto strLen = pool.getLength(stringId);

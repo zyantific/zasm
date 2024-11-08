@@ -75,7 +75,7 @@ namespace zasm
             _hashBuckets.resize(kMaxHashBuckets);
         }
 
-        Id aquire(const char* value, std::size_t size = kUnspecifiedSize)
+        Id acquire(const char* value, std::size_t size = kUnspecifiedSize)
         {
             if (size == kUnspecifiedSize)
             {
@@ -84,12 +84,12 @@ namespace zasm
             return aquire_(value, size);
         }
 
-        Id aquire(std::string_view str)
+        Id acquire(std::string_view str)
         {
             return aquire_(str.data(), str.size());
         }
 
-        Id aquire(const std::string& val)
+        Id acquire(const std::string& val)
         {
             return aquire_(val.c_str(), val.size());
         }
@@ -167,6 +167,11 @@ namespace zasm
 
         void clear() noexcept
         {
+            if (_entries.empty())
+            {
+                // Because clearing the buckets is expensive do nothing if already empty.
+                return;
+            }
             _entries.clear();
             if (_blocks.size() > 1)
             {

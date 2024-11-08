@@ -154,7 +154,7 @@ namespace zasm
 
         if (name != nullptr)
         {
-            entry.nameId = _state->symbolNames.aquire(name);
+            entry.nameId = _state->symbolNames.acquire(name);
         }
     }
 
@@ -594,7 +594,7 @@ namespace zasm
         {
             return StringPool::Id::Invalid;
         }
-        return state.symbolNames.aquire(str);
+        return state.symbolNames.acquire(str);
     }
 
     static Label createLabel_(detail::ProgramState& state, StringPool::Id nameId, StringPool::Id modId, LabelFlags flags)
@@ -731,7 +731,7 @@ namespace zasm
 
         if (name != nullptr)
         {
-            entry.nameId = _state->symbolNames.aquire(name);
+            entry.nameId = _state->symbolNames.acquire(name);
         }
 
         return Section{ sectId };
@@ -800,7 +800,7 @@ namespace zasm
             entry->nameId = StringPool::Id::Invalid;
         }
 
-        entry->nameId = _state->symbolNames.aquire(name);
+        entry->nameId = _state->symbolNames.acquire(name);
         return ErrorCode::None;
     }
 

@@ -475,7 +475,7 @@ namespace zasm
         defaultSect.attribs = Section::kDefaultAttribs;
         defaultSect.align = Section::kDefaultAlign;
         defaultSect.address = newBase;
-        defaultSect.nameId = programState.symbolNames.aquire(".text");
+        defaultSect.nameId = programState.symbolNames.acquire(".text");
 
         const auto serializePass = [&]() -> Error {
             state.buffer.clear();
