@@ -81,4 +81,49 @@ namespace zasm::tests
         ASSERT_EQ(vis.get<8>(), Operand::Visibility::Invalid);
         ASSERT_EQ(vis.get<9>(), Operand::Visibility::Invalid);
     }
-} // namespace zasm::tests
+
+    TEST(PackedTests, TestPackOperandAccess)
+    {
+        using PackedOperandAccess = Packed<uint64_t, Operand::Access, 4>;
+        static_assert(sizeof(PackedOperandAccess) == sizeof(uint64_t));
+
+        PackedOperandAccess access{};
+        ASSERT_EQ(access.size(), 16);
+        ASSERT_EQ(access.capacity(), 16);
+
+        ASSERT_EQ(access.get<0>(), Operand::Access::None);
+        ASSERT_EQ(access.get<1>(), Operand::Access::None);
+        ASSERT_EQ(access.get<2>(), Operand::Access::None);
+        ASSERT_EQ(access.get<3>(), Operand::Access::None);
+        ASSERT_EQ(access.get<4>(), Operand::Access::None);
+        ASSERT_EQ(access.get<5>(), Operand::Access::None);
+        ASSERT_EQ(access.get<6>(), Operand::Access::None);
+        ASSERT_EQ(access.get<7>(), Operand::Access::None);
+        ASSERT_EQ(access.get<8>(), Operand::Access::None);
+        ASSERT_EQ(access.get<9>(), Operand::Access::None);
+        ASSERT_EQ(access.get<10>(), Operand::Access::None);
+
+        access.set<0>(Operand::Access::Read);
+        ASSERT_EQ(access.get<0>(), Operand::Access::Read);
+
+        access.set<5>(Operand::Access::Write);
+        ASSERT_EQ(access.get<0>(), Operand::Access::Read);
+        ASSERT_EQ(access.get<5>(), Operand::Access::Write);
+
+        access.set<10>(Operand::Access::CondRead);
+        ASSERT_EQ(access.get<0>(), Operand::Access::Read);
+
+        access.set<15>(Operand::Access::CondWrite);
+        ASSERT_EQ(access.get<0>(), Operand::Access::Read);
+        ASSERT_EQ(access.get<5>(), Operand::Access::Write);
+        ASSERT_EQ(access.get<10>(), Operand::Access::CondRead);
+        ASSERT_EQ(access.get<15>(), Operand::Access::CondWrite);
+
+        access.set<15>(Operand::Access::None);
+        ASSERT_EQ(access.get<0>(), Operand::Access::Read);
+        ASSERT_EQ(access.get<5>(), Operand::Access::Write);
+        ASSERT_EQ(access.get<10>(), Operand::Access::CondRead);
+        ASSERT_EQ(access.get<15>(), Operand::Access::None);    
+    }
+
+    } // namespace zasm::tests

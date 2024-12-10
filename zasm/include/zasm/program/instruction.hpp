@@ -67,7 +67,7 @@ namespace zasm
     public:
         static constexpr auto kInstrType = InstructionBase::Type::Detail;
 
-        using OperandsAccess = Packed<std::uint32_t, Operand::Access, 3>;
+        using OperandsAccess = Packed<std::uint64_t, Operand::Access, 4>;
         using OperandsVisibility = Packed<std::uint32_t, Operand::Visibility, 3>;
 
         struct CPUFlags

@@ -78,4 +78,48 @@ namespace zasm::tests
         }
     }
 
+    TEST(DecoderTests, Issue_149)
+    {
+        Program program(MachineMode::AMD64);
+        Decoder decoder(MachineMode::AMD64);
+
+        const std::array<uint8_t, 8> inputBytes = {
+            0xF0, 0x0F, 0xB1, 0x95, 0x74, 0x17, 0x01, 0x00, // lock cmpxchg dword ptr ss:[rbp+0x11774], edx
+        };
+
+        auto decoded = decoder.decode(inputBytes.data(), inputBytes.size(), 0x00400000);
+        ASSERT_TRUE(decoded);
+
+        ASSERT_EQ(decoded->getMnemonic(), x86::Mnemonic::Cmpxchg);
+
+        ASSERT_EQ(decoded->getOperandCount(), 4);
+
+        ASSERT_EQ(decoded->isOperandType<Mem>(0), true);
+        ASSERT_EQ(decoded->getOperand<Mem>(0).getBase(), x86::rbp);
+        ASSERT_EQ(decoded->getOperand<Mem>(0).getDisplacement(), 0x11774);
+        ASSERT_EQ(decoded->isOperandRead(0), true);
+        ASSERT_EQ(decoded->isOperandWrite(0), true);
+        ASSERT_EQ(decoded->isOperandCondWrite(0), true);
+
+        ASSERT_EQ(decoded->isOperandType<Reg>(1), true);
+        ASSERT_EQ(decoded->getOperand<Reg>(1), x86::edx);
+        ASSERT_EQ(decoded->isOperandRead(1), true);
+        ASSERT_EQ(decoded->isOperandCondRead(1), false);
+        ASSERT_EQ(decoded->isOperandWrite(1), false);
+        ASSERT_EQ(decoded->isOperandCondWrite(1), false);
+
+        ASSERT_EQ(decoded->isOperandType<Reg>(2), true);
+        ASSERT_EQ(decoded->getOperand<Reg>(2), x86::eax);
+        ASSERT_EQ(decoded->isOperandRead(2), true);
+        ASSERT_EQ(decoded->isOperandWrite(2), true);
+        ASSERT_EQ(decoded->isOperandCondWrite(2), true);
+
+        ASSERT_EQ(decoded->isOperandType<Reg>(3), true);
+        ASSERT_EQ(decoded->getOperand<Reg>(3), x86::rflags);
+        ASSERT_EQ(decoded->isOperandRead(3), false);
+        ASSERT_EQ(decoded->isOperandCondRead(3), false);
+        ASSERT_EQ(decoded->isOperandWrite(3), true);
+        ASSERT_EQ(decoded->isOperandCondWrite(3), false);
+    }
+
 } // namespace zasm::tests
