@@ -54,7 +54,7 @@ namespace zasm
         template<std::size_t TIndex> constexpr void set(const TElement& val) noexcept
         {
             constexpr auto bitIndex = (TIndex * TElementBitSize);
-            static_assert(bitIndex + TElementBitSize < kStorageBitSize);
+            static_assert(bitIndex + TElementBitSize <= kStorageBitSize);
 
             const auto newVal = (static_cast<TUnderlying>(val) & kElementMask) << bitIndex;
 
@@ -81,7 +81,7 @@ namespace zasm
         template<std::size_t TIndex> constexpr TElement get() const noexcept
         {
             constexpr auto bitIndex = (TIndex * TElementBitSize);
-            static_assert(bitIndex + TElementBitSize < kStorageBitSize);
+            static_assert(bitIndex + TElementBitSize <= kStorageBitSize);
 
             const auto res = (_data >> bitIndex) & kElementMask;
             return static_cast<TElement>(res);
