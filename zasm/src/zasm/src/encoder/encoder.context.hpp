@@ -33,9 +33,17 @@ namespace zasm
         Section::Attribs attribs{};
     };
 
+    enum class EncoderFlags : std::uint32_t
+    {
+        none = 0,
+        temporary = 1U << 0,
+    };
+    ZASM_ENABLE_ENUM_OPERATORS(EncoderFlags);
+
     struct EncoderContext
     {
     public:
+        EncoderFlags flags{};
         detail::ProgramState* program{};
         bool needsExtraPass{};
         std::size_t nodeIndex{};
@@ -45,7 +53,6 @@ namespace zasm
         std::int64_t va{};
         std::int32_t offset{};
         std::int32_t instrSize{};
-   
 
         struct LabelLink
         {
@@ -105,6 +112,11 @@ namespace zasm
         {
             assert(id != Label::Id::Invalid);
 
+            if ((flags & EncoderFlags::temporary) != EncoderFlags::none)
+            {
+                return std::nullopt;
+            }
+
             const auto& entry = getOrCreateLabelLink(id);
             if (entry.boundVA == -1)
             {
@@ -112,6 +124,17 @@ namespace zasm
             }
 
             return entry.boundVA;
+        }
+
+        std::uint32_t getNodeSize(std::size_t nodeIndex) const
+        {
+            if ((flags & EncoderFlags::temporary) != EncoderFlags::none)
+            {
+                return 0;
+            }
+
+            assert(nodeIndex < nodes.size());
+            return nodes[nodeIndex].length;
         }
     };
 } // namespace zasm

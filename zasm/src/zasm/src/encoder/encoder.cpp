@@ -18,12 +18,17 @@ namespace zasm
 
     struct EncoderState
     {
-        EncoderContext* ctx{};
+        EncoderContext& ctx;
         ZydisEncoderRequest req{};
         std::size_t operandIndex{};
         RelocationType relocKind{};
         RelocationData relocData{};
         Label::Id relocLabel{ Label::Id::Invalid };
+
+        EncoderState(EncoderContext& ctx_) noexcept
+            : ctx(ctx_)
+        {
+        }
     };
 
     // NOTE: This value has to be at least larger than 0xFFFF to be used with imm32/rel32 displacement.
@@ -97,8 +102,14 @@ namespace zasm
         return encoderVariantData[mnemonic]; // NOLINT
     }
 
-    static bool isLabelExternal(detail::ProgramState* state, Label::Id labelId)
+    static bool isLabelExternal(EncoderContext& ctx, Label::Id labelId)
     {
+        if ((ctx.flags & EncoderFlags::temporary) != EncoderFlags::none)
+        {
+            return false;
+        }
+
+        const auto state = ctx.program;
         const auto idx = static_cast<std::size_t>(labelId);
         if (idx >= state->labels.size())
         {
@@ -137,7 +148,8 @@ namespace zasm
         return res;
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, [[maybe_unused]] EncoderState& state, const Reg& src) noexcept
+    static Error buildOperand_(
+        EncoderContext&, ZydisEncoderOperand& dst, [[maybe_unused]] EncoderState& state, const Reg& src) noexcept
     {
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_REGISTER;
         dst.reg.value = static_cast<ZydisRegister>(src.getId());
@@ -147,8 +159,6 @@ namespace zasm
 
     static int64_t getTemporaryRel(EncoderState& state, const EncodeVariantsInfo& encodeInfo) noexcept
     {
-        auto* ctx = state.ctx;
-
         std::int64_t tempRel = 0;
 
         if (encodeInfo.canEncodeRel32())
@@ -163,22 +173,19 @@ namespace zasm
         return tempRel;
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Label& src)
+    static Error buildOperand_(EncoderContext& ctx, ZydisEncoderOperand& dst, EncoderState& state, const Label& src)
     {
-        auto* ctx = state.ctx;
-
-        const auto curVA = ctx != nullptr ? ctx->va : 0;
         const auto& encodeInfo = getEncodeVariantInfo(state.req.mnemonic);
 
         // Initially a temporary placeholder.
-        std::int64_t immValue = curVA + getTemporaryRel(state, encodeInfo);
+        std::int64_t immValue = ctx.va + getTemporaryRel(state, encodeInfo);
 
-        if (ctx != nullptr && !isLabelExternal(ctx->program, src.getId()))
+        if (!isLabelExternal(ctx, src.getId()))
         {
-            auto labelVA = ctx->getLabelAddress(src.getId());
+            auto labelVA = ctx.getLabelAddress(src.getId());
             if (!labelVA.has_value())
             {
-                ctx->needsExtraPass = true;
+                ctx.needsExtraPass = true;
             }
             else
             {
@@ -188,8 +195,7 @@ namespace zasm
 
         if (encodeInfo.isControlFlow)
         {
-            const auto instrSize = ctx != nullptr ? ctx->instrSize : 0;
-            const auto rel = immValue - (curVA + instrSize);
+            const auto rel = immValue - (ctx.va + ctx.instrSize);
 
             if (!encodeInfo.canEncodeRel32())
             {
@@ -228,10 +234,8 @@ namespace zasm
         return ErrorCode::None;
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Imm& src)
+    static Error buildOperand_(EncoderContext&, ZydisEncoderOperand& dst, EncoderState& state, const Imm& src)
     {
-        auto* ctx = state.ctx;
-
         auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
 
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_IMMEDIATE;
@@ -240,10 +244,8 @@ namespace zasm
         return ErrorCode::None;
     }
 
-    static Error buildOperand_(ZydisEncoderOperand& dst, EncoderState& state, const Mem& src)
+    static Error buildOperand_(EncoderContext& ctx, ZydisEncoderOperand& dst, EncoderState& state, const Mem& src)
     {
-        auto* ctx = state.ctx;
-
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_MEMORY;
         dst.mem.base = static_cast<ZydisRegister>(src.getBase().getId());
         dst.mem.index = static_cast<ZydisRegister>(src.getIndex().getId());
@@ -258,38 +260,29 @@ namespace zasm
 
         std::int64_t displacement = src.getDisplacement();
 
-        const auto address = ctx != nullptr ? ctx->va : 0;
-
         bool usingLabel = false;
         bool externalLabel = false;
         bool isDisplacementValid = true;
 
         if (const auto labelId = src.getLabelId(); labelId != Label::Id::Invalid)
         {
-            if (ctx != nullptr)
-            {
-                externalLabel = isLabelExternal(ctx->program, labelId);
+            externalLabel = isLabelExternal(ctx, labelId);
 
-                auto labelVA = ctx->getLabelAddress(labelId);
-                if (labelVA.has_value())
-                {
-                    displacement += *labelVA;
-                }
-                else
-                {
-                    displacement += address + kTemporaryRel32Value;
-                    isDisplacementValid = false;
-                    if (!externalLabel)
-                    {
-                        ctx->needsExtraPass = true;
-                    }
-                }
+            auto labelVA = ctx.getLabelAddress(labelId);
+            if (labelVA.has_value())
+            {
+                displacement += *labelVA;
             }
             else
             {
-                displacement = kTemporaryRel32Value;
+                displacement += ctx.va + kTemporaryRel32Value;
                 isDisplacementValid = false;
+                if (!externalLabel)
+                {
+                    ctx.needsExtraPass = true;
+                }
             }
+
             usingLabel = true;
         }
 
@@ -307,8 +300,7 @@ namespace zasm
         {
             if (isDisplacementValid)
             {
-                const auto instrSize = ctx != nullptr ? ctx->instrSize : 0;
-                const auto rel = displacement - (address + instrSize);
+                const auto rel = displacement - (ctx.va + ctx.instrSize);
                 if (std::abs(rel) > std::numeric_limits<std::int32_t>::max())
                 {
                     char msg[128];
@@ -343,15 +335,16 @@ namespace zasm
     }
 
     static Error buildOperand_(
-        ZydisEncoderOperand& dst, [[maybe_unused]] EncoderState& state, [[maybe_unused]] const Operand::None& src) noexcept
+        EncoderContext&, ZydisEncoderOperand& dst, [[maybe_unused]] EncoderState& state,
+        [[maybe_unused]] const Operand::None& src) noexcept
     {
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_UNUSED;
         return ErrorCode::None;
     }
 
-    static Error buildOperand(ZydisEncoderOperand& dst, EncoderState& state, const Operand& src)
+    static Error buildOperand(EncoderContext& ctx, ZydisEncoderOperand& dst, EncoderState& state, const Operand& src)
     {
-        return src.visit([&dst, &state](auto&& src2) { return buildOperand_(dst, state, src2); });
+        return src.visit([&](auto&& src2) { return buildOperand_(ctx, dst, state, src2); });
     }
 
     static void fixupIs4Operands(ZydisEncoderRequest& req) noexcept
@@ -432,7 +425,7 @@ namespace zasm
     }
 
     static Error encode_(
-        EncoderResult& res, EncoderContext* ctx, MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic mnemonic,
+        EncoderResult& res, EncoderContext& ctx, MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic mnemonic,
         size_t numOps, const Operand* operands)
     {
         if (!validateMachineMode(mode))
@@ -442,8 +435,7 @@ namespace zasm
 
         res.buffer.length = 0;
 
-        EncoderState state{};
-        state.ctx = ctx;
+        EncoderState state{ ctx };
 
         ZydisEncoderRequest& req = state.req;
         if (mode == MachineMode::AMD64)
@@ -481,7 +473,7 @@ namespace zasm
         {
             auto& dstOp = req.operands[state.operandIndex];   // NOLINT
             const auto& srcOp = operands[state.operandIndex]; // NOLINT
-            if (auto opStatus = buildOperand(dstOp, state, srcOp); opStatus != ErrorCode::None)
+            if (auto opStatus = buildOperand(ctx, dstOp, state, srcOp); opStatus != ErrorCode::None)
             {
                 return opStatus;
             }
@@ -491,8 +483,7 @@ namespace zasm
         fixupIs4Operands(req);
 
         std::size_t bufLen = res.buffer.data.size();
-        const auto curAddress = ctx != nullptr ? ctx->va : 0;
-        switch (auto status = ZydisEncoderEncodeInstructionAbsolute(&req, res.buffer.data.data(), &bufLen, curAddress); status)
+        switch (auto status = ZydisEncoderEncodeInstructionAbsolute(&req, res.buffer.data.data(), &bufLen, ctx.va); status)
         {
             case ZYAN_STATUS_SUCCESS:
                 break;
@@ -509,32 +500,30 @@ namespace zasm
         return ErrorCode::None;
     }
 
-    Expected<EncoderResult, Error> encode(
-        MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, std::size_t numOps,
-        const Operand* operands)
-    {
-        EncoderResult res;
-        if (auto err = encode_(res, nullptr, mode, attribs, mnemonic, numOps, operands); err != ErrorCode::None)
-        {
-            return makeUnexpected(err);
-        }
-        return res;
-    }
-
     static Expected<EncoderResult, Error> encodeWithContext(
         EncoderContext& ctx, MachineMode mode, Instruction::Attribs prefixes, Instruction::Mnemonic mnemonic,
         std::size_t numOps, const Operand* operands)
     {
         EncoderResult res;
-        ctx.instrSize = ctx.nodes[ctx.nodeIndex].length;
+        ctx.instrSize = ctx.getNodeSize(ctx.nodeIndex);
 
-        if (const auto encodeError = encode_(res, &ctx, mode, prefixes, mnemonic, numOps, operands);
+        if (const auto encodeError = encode_(res, ctx, mode, prefixes, mnemonic, numOps, operands);
             encodeError != ErrorCode::None)
         {
             return makeUnexpected(encodeError);
         }
 
         return res;
+    }
+
+    Expected<EncoderResult, Error> encode(
+        MachineMode mode, Instruction::Attribs attribs, Instruction::Mnemonic mnemonic, std::size_t numOps,
+        const Operand* operands)
+    {
+        EncoderContext tempCtx{};
+        tempCtx.flags |= EncoderFlags::temporary;
+
+        return encodeWithContext(tempCtx, mode, attribs, mnemonic, numOps, operands);
     }
 
     Expected<EncoderResult, Error> encode(EncoderContext& ctx, MachineMode mode, const Instruction& instr)
