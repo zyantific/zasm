@@ -14,30 +14,30 @@ namespace zasm
     {
         using RegisterPack = Packed<std::uint32_t, Reg::Id, 10>;
 
-        BitSize _bitSize{};
-        RegisterPack _segBaseIndex{};
-        std::uint8_t _scale{};
         std::int64_t _disp{};
+        RegisterPack _segBaseIndex{};
         Label::Id _label{ Label::Id::Invalid };
+        std::uint8_t _scale{};
+        BitSize _bitSize{};
 
     public:
         constexpr explicit Mem(
             BitSize bitSize, const Reg& seg, const Reg& base, const Reg& index, std::int32_t scale, std::int64_t disp) noexcept
-            : _bitSize{ bitSize }
+            : _disp{ disp }
             , _segBaseIndex{ seg.getId(), base.getId(), index.getId() }
             , _scale{ static_cast<std::uint8_t>(scale) }
-            , _disp{ disp }
+            , _bitSize{ bitSize }
         {
         }
 
         constexpr explicit Mem(
             BitSize bitSize, const Reg& seg, const Label& label, const Reg& base, const Reg& index, std::int32_t scale,
             std::int64_t disp) noexcept
-            : _bitSize{ bitSize }
+            : _disp{ disp }
             , _segBaseIndex{ seg.getId(), base.getId(), index.getId() }
-            , _scale{ static_cast<std::uint8_t>(scale) }
-            , _disp{ disp }
             , _label{ label.getId() }
+            , _scale{ static_cast<std::uint8_t>(scale) }
+            , _bitSize{ bitSize }
         {
         }
 

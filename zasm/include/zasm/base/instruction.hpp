@@ -41,8 +41,8 @@ namespace zasm
 
     protected:
         Attribs _attribs{};
-        OperandCount _opCount{};
         Mnemonic _mnemonic{};
+        OperandCount _opCount{};
         Type _type{};
 
     protected:
