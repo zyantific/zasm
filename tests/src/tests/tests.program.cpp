@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <zasm/testdata/x86/instructions.hpp>
 #include <zasm/zasm.hpp>
 
 namespace zasm::tests
@@ -367,6 +368,25 @@ namespace zasm::tests
 
         auto* data = node->getIf<Data>();
         ASSERT_EQ(data, nullptr);
+    }
+
+    // Test to ensure that we stay under 4 GiB of memory with a large number of instructions.
+    TEST(ProgramTests, Test1MillionInstructions)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        constexpr auto kMaxInstructions = 1'000'000;
+
+        for (size_t i = 0; i < kMaxInstructions; i++)
+        {
+            const auto& instrEntry = data::Instructions[i % std::size(data::Instructions)];
+
+            ASSERT_EQ(instrEntry.emitter(assembler), ErrorCode::None) << instrEntry.instrBytes << ", " << instrEntry.operation;
+        }
+
+        ASSERT_EQ(program.size(), kMaxInstructions);
     }
 
 } // namespace zasm::tests
