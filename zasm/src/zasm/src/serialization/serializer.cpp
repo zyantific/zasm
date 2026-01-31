@@ -622,7 +622,8 @@ namespace zasm
                 {
                     if (instr.raw.imm[0].is_relative == ZYAN_TRUE)
                     {
-                        continue;
+                        if (!isExternal)
+                            continue;
                     }
 
                     reloc.offset = node.offset + instr.raw.imm[0].offset;

@@ -192,6 +192,12 @@ namespace zasm
                 immValue = *labelVA;
             }
         }
+        else
+        {
+            state.relocKind = RelocationType::Rel32;
+            state.relocData = RelocationData::Immediate;
+            state.relocLabel = src.getId();
+        }
 
         if (encodeInfo.isControlFlow)
         {
