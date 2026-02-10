@@ -61,4 +61,31 @@ namespace zasm::tests
         ::testing::ValuesIn(std::begin(data::Instructions), std::end(data::Instructions)),
         [](const ::testing::TestParamInfo<data::InstrTest>& info) { return std::string{ info.param.instrBytes }; });
 
+    TEST(InstructionInfoTests, LargeDisplacement)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        const auto instr = zasm::Instruction()                                                         //
+                               .setMnemonic(x86::Mnemonic::Lea)                                        //
+                               .addOperand(x86::rcx)                                                   //
+                               .addOperand(zasm::Mem(BitSize::_64, {}, x86::rip, {}, 0, 0x123456789)); //
+
+        const auto instrDetail = instr.getDetail(MachineMode::AMD64);
+        ASSERT_EQ(instrDetail.hasValue(), true);
+
+        const auto& instrInfo = instrDetail.value();
+
+        const auto op0 = instrInfo.getOperand(0);
+        auto* opReg = op0.getIf<Reg>();
+        ASSERT_NE(opReg, nullptr);
+        ASSERT_EQ(opReg->getId(), x86::rcx.getId());
+
+        const auto& op1 = instrInfo.getOperand(1);
+        auto* opMem = op1.getIf<Mem>();
+        ASSERT_NE(opMem, nullptr);
+        ASSERT_EQ(opMem->getDisplacement(), 0x123456789);
+    }
+
 } // namespace zasm::tests
