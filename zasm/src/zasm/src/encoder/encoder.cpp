@@ -306,13 +306,23 @@ namespace zasm
         {
             if (isDisplacementValid)
             {
-                const auto rel = displacement - (ctx.va + ctx.instrSize);
-                if (std::abs(rel) > std::numeric_limits<std::int32_t>::max())
+                if ((ctx.flags & EncoderFlags::temporary) != EncoderFlags::none)
                 {
-                    char msg[128];
-                    std::snprintf(msg, sizeof(msg), "Displacement out of range for operand %zu", state.operandIndex);
+                    // In this case we just use a temporary value for rel32.
+                    displacement = kTemporaryRel32Value;
+                }
+                else
+                {
+                    // Validate that displacement is in range for rel32.
+                    const auto rel = displacement - (ctx.va + ctx.instrSize);
 
-                    return Error(ErrorCode::AddressOutOfRange, msg);
+                    if (std::abs(rel) > std::numeric_limits<std::int32_t>::max())
+                    {
+                        char msg[128];
+                        std::snprintf(msg, sizeof(msg), "Displacement out of range for operand %zu", state.operandIndex);
+
+                        return Error(ErrorCode::AddressOutOfRange, msg);
+                    }
                 }
             }
 
