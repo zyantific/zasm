@@ -37,6 +37,7 @@ namespace zasm::tests
         ASSERT_EQ(relocInfo->address, 0x0000000000400003);
         ASSERT_EQ(relocInfo->size, BitSize::_32);
         ASSERT_EQ(relocInfo->offset, 3);
+        ASSERT_EQ(relocInfo->relBaseOffset, 4);
     }
 
     TEST(ExternalLabelTests, BasicTestX64Abs)
@@ -69,6 +70,7 @@ namespace zasm::tests
         ASSERT_EQ(relocInfo->address, 0x0000000000400004);
         ASSERT_EQ(relocInfo->size, BitSize::_32);
         ASSERT_EQ(relocInfo->offset, 4);
+        ASSERT_EQ(relocInfo->relBaseOffset, 0);
     }
 
     TEST(ExternalLabelTests, EmbeddedExternalLabelX64Rel)
@@ -106,6 +108,7 @@ namespace zasm::tests
         ASSERT_EQ(relocInfo->address, 0x000000000040000A);
         ASSERT_EQ(relocInfo->size, BitSize::_64);
         ASSERT_EQ(relocInfo->offset, 10);
+        ASSERT_EQ(relocInfo->relBaseOffset, 0);
     }
 
     TEST(ExternalLabelTests, EmbeddedExternalLabelX64Abs)
@@ -142,6 +145,7 @@ namespace zasm::tests
         ASSERT_EQ(relocInfo->address, 0x000000000040000B);
         ASSERT_EQ(relocInfo->size, BitSize::_64);
         ASSERT_EQ(relocInfo->offset, 11);
+        ASSERT_EQ(relocInfo->relBaseOffset, 0);
     }
 
     TEST(ExternalLabelTests, EmbeddedExternalLabelX86)
@@ -180,6 +184,7 @@ namespace zasm::tests
             ASSERT_EQ(relocInfo->address, 0x0000000000400002);
             ASSERT_EQ(relocInfo->size, BitSize::_32);
             ASSERT_EQ(relocInfo->offset, 2);
+            ASSERT_EQ(relocInfo->relBaseOffset, 0);
         }
         {
             ASSERT_EQ(serializer.getExternalRelocationCount(), 1);
@@ -188,6 +193,7 @@ namespace zasm::tests
             ASSERT_EQ(relocInfo->address, 0x0000000000400008);
             ASSERT_EQ(relocInfo->size, BitSize::_32);
             ASSERT_EQ(relocInfo->offset, 8);
+            ASSERT_EQ(relocInfo->relBaseOffset, 0);
         }
     }
 
@@ -228,6 +234,7 @@ namespace zasm::tests
             ASSERT_EQ(relocInfo->address, 0x0000000000400002);
             ASSERT_EQ(relocInfo->size, BitSize::_32);
             ASSERT_EQ(relocInfo->offset, 2);
+            ASSERT_EQ(relocInfo->relBaseOffset, 0);
         }
         {
             ASSERT_EQ(serializer.getExternalRelocationCount(), 1);
@@ -236,6 +243,7 @@ namespace zasm::tests
             ASSERT_EQ(relocInfo->address, 0x0000000000400008);
             ASSERT_EQ(relocInfo->size, BitSize::_32);
             ASSERT_EQ(relocInfo->offset, 8);
+            ASSERT_EQ(relocInfo->relBaseOffset, 0);
         }
 
         ASSERT_EQ(serializer.relocate(0x0000000000500000), ErrorCode::None);
@@ -261,6 +269,7 @@ namespace zasm::tests
             ASSERT_EQ(relocInfo->address, 0x0000000000500002);
             ASSERT_EQ(relocInfo->size, BitSize::_32);
             ASSERT_EQ(relocInfo->offset, 2);
+            ASSERT_EQ(relocInfo->relBaseOffset, 0);
         }
         {
             ASSERT_EQ(serializer.getExternalRelocationCount(), 1);
@@ -269,6 +278,7 @@ namespace zasm::tests
             ASSERT_EQ(relocInfo->address, 0x0000000000500008);
             ASSERT_EQ(relocInfo->size, BitSize::_32);
             ASSERT_EQ(relocInfo->offset, 8);
+            ASSERT_EQ(relocInfo->relBaseOffset, 0);
         }
     }
 
@@ -304,6 +314,7 @@ namespace zasm::tests
         ASSERT_EQ(relocInfo->address, 0x0000000000400001);
         ASSERT_EQ(relocInfo->size, BitSize::_32);
         ASSERT_EQ(relocInfo->offset, 1);
+        ASSERT_EQ(relocInfo->relBaseOffset, 4);
     }
 
     TEST(ExternalLabelTests, BasicTestX86Call)
@@ -338,6 +349,76 @@ namespace zasm::tests
         ASSERT_EQ(relocInfo->address, 0x0000000000400001);
         ASSERT_EQ(relocInfo->size, BitSize::_32);
         ASSERT_EQ(relocInfo->offset, 1);
+        ASSERT_EQ(relocInfo->relBaseOffset, 4);
     }
 
+    TEST(ExternalLabelTests, BasicTestRelBaseOffsetX64)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto externalLabel = program.createExternalLabel("external");
+
+        ASSERT_EQ(assembler.cmp(x86::qword_ptr(x86::rip, externalLabel), 1), ErrorCode::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), ErrorCode::None);
+
+        const std::array<uint8_t, 8> expected = {
+            0x48, 0x83, 0x3D, 0x00, 0x00, 0x00, 0x00, 0x01
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+
+        ASSERT_EQ(serializer.getRelocationCount(), 0);
+        ASSERT_EQ(serializer.getExternalRelocationCount(), 1);
+        const auto* relocInfo = serializer.getExternalRelocation(0);
+        ASSERT_EQ(relocInfo->kind, RelocationType::Rel32);
+        ASSERT_EQ(relocInfo->address, 0x0000000000400003);
+        ASSERT_EQ(relocInfo->size, BitSize::_32);
+        ASSERT_EQ(relocInfo->offset, 3);
+        ASSERT_EQ(relocInfo->relBaseOffset, 5);
+    }
+
+    TEST(ExternalLabelTests, BasicTestRelBaseOffsetX86)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        auto externalLabel = program.createExternalLabel("external");
+
+        ASSERT_EQ(assembler.cmp(x86::dword_ptr(x86::rip, externalLabel), 1), ErrorCode::None);
+
+        Serializer serializer;
+        ASSERT_EQ(serializer.serialize(program, 0x0000000000400000), ErrorCode::None);
+
+        const std::array<uint8_t, 7> expected = {
+            0x83, 0x3D, 0x00, 0x00, 0x00, 0x00, 0x01
+        };
+        ASSERT_EQ(serializer.getCodeSize(), expected.size());
+
+        const auto* data = serializer.getCode();
+        ASSERT_NE(data, nullptr);
+        for (size_t i = 0; i < expected.size(); i++)
+        {
+            ASSERT_EQ(data[i], expected[i]);
+        }
+
+        ASSERT_EQ(serializer.getRelocationCount(), 0);
+        ASSERT_EQ(serializer.getExternalRelocationCount(), 1);
+        const auto* relocInfo = serializer.getExternalRelocation(0);
+        ASSERT_EQ(relocInfo->kind, RelocationType::Rel32);
+        ASSERT_EQ(relocInfo->address, 0x0000000000400002);
+        ASSERT_EQ(relocInfo->size, BitSize::_32);
+        ASSERT_EQ(relocInfo->offset, 2);
+        ASSERT_EQ(relocInfo->relBaseOffset, 5);
+    }
 } // namespace zasm::tests

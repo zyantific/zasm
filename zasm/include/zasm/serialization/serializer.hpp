@@ -28,6 +28,7 @@ namespace zasm
     struct RelocationInfo
     {
         std::int32_t offset{};
+        std::int32_t relBaseOffset{};
         std::int64_t address{};
         BitSize size{};
         RelocationType kind{};

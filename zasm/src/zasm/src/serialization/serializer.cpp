@@ -624,6 +624,8 @@ namespace zasm
                     {
                         if (!isExternal)
                             continue;
+
+                        reloc.relBaseOffset = instr.length - instr.raw.imm[0].offset;
                     }
 
                     reloc.offset = node.offset + instr.raw.imm[0].offset;
@@ -632,6 +634,9 @@ namespace zasm
                 }
                 else if (node.relocData == RelocationData::Memory)
                 {
+                    if (node.relocKind == RelocationType::Rel32)
+                        reloc.relBaseOffset = instr.length - instr.raw.disp.offset;
+
                     reloc.offset = node.offset + instr.raw.disp.offset;
                     reloc.address = node.address + instr.raw.disp.offset;
                     reloc.size = toBitSize(instr.raw.disp.size);
