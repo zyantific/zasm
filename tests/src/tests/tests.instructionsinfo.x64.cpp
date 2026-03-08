@@ -88,4 +88,25 @@ namespace zasm::tests
         ASSERT_EQ(opMem->getDisplacement(), 0x123456789);
     }
 
+    TEST(InstructionInfoTests, LargeJsAddress)
+    {
+        Program program(MachineMode::AMD64);
+
+        x86::Assembler assembler(program);
+
+        const auto instr = zasm::Instruction()                      //
+                               .setMnemonic(x86::Mnemonic::Js)      //
+                               .addOperand(zasm::Imm(0x18342F417)); //
+
+        const auto instrDetail = instr.getDetail(MachineMode::AMD64);
+        ASSERT_EQ(instrDetail.hasValue(), true);
+
+        const auto& instrInfo = instrDetail.value();
+
+        const auto op0 = instrInfo.getOperand(0);
+        auto* opImm = op0.getIf<Imm>();
+        ASSERT_NE(opImm, nullptr);
+        ASSERT_EQ(opImm->value<int64_t>(), 0x18342F417);
+    }
+
 } // namespace zasm::tests

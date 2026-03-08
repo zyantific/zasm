@@ -18,17 +18,11 @@ namespace zasm
 
     struct EncoderState
     {
-        EncoderContext& ctx;
         ZydisEncoderRequest req{};
         std::size_t operandIndex{};
         RelocationType relocKind{};
         RelocationData relocData{};
         Label::Id relocLabel{ Label::Id::Invalid };
-
-        EncoderState(EncoderContext& ctx_) noexcept
-            : ctx(ctx_)
-        {
-        }
     };
 
     // NOTE: This value has to be at least larger than 0xFFFF to be used with imm32/rel32 displacement.
@@ -240,12 +234,38 @@ namespace zasm
         return ErrorCode::None;
     }
 
-    static Error buildOperand_(EncoderContext&, ZydisEncoderOperand& dst, EncoderState& state, const Imm& src)
+    static Error buildOperand_(EncoderContext& ctx, ZydisEncoderOperand& dst, EncoderState& state, const Imm& src)
     {
         auto desiredBranchType = ZydisBranchType::ZYDIS_BRANCH_TYPE_NONE;
 
         dst.type = ZydisOperandType::ZYDIS_OPERAND_TYPE_IMMEDIATE;
-        dst.imm.s = src.value<std::int64_t>();
+        if ((ctx.flags & EncoderFlags::temporary) != EncoderFlags::none)
+        {
+            const auto& encodeInfo = getEncodeVariantInfo(state.req.mnemonic);
+            if (encodeInfo.isControlFlow)
+            {
+                if (encodeInfo.canEncodeRel32())
+                {
+                    dst.imm.s = ctx.va + kTemporaryRel32Value;
+                }
+                else if (encodeInfo.canEncodeRel8())
+                {
+                    dst.imm.s = ctx.va + kTemporaryRel8Value;
+                }
+                else
+                {
+                    dst.imm.s = src.value<std::int64_t>();
+                }
+            }
+            else
+            {
+                dst.imm.s = src.value<std::int64_t>();
+            }
+        }
+        else
+        {
+            dst.imm.s = src.value<std::int64_t>();
+        }
 
         return ErrorCode::None;
     }
@@ -451,7 +471,7 @@ namespace zasm
 
         res.buffer.length = 0;
 
-        EncoderState state{ ctx };
+        EncoderState state{};
 
         ZydisEncoderRequest& req = state.req;
         if (mode == MachineMode::AMD64)
